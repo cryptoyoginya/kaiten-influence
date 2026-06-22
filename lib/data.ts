@@ -58,6 +58,12 @@ export type Placement = {
     post_link?: string;
     analytics_link?: string;
     note?: string;
+    now_needed?: string;
+    comment_dasha?: string;
+    comment_dima?: string;
+    comment_lesha?: string;
+    comment_ksyusha?: string;
+    comment_kristina?: string;
   };
 };
 

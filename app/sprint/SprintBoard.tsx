@@ -270,6 +270,11 @@ function Card({ p, onOpen }: { p: Placement; onOpen: () => void }) {
     >
       <div className="text-[13px] font-medium leading-snug">{p.name || "—"}</div>
       <div className="text-[11px] text-[var(--color-muted)] mt-1">{p.post_date || "—"}</div>
+      {p.data?.now_needed && (
+        <div className="text-[11px] text-[#b26a00] mt-1 line-clamp-2">
+          ⚡ {p.data.now_needed}
+        </div>
+      )}
       {field && (
         <div
           className={[
@@ -379,6 +384,17 @@ function Editor({
             </div>
           )}
 
+          {/* что сейчас нужно */}
+          <div>
+            <Label>Что сейчас нужно</Label>
+            <input
+              value={d.now_needed ?? ""}
+              onChange={(e) => set((x) => ((x.data ??= {}).now_needed = e.target.value))}
+              placeholder="напр. ждём реквизиты от блогера / нужен апрув креатива"
+              className="w-full bg-[var(--color-surface)] text-[14px] px-3 py-2 rounded-[var(--radius-lg)] border border-[var(--color-orange)] outline-none focus:border-[var(--color-accent)]"
+            />
+          </div>
+
           {/* бриф */}
           <Section title="Бриф">
             <FA label="Описание автора" v={p.author_desc} on={(v) => set((x) => (x.author_desc = v))} />
@@ -434,6 +450,15 @@ function Editor({
               <F label="Аналитика" v={d.analytics_link ?? ""} on={(v) => set((x) => ((x.data ??= {}).analytics_link = v))} />
             </div>
             <FA label="Заметка" v={d.note ?? ""} on={(v) => set((x) => ((x.data ??= {}).note = v))} />
+          </Section>
+
+          {/* комментарии команды */}
+          <Section title="Комментарии">
+            <FA label="Коммент от Даши" v={d.comment_dasha ?? ""} on={(v) => set((x) => ((x.data ??= {}).comment_dasha = v))} />
+            <FA label="Коммент от Димы" v={d.comment_dima ?? ""} on={(v) => set((x) => ((x.data ??= {}).comment_dima = v))} />
+            <FA label="Коммент от Лёши" v={d.comment_lesha ?? ""} on={(v) => set((x) => ((x.data ??= {}).comment_lesha = v))} />
+            <FA label="Коммент от Ксюши" v={d.comment_ksyusha ?? ""} on={(v) => set((x) => ((x.data ??= {}).comment_ksyusha = v))} />
+            <FA label="Коммент от Кристины" v={d.comment_kristina ?? ""} on={(v) => set((x) => ((x.data ??= {}).comment_kristina = v))} />
           </Section>
 
           {/* чеклист этапов */}
