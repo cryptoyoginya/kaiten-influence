@@ -387,6 +387,39 @@ function Editor({
   const stage = stageOf(p);
   const field = stage < STEPS.length ? STAGE_FIELD[stage] : null;
   const d = (p.data ?? {}) as NonNullable<Placement["data"]>;
+  const c = (d.contract ?? {}) as Record<string, string>;
+  const cset = (k: string) => (v: string) =>
+    set((x) => {
+      x.data ??= {};
+      x.data.contract ??= {};
+      x.data.contract[k] = v;
+    });
+  const [genBusy, setGenBusy] = useState(false);
+  async function genContract() {
+    setGenBusy(true);
+    try {
+      const res = await fetch("/api/contract", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(p.data?.contract ?? {}),
+      });
+      if (!res.ok) {
+        alert("Не удалось сформировать договор");
+        return;
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Договор ${p.name || ""}.docx`.trim();
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } finally {
+      setGenBusy(false);
+    }
+  }
 
   return (
     <div className="fixed inset-0 z-50 bg-black/45 flex items-start justify-center p-4 overflow-y-auto" onClick={onClose}>
@@ -499,6 +532,42 @@ function Editor({
                 <Check label="Согласование от Лёши" on={d.approve_lesha} toggle={() => set((x) => ((x.data ??= {}).approve_lesha = !d.approve_lesha))} />
               </div>
             </div>
+          </Section>
+
+          {/* договор — автосборка по реквизитам блогера */}
+          <Section title="Договор — автосборка">
+            <p className="text-[12px] text-[var(--color-faint)]">
+              Заполни реквизиты, которые прислал блогер, и нажми «Сформировать
+              договор» — соберётся .docx по типовому шаблону. Дальше — апрув и подпись.
+            </p>
+            <div className="grid md:grid-cols-2 gap-x-4 gap-y-3">
+              <F label="ФИО полностью" v={c.fio ?? ""} on={cset("fio")} />
+              <F label="ФИО для подписи (Иванов И.И.)" v={c.fio_short ?? ""} on={cset("fio_short")} />
+              <F label="Статус (самозанятый / ИП)" v={c.status ?? ""} on={cset("status")} />
+              <F label="ИНН" v={c.inn ?? ""} on={cset("inn")} />
+              <F label="СНИЛС" v={c.snils ?? ""} on={cset("snils")} />
+              <F label="Банк" v={c.bank ?? ""} on={cset("bank")} />
+              <F label="БИК" v={c.bik ?? ""} on={cset("bik")} />
+              <F label="Корр. счёт" v={c.korr ?? ""} on={cset("korr")} />
+              <F label="Расчётный счёт" v={c.rs ?? ""} on={cset("rs")} />
+              <F label="Телефон" v={c.phone ?? ""} on={cset("phone")} />
+              <F label="Email" v={c.email ?? ""} on={cset("email")} />
+              <F label="Канал (ссылка)" v={c.channel ?? ""} on={cset("channel")} />
+              <F label="Формат (пост)" v={c.format ?? ""} on={cset("format")} />
+              <F label="Дата публикации" v={c.pub_date ?? ""} on={cset("pub_date")} />
+              <F label="Сроки / длительность" v={c.duration ?? ""} on={cset("duration")} />
+              <F label="Сумма, ₽ (число)" v={c.price_num ?? ""} on={cset("price_num")} />
+              <F label="Сумма прописью" v={c.price_words ?? ""} on={cset("price_words")} />
+              <F label="Город договора" v={c.place ?? ""} on={cset("place")} />
+              <F label="Дата договора" v={c.contract_date ?? ""} on={cset("contract_date")} />
+            </div>
+            <button
+              onClick={genContract}
+              disabled={genBusy}
+              className="mt-3 h-9 px-4 rounded-[var(--radius-lg)] bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white text-[14px] font-medium disabled:opacity-60"
+            >
+              {genBusy ? "Собираю…" : "Сформировать договор (.docx)"}
+            </button>
           </Section>
 
           {/* все артефакты этапов */}

@@ -11,8 +11,10 @@
   "dependencies": {
     "@supabase/ssr": "^0.12.0",
     "@supabase/supabase-js": "^2.108.2",
+    "docxtemplater": "^3.69.0",
     "next": "^15.5.4",
     "pg": "^8.22.0",
+    "pizzip": "^3.2.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
   },
