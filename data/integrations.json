@@ -1,0 +1,188 @@
+[
+  {
+    "id": "week-1-nm:уставшиитехдир",
+    "sprint_id": "week-1",
+    "name": "Уставший техдир",
+    "niche": "CTO и тимлид",
+    "date": "2026-06-23 00:00:00",
+    "landing": "https://kaiten.ru/compare/jira-alternative",
+    "published": false,
+    "plan": {
+      "price": "35000.0",
+      "reach": "7 000–9 000",
+      "cpv": "6.3",
+      "err": "39,9%",
+      "views": "7 000+"
+    },
+    "result": {
+      "post_link": "",
+      "format": "",
+      "costs": {
+        "price": "",
+        "marking": "",
+        "tax": "",
+        "total": ""
+      },
+      "reach": {
+        "views": "",
+        "reach": "",
+        "likes": "",
+        "reposts": "",
+        "comments_count": "",
+        "er": ""
+      },
+      "conversion": {
+        "clicks": "",
+        "registrations": "",
+        "activations": "",
+        "paying": "",
+        "revenue": ""
+      },
+      "unit": {
+        "cpv": "",
+        "cpm": "",
+        "ctr": "",
+        "cpl": "",
+        "cac": "",
+        "romi": "",
+        "payback": ""
+      },
+      "screens": {
+        "creative": "",
+        "stats": "",
+        "comments": []
+      },
+      "lessons": {
+        "sentiment": "",
+        "worked": "",
+        "failed": "",
+        "learned": "",
+        "verdict": ""
+      }
+    }
+  },
+  {
+    "id": "week-1-nm:деплои",
+    "sprint_id": "week-1",
+    "name": "Деплой",
+    "niche": "",
+    "date": "Ср, 24.06.2026",
+    "landing": "https://kaiten.ru/teams/kaiten-for-it",
+    "published": false,
+    "plan": {
+      "price": "35000.0",
+      "reach": "2 500–3 500",
+      "cpv": "11.7",
+      "err": "33,0%",
+      "views": "2 500+"
+    },
+    "result": {
+      "post_link": "",
+      "format": "",
+      "costs": {
+        "price": "",
+        "marking": "",
+        "tax": "",
+        "total": ""
+      },
+      "reach": {
+        "views": "",
+        "reach": "",
+        "likes": "",
+        "reposts": "",
+        "comments_count": "",
+        "er": ""
+      },
+      "conversion": {
+        "clicks": "",
+        "registrations": "",
+        "activations": "",
+        "paying": "",
+        "revenue": ""
+      },
+      "unit": {
+        "cpv": "",
+        "cpm": "",
+        "ctr": "",
+        "cpl": "",
+        "cac": "",
+        "romi": "",
+        "payback": ""
+      },
+      "screens": {
+        "creative": "",
+        "stats": "",
+        "comments": []
+      },
+      "lessons": {
+        "sentiment": "",
+        "worked": "",
+        "failed": "",
+        "learned": "",
+        "verdict": ""
+      }
+    }
+  },
+  {
+    "id": "week-1-nm:пименоввещает",
+    "sprint_id": "week-1",
+    "name": "Пименов вещает",
+    "niche": "",
+    "date": "Пт, 26.06.2026",
+    "landing": "https://kaiten.ru/teams/kaiten-for-it",
+    "published": false,
+    "plan": {
+      "price": "7 000",
+      "reach": "700–1 000",
+      "cpv": "11.8",
+      "err": "41,6%",
+      "views": "700+"
+    },
+    "result": {
+      "post_link": "",
+      "format": "",
+      "costs": {
+        "price": "",
+        "marking": "",
+        "tax": "",
+        "total": ""
+      },
+      "reach": {
+        "views": "",
+        "reach": "",
+        "likes": "",
+        "reposts": "",
+        "comments_count": "",
+        "er": ""
+      },
+      "conversion": {
+        "clicks": "",
+        "registrations": "",
+        "activations": "",
+        "paying": "",
+        "revenue": ""
+      },
+      "unit": {
+        "cpv": "",
+        "cpm": "",
+        "ctr": "",
+        "cpl": "",
+        "cac": "",
+        "romi": "",
+        "payback": ""
+      },
+      "screens": {
+        "creative": "",
+        "stats": "",
+        "comments": []
+      },
+      "lessons": {
+        "sentiment": "",
+        "worked": "",
+        "failed": "",
+        "learned": "",
+        "verdict": ""
+      }
+    }
+  }
+]

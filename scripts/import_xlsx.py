@@ -212,10 +212,57 @@ def main():
     }]
 
     chan_list = [channels[k] for k in order]
+
+    # --- интеграции: засев из размещений спринта, поля результата пустые ---
+    # ниша берётся из канала по имени, если нашёлся
+    niche_by_name = {}
+    for c in chan_list:
+        niche_by_name[name_key(c["name"])] = c["niches"][0] if c["niches"] else ""
+
+    def empty_result():
+        return {
+            "post_link": "",
+            "format": "",
+            "costs": {"price": "", "marking": "", "tax": "", "total": ""},
+            "reach": {"views": "", "reach": "", "likes": "", "reposts": "",
+                       "comments_count": "", "er": ""},
+            "conversion": {"clicks": "", "registrations": "", "activations": "",
+                            "paying": "", "revenue": ""},
+            "unit": {"cpv": "", "cpm": "", "ctr": "", "cpl": "", "cac": "",
+                      "romi": "", "payback": ""},
+            "screens": {"creative": "", "stats": "", "comments": []},
+            "lessons": {"sentiment": "", "worked": "", "failed": "",
+                         "learned": "", "verdict": ""},
+        }
+
+    integrations = []
+    for sp in sprints:
+        for p in sp["placements"]:
+            integrations.append({
+                "id": f"{sp['id']}-{name_key(p['name'])}",
+                "sprint_id": sp["id"],
+                "name": p["name"],
+                "niche": niche_by_name.get(name_key(p["name"]), ""),
+                "date": p["post_date"],
+                "landing": p["landing"],
+                "published": bool(p["steps"].get("Опубликовано")),
+                # план (из спринта) — для сравнения план→факт
+                "plan": {
+                    "price": p["price_discount"] or p["price"],
+                    "reach": p["forecast_reach"],
+                    "cpv": p["forecast_cpv"],
+                    "err": p["err"],
+                    "views": p["avg_views"],
+                },
+                "result": empty_result(),
+            })
+
     (OUT / "channels.json").write_text(
         json.dumps(chan_list, ensure_ascii=False, indent=2), encoding="utf-8")
     (OUT / "sprints.json").write_text(
         json.dumps(sprints, ensure_ascii=False, indent=2), encoding="utf-8")
+    (OUT / "integrations.json").write_text(
+        json.dumps(integrations, ensure_ascii=False, indent=2), encoding="utf-8")
 
     niche_counts = {}
     for c in chan_list:
@@ -224,6 +271,7 @@ def main():
     print(f"channels: {len(chan_list)} (dedup)")
     print(f"shortlisted: {sum(1 for c in chan_list if c['shortlisted'])}")
     print(f"sprint placements: {len(placements)}")
+    print(f"integrations (засев): {len(integrations)}")
     print("по нишам:")
     for n, k in sorted(niche_counts.items(), key=lambda x: -x[1]):
         print(f"  {k:3}  {n}")

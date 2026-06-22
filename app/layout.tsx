@@ -38,7 +38,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <nav className="flex items-center gap-1 ml-2">
               <NavLink href="/backlog" label="Бэклог" />
               <NavLink href="/sprint" label="Спринт" />
-              <NavLink href="/analytics" label="Аналитика" />
+              <NavLink href="/results" label="Результаты" />
+              <NavLink href="/analytics" label="Сводка" />
             </nav>
             <div className="ml-auto text-[13px] text-[var(--color-faint)]">
               Kaiten · продвижение

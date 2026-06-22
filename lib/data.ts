@@ -66,6 +66,58 @@ export function getSprints(): Sprint[] {
   return read<Sprint[]>("sprints.json");
 }
 
+export type Integration = {
+  id: string;
+  sprint_id: string;
+  name: string;
+  niche: string;
+  date: string;
+  landing: string;
+  published: boolean;
+  plan: { price: string; reach: string; cpv: string; err: string; views: string };
+  result: {
+    post_link: string;
+    format: string;
+    costs: { price: string; marking: string; tax: string; total: string };
+    reach: {
+      views: string;
+      reach: string;
+      likes: string;
+      reposts: string;
+      comments_count: string;
+      er: string;
+    };
+    conversion: {
+      clicks: string;
+      registrations: string;
+      activations: string;
+      paying: string;
+      revenue: string;
+    };
+    unit: {
+      cpv: string;
+      cpm: string;
+      ctr: string;
+      cpl: string;
+      cac: string;
+      romi: string;
+      payback: string;
+    };
+    screens: { creative: string; stats: string; comments: string[] };
+    lessons: {
+      sentiment: string;
+      worked: string;
+      failed: string;
+      learned: string;
+      verdict: string;
+    };
+  };
+};
+
+export function getIntegrations(): Integration[] {
+  return read<Integration[]>("integrations.json");
+}
+
 // порядок этапов пайплайна — единый источник для канбана
 export const PIPELINE_STEPS = [
   "Креатив согл. Кайтен",
