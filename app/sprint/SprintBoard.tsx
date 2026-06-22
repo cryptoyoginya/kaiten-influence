@@ -614,13 +614,45 @@ function Editor({
             <FA label="Заметка" v={d.note ?? ""} on={(v) => set((x) => ((x.data ??= {}).note = v))} />
           </Section>
 
-          {/* комментарии команды */}
+          {/* комментарии команды: текст + голос */}
           <Section title="Комментарии">
-            <FA label="Коммент от Даши" v={d.comment_dasha ?? ""} on={(v) => set((x) => ((x.data ??= {}).comment_dasha = v))} />
-            <FA label="Коммент от Димы" v={d.comment_dima ?? ""} on={(v) => set((x) => ((x.data ??= {}).comment_dima = v))} />
-            <FA label="Коммент от Лёши" v={d.comment_lesha ?? ""} on={(v) => set((x) => ((x.data ??= {}).comment_lesha = v))} />
-            <FA label="Коммент от Ксюши" v={d.comment_ksyusha ?? ""} on={(v) => set((x) => ((x.data ??= {}).comment_ksyusha = v))} />
-            <FA label="Коммент от Кристины" v={d.comment_kristina ?? ""} on={(v) => set((x) => ((x.data ??= {}).comment_kristina = v))} />
+            {([
+              ["dasha", "Даша"],
+              ["dima", "Дима"],
+              ["lesha", "Лёша"],
+              ["ksyusha", "Ксюша"],
+              ["kristina", "Кристина"],
+            ] as const).map(([k, label]) => {
+              const dd = d as Record<string, unknown>;
+              return (
+                <PersonComment
+                  key={k}
+                  label={label}
+                  text={(dd[`comment_${k}`] as string) ?? ""}
+                  audios={(dd[`audio_${k}`] as string[]) ?? []}
+                  upload={upload}
+                  onText={(v) =>
+                    set((x) => {
+                      x.data ??= {};
+                      (x.data as Record<string, unknown>)[`comment_${k}`] = v;
+                    })
+                  }
+                  onAddAudio={(url) =>
+                    set((x) => {
+                      x.data ??= {};
+                      const m = x.data as Record<string, string[]>;
+                      (m[`audio_${k}`] ??= []).push(url);
+                    })
+                  }
+                  onRemoveAudio={(i) =>
+                    set((x) => {
+                      const m = x.data as Record<string, string[]>;
+                      m[`audio_${k}`]?.splice(i, 1);
+                    })
+                  }
+                />
+              );
+            })}
           </Section>
 
           {/* чеклист этапов */}
@@ -820,6 +852,113 @@ function CreativeImage({
         }}
       />
     </div>
+  );
+}
+
+// коммент одного человека: текст + голосовые записи
+function PersonComment({
+  label,
+  text,
+  audios,
+  upload,
+  onText,
+  onAddAudio,
+  onRemoveAudio,
+}: {
+  label: string;
+  text: string;
+  audios: string[];
+  upload: (f: File) => Promise<string>;
+  onText: (v: string) => void;
+  onAddAudio: (url: string) => void;
+  onRemoveAudio: (i: number) => void;
+}) {
+  return (
+    <div className="border-l-2 border-[var(--color-line)] pl-3">
+      <div className="flex items-center justify-between mb-1">
+        <Label>{label}</Label>
+        <VoiceRecorder upload={upload} onRecorded={onAddAudio} />
+      </div>
+      <textarea
+        value={text}
+        onChange={(e) => onText(e.target.value)}
+        rows={2}
+        placeholder="текст коммента…"
+        className="w-full bg-[var(--color-surface)] text-[13px] px-2.5 py-1.5 rounded-[var(--radius-md)] border border-[var(--color-line)] outline-none focus:border-[var(--color-accent)] resize-y"
+      />
+      {audios.length > 0 && (
+        <div className="flex flex-col gap-1.5 mt-2">
+          {audios.map((url, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <audio controls src={url} className="h-8 flex-1" />
+              <button
+                onClick={() => onRemoveAudio(i)}
+                className="shrink-0 w-7 h-7 rounded-full bg-[var(--color-surface-2)] text-[var(--color-muted)] text-[15px] leading-none hover:bg-[var(--color-line-soft)]"
+                aria-label="Удалить запись"
+              >
+                ×
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// запись голоса через микрофон → загрузка в Storage
+function VoiceRecorder({
+  upload,
+  onRecorded,
+}: {
+  upload: (f: File) => Promise<string>;
+  onRecorded: (url: string) => void;
+}) {
+  const [rec, setRec] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const mr = useRef<MediaRecorder | null>(null);
+  const chunks = useRef<Blob[]>([]);
+
+  async function start() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const m = new MediaRecorder(stream);
+      mr.current = m;
+      chunks.current = [];
+      m.ondataavailable = (e) => e.data.size && chunks.current.push(e.data);
+      m.onstop = async () => {
+        stream.getTracks().forEach((t) => t.stop());
+        const blob = new Blob(chunks.current, { type: "audio/webm" });
+        const file = new File([blob], `voice-${Date.now()}.webm`, { type: "audio/webm" });
+        setBusy(true);
+        const url = await upload(file);
+        setBusy(false);
+        if (url) onRecorded(url);
+      };
+      m.start();
+      setRec(true);
+    } catch {
+      alert("Не удалось включить микрофон — разреши доступ в браузере.");
+    }
+  }
+  function stop() {
+    mr.current?.stop();
+    setRec(false);
+  }
+
+  return (
+    <button
+      onClick={rec ? stop : start}
+      disabled={busy}
+      className={[
+        "text-[12px] px-2.5 py-1 rounded-[var(--radius-md)] border transition-colors disabled:opacity-50",
+        rec
+          ? "bg-[var(--color-red-soft)] border-[var(--color-red-soft)] text-[#b3261e]"
+          : "bg-[var(--color-surface)] border-[var(--color-line)] text-[var(--color-muted)] hover:border-[var(--color-accent)]",
+      ].join(" ")}
+    >
+      {busy ? "…" : rec ? "⏺ стоп" : "🎤 записать"}
+    </button>
   );
 }
 

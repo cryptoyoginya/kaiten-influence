@@ -64,6 +64,12 @@ export type Placement = {
     comment_lesha?: string;
     comment_ksyusha?: string;
     comment_kristina?: string;
+    // голосовые комменты (URL аудио в Storage), несколько на человека
+    audio_dasha?: string[];
+    audio_dima?: string[];
+    audio_lesha?: string[];
+    audio_ksyusha?: string[];
+    audio_kristina?: string[];
     // реквизиты для автосборки договора (ключи = подстановки шаблона)
     contract?: Record<string, string>;
     ord_report_done?: boolean;
