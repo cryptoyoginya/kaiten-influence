@@ -178,9 +178,14 @@ function Card({ p }: { p: Placement }) {
 }
 
 function Detail({ p }: { p: Placement }) {
+  // широкие поля — на всю строку, короткие — в сетку
+  const wide: [string, string][] = [
+    ["Описание автора", p.author_desc],
+    ["Аудитория", p.audience],
+    ["Тематика поста", p.post_topic],
+  ];
   const fields: [string, string][] = [
     ["Дата", p.post_date],
-    ["Тематика поста", p.post_topic],
     ["Оффер", p.offer],
     ["Креос", p.creative],
     ["Ленд", p.landing],
@@ -189,12 +194,7 @@ function Detail({ p }: { p: Placement }) {
   return (
     <div className="rounded-[var(--radius-xl)] border border-[var(--color-line)] bg-[var(--color-surface)] p-4">
       <div className="flex items-start justify-between gap-4 mb-3">
-        <div>
-          <div className="font-semibold text-[15px]">{p.name}</div>
-          <div className="text-[12px] text-[var(--color-muted)] mt-0.5 max-w-[640px]">
-            {p.author_desc}
-          </div>
-        </div>
+        <div className="font-semibold text-[15px]">{p.name}</div>
         <div className="text-right text-[12px] text-[var(--color-muted)] shrink-0">
           <div>
             {p.price_discount || p.price} ₽
@@ -209,25 +209,14 @@ function Detail({ p }: { p: Placement }) {
           </div>
         </div>
       </div>
+      <div className="grid gap-y-2 mb-3">
+        {wide.map(([label, val]) => (
+          <Field key={label} label={label} val={val} />
+        ))}
+      </div>
       <div className="grid grid-cols-2 md:grid-cols-3 gap-x-5 gap-y-2 mb-3">
         {fields.map(([label, val]) => (
-          <div key={label}>
-            <div className="text-[11px] text-[var(--color-faint)]">{label}</div>
-            <div className="text-[13px] break-words">
-              {isUrl(val) ? (
-                <a
-                  href={val}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-[var(--color-accent)] hover:underline break-all"
-                >
-                  {val}
-                </a>
-              ) : (
-                val || <span className="text-[var(--color-faint)]">—</span>
-              )}
-            </div>
-          </div>
+          <Field key={label} label={label} val={val} />
         ))}
       </div>
       <div className="flex flex-wrap gap-1.5 pt-3 border-t border-[var(--color-line-soft)]">
@@ -247,6 +236,28 @@ function Detail({ p }: { p: Placement }) {
             </span>
           );
         })}
+      </div>
+    </div>
+  );
+}
+
+function Field({ label, val }: { label: string; val: string }) {
+  return (
+    <div>
+      <div className="text-[11px] text-[var(--color-faint)]">{label}</div>
+      <div className="text-[13px] break-words">
+        {isUrl(val) ? (
+          <a
+            href={val}
+            target="_blank"
+            rel="noreferrer"
+            className="text-[var(--color-accent)] hover:underline break-all"
+          >
+            {val}
+          </a>
+        ) : (
+          val || <span className="text-[var(--color-faint)]">—</span>
+        )}
       </div>
     </div>
   );
