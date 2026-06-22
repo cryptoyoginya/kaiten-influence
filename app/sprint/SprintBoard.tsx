@@ -43,6 +43,47 @@ function num(s: string): number {
   const m = String(s ?? "").replace(/\s| /g, "").match(/-?\d+[.,]?\d*/);
   return m ? parseFloat(m[0].replace(",", ".")) : 0;
 }
+// разбор даты: ДД.ММ.ГГГГ, ISO (2026-06-23…)
+function parseDate(s: string): Date | null {
+  const t = String(s ?? "").trim();
+  let m = t.match(/(\d{1,2})\.(\d{1,2})\.(\d{2,4})/);
+  if (m) {
+    let y = +m[3];
+    if (y < 100) y += 2000;
+    return new Date(y, +m[2] - 1, +m[1]);
+  }
+  m = t.match(/(\d{4})-(\d{2})-(\d{2})/);
+  if (m) return new Date(+m[1], +m[2] - 1, +m[3]);
+  return null;
+}
+function fmtDate(s: string): string {
+  const d = parseDate(s);
+  if (!d) return s || "—";
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${p(d.getDate())}.${p(d.getMonth() + 1)}.${d.getFullYear()}`;
+}
+const DUE_COLORS: Record<string, { bg: string; fg: string; border: string }> = {
+  red: { bg: "#fde8e6", fg: "#b3261e", border: "#f44336" },
+  orange: { bg: "#fff3e0", fg: "#b26a00", border: "#ffa100" },
+  amber: { bg: "#fff8e1", fg: "#8a6d00", border: "#e0b400" },
+  green: { bg: "#e9f5ea", fg: "#2e7d32", border: "#4caf51" },
+};
+// сколько дней до даты + цвет по срочности
+function dueInfo(s: string): { label: string; cls: keyof typeof DUE_COLORS } | null {
+  const d = parseDate(s);
+  if (!d) return null;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  d.setHours(0, 0, 0, 0);
+  const n = Math.round((d.getTime() - today.getTime()) / 86400000);
+  if (n < 0) return { label: `просрочено на ${-n} дн.`, cls: "red" };
+  if (n === 0) return { label: "сегодня", cls: "red" };
+  if (n === 1) return { label: "завтра", cls: "orange" };
+  if (n <= 3) return { label: `через ${n} дн.`, cls: "orange" };
+  if (n <= 7) return { label: `через ${n} дн.`, cls: "amber" };
+  return { label: `через ${n} дн.`, cls: "green" };
+}
+
 function stageOf(p: Placement): number {
   for (let i = 0; i < STEPS.length; i++) if (!p.steps?.[STEPS[i]]) return i;
   return STEPS.length;
@@ -261,15 +302,28 @@ function Card({ p, onOpen }: { p: Placement; onOpen: () => void }) {
       ? !!(p.data?.creative_image || p.data?.creative_text)
       : !!p.data?.[field.key]
     : true;
+  const due = dueInfo(p.post_date);
+  const dueC = due ? DUE_COLORS[due.cls] : null;
   return (
     <div
       draggable
       onDragStart={(e) => e.dataTransfer.setData("id", p.id ?? p.name)}
       onClick={onOpen}
+      style={dueC ? { borderColor: dueC.border, borderLeftWidth: 3 } : undefined}
       className="rounded-[var(--radius-lg)] border border-[var(--color-line)] bg-[var(--color-surface)] p-2.5 cursor-pointer hover:border-[var(--color-accent)]"
     >
       <div className="text-[13px] font-medium leading-snug">{p.name || "—"}</div>
-      <div className="text-[11px] text-[var(--color-muted)] mt-1">{p.post_date || "—"}</div>
+      <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+        <span className="text-[11px] text-[var(--color-muted)]">{fmtDate(p.post_date)}</span>
+        {due && dueC && (
+          <span
+            className="text-[10px] px-1.5 py-0.5 rounded font-medium"
+            style={{ background: dueC.bg, color: dueC.fg }}
+          >
+            {due.label}
+          </span>
+        )}
+      </div>
       {p.data?.now_needed && (
         <div className="text-[11px] text-[#b26a00] mt-1 line-clamp-2">
           ⚡ {p.data.now_needed}
@@ -401,7 +455,15 @@ function Editor({
             <FA label="Аудитория" v={p.audience} on={(v) => set((x) => (x.audience = v))} />
             <FA label="Тематика поста" v={p.post_topic} on={(v) => set((x) => (x.post_topic = v))} />
             <div className="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-3">
-              <F label="Дата" v={p.post_date} on={(v) => set((x) => (x.post_date = v))} />
+              <div>
+                <Label>Дата (01.01.2001)</Label>
+                <input
+                  value={p.post_date}
+                  onChange={(e) => set((x) => (x.post_date = e.target.value))}
+                  placeholder="01.01.2001"
+                  className="w-full bg-[var(--color-surface)] text-[13px] px-2.5 py-1.5 rounded-[var(--radius-md)] border border-[var(--color-line)] outline-none focus:border-[var(--color-accent)]"
+                />
+              </div>
               <F label="Оффер" v={p.offer} on={(v) => set((x) => (x.offer = v))} />
               <F label="Ленд" v={p.landing} on={(v) => set((x) => (x.landing = v))} />
               <F label="UTM" v={p.utm} on={(v) => set((x) => (x.utm = v))} />
