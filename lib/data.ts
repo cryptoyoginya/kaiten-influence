@@ -24,6 +24,8 @@ export type Channel = {
 };
 
 export type Placement = {
+  id?: string;
+  sprint_id?: string;
   name: string;
   author_desc: string;
   audience: string;
@@ -41,6 +43,17 @@ export type Placement = {
   forecast_reach: string;
   forecast_cpv: string;
   steps: Record<string, boolean>;
+  // артефакты по этапам пайплайна
+  data?: {
+    creative?: string;
+    contract_data?: string;
+    contract_file?: string;
+    payment?: string;
+    erid?: string;
+    post_link?: string;
+    analytics_link?: string;
+    note?: string;
+  };
 };
 
 export type Sprint = {
