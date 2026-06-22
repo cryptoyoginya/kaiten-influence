@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { createClient, SUPABASE_ENABLED } from "@/lib/supabase/server";
+import PasscodeGate from "./PasscodeGate";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -19,21 +19,7 @@ function NavLink({ href, label }: { href: string; label: string }) {
   );
 }
 
-async function currentEmail(): Promise<string | null> {
-  if (!SUPABASE_ENABLED) return null;
-  try {
-    const s = await createClient();
-    const {
-      data: { user },
-    } = await s.auth.getUser();
-    return user?.email ?? null;
-  } catch {
-    return null;
-  }
-}
-
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const email = await currentEmail();
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ru">
       <head>
@@ -44,37 +30,26 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         />
       </head>
       <body>
-        <header className="sticky top-0 z-10 bg-[var(--color-surface)] border-b border-[var(--color-line)]">
-          <div className="mx-auto max-w-[1216px] px-6 h-14 flex items-center gap-4">
-            <Link href="/" className="flex items-center gap-2 font-semibold text-[15px]">
-              <span className="inline-block w-6 h-6 rounded-[var(--radius-md)] bg-[var(--color-accent)]" />
-              Инфлюенс-маркетинг
-            </Link>
-            <nav className="flex items-center gap-1 ml-2">
-              <NavLink href="/backlog" label="Бэклог" />
-              <NavLink href="/sprint" label="Спринт" />
-              <NavLink href="/results" label="Результаты" />
-              <NavLink href="/analytics" label="Сводка" />
-            </nav>
-            <div className="ml-auto flex items-center gap-3">
-              {email ? (
-                <>
-                  <span className="text-[13px] text-[var(--color-muted)]">{email}</span>
-                  <form action="/auth/signout" method="post">
-                    <button className="text-[13px] text-[var(--color-faint)] hover:text-[var(--color-ink)]">
-                      выйти
-                    </button>
-                  </form>
-                </>
-              ) : (
-                <span className="text-[13px] text-[var(--color-faint)]">
-                  Kaiten · продвижение
-                </span>
-              )}
+        <PasscodeGate>
+          <header className="sticky top-0 z-10 bg-[var(--color-surface)] border-b border-[var(--color-line)]">
+            <div className="mx-auto max-w-[1216px] px-6 h-14 flex items-center gap-4">
+              <Link href="/" className="flex items-center gap-2 font-semibold text-[15px]">
+                <span className="inline-block w-6 h-6 rounded-[var(--radius-md)] bg-[var(--color-accent)]" />
+                Инфлюенс-маркетинг
+              </Link>
+              <nav className="flex items-center gap-1 ml-2">
+                <NavLink href="/backlog" label="Бэклог" />
+                <NavLink href="/sprint" label="Спринт" />
+                <NavLink href="/results" label="Результаты" />
+                <NavLink href="/analytics" label="Сводка" />
+              </nav>
+              <div className="ml-auto text-[13px] text-[var(--color-faint)]">
+                Kaiten · продвижение
+              </div>
             </div>
-          </div>
-        </header>
-        <main className="mx-auto max-w-[1216px] px-6 py-8">{children}</main>
+          </header>
+          <main className="mx-auto max-w-[1216px] px-6 py-8">{children}</main>
+        </PasscodeGate>
       </body>
     </html>
   );
