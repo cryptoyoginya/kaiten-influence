@@ -1,7 +1,9 @@
-import { getIntegrations } from "@/lib/data";
+import { fetchIntegrations } from "@/lib/db";
 import ResultsClient from "./ResultsClient";
 
-export default function ResultsPage() {
-  const seed = getIntegrations();
+export const dynamic = "force-dynamic";
+
+export default async function ResultsPage() {
+  const seed = await fetchIntegrations();
   return <ResultsClient seed={seed} />;
 }

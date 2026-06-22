@@ -1,4 +1,5 @@
-import { getChannels, getSprints, PIPELINE_STEPS } from "@/lib/data";
+import { PIPELINE_STEPS } from "@/lib/data";
+import { fetchChannels, fetchSprints } from "@/lib/db";
 import {
   parseSubs,
   parseErr,
@@ -8,14 +9,17 @@ import {
   fmtShort,
 } from "@/lib/parse";
 
+export const dynamic = "force-dynamic";
+
 function num(s: string): number {
   const m = String(s).replace(/\s| /g, "").match(/-?\d+[.,]?\d*/);
   return m ? parseFloat(m[0].replace(",", ".")) : 0;
 }
 
-export default function AnalyticsPage() {
-  const channels = getChannels();
-  const sprint = getSprints().find((s) => s.status === "active") ?? getSprints()[0];
+export default async function AnalyticsPage() {
+  const channels = await fetchChannels();
+  const sprints = await fetchSprints();
+  const sprint = sprints.find((s) => s.status === "active") ?? sprints[0];
   const pl = sprint.placements;
 
   // --- агрегаты по базе ---

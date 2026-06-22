@@ -1,7 +1,9 @@
-import { getChannels } from "@/lib/data";
+import { fetchChannels } from "@/lib/db";
 import BacklogView from "./BacklogView";
 
-export default function BacklogPage() {
-  const channels = getChannels();
+export const dynamic = "force-dynamic";
+
+export default async function BacklogPage() {
+  const channels = await fetchChannels();
   return <BacklogView channels={channels} />;
 }

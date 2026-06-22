@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Integration } from "@/lib/data";
+import { createClient, SUPABASE_ENABLED } from "@/lib/supabase/client";
 
 const LS_KEY = "kaiten-integrations-v1";
 
@@ -10,9 +11,13 @@ type Override = { published: boolean; result: Integration["result"] };
 export default function ResultsClient({ seed }: { seed: Integration[] }) {
   const [items, setItems] = useState<Integration[]>(seed);
   const [openId, setOpenId] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const supabase = useMemo(() => (SUPABASE_ENABLED ? createClient() : null), []);
+  const timers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
-  // подмешиваем сохранённые правки из localStorage
+  // localStorage — только фолбэк, когда Supabase не подключён
   useEffect(() => {
+    if (SUPABASE_ENABLED) return;
     try {
       const raw = localStorage.getItem(LS_KEY);
       if (!raw) return;
@@ -33,7 +38,7 @@ export default function ResultsClient({ seed }: { seed: Integration[] }) {
     }
   }, [seed]);
 
-  function persist(next: Integration[]) {
+  function saveLocal(next: Integration[]) {
     const map: Record<string, Override> = {};
     next.forEach((it) => (map[it.id] = { published: it.published, result: it.result }));
     try {
@@ -41,6 +46,35 @@ export default function ResultsClient({ seed }: { seed: Integration[] }) {
     } catch {
       /* квота */
     }
+  }
+
+  function scheduleSave(it: Integration) {
+    if (!supabase) return;
+    clearTimeout(timers.current[it.id]);
+    setSaving(true);
+    timers.current[it.id] = setTimeout(async () => {
+      await supabase
+        .from("integrations")
+        .update({
+          result: it.result,
+          published: it.published,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", it.id);
+      setSaving(false);
+    }, 500);
+  }
+
+  // загрузка картинки: в Supabase Storage (вернёт URL) либо base64-фолбэк
+  async function uploadImage(id: string, file: File): Promise<string> {
+    if (!supabase) return readImage(file);
+    const ext = (file.name.split(".").pop() || "png").toLowerCase();
+    const path = `${id}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    const { error } = await supabase.storage
+      .from("screens")
+      .upload(path, file, { cacheControl: "3600", upsert: false });
+    if (error) return readImage(file);
+    return supabase.storage.from("screens").getPublicUrl(path).data.publicUrl;
   }
 
   function update(id: string, mut: (it: Integration) => void) {
@@ -51,7 +85,11 @@ export default function ResultsClient({ seed }: { seed: Integration[] }) {
         mut(copy);
         return copy;
       });
-      persist(next);
+      const changed = next.find((i) => i.id === id);
+      if (changed) {
+        if (supabase) scheduleSave(changed);
+        else saveLocal(next);
+      }
       return next;
     });
   }
@@ -115,7 +153,12 @@ export default function ResultsClient({ seed }: { seed: Integration[] }) {
 
       {open && (
         <Modal onClose={() => setOpenId(null)}>
-          <Editor it={open} update={update} />
+          <Editor
+            it={open}
+            update={update}
+            upload={(f) => uploadImage(open.id, f)}
+            saving={saving}
+          />
         </Modal>
       )}
     </div>
@@ -152,9 +195,13 @@ function Modal({ children, onClose }: { children: React.ReactNode; onClose: () =
 function Editor({
   it,
   update,
+  upload,
+  saving,
 }: {
   it: Integration;
   update: (id: string, mut: (it: Integration) => void) => void;
+  upload: (file: File) => Promise<string>;
+  saving: boolean;
 }) {
   const r = it.result;
   const set = (mut: (it: Integration) => void) => update(it.id, mut);
@@ -248,13 +295,14 @@ function Editor({
         {/* скрины */}
         <Block title="Скриншоты">
           <div className="grid md:grid-cols-2 gap-4">
-            <ImgOne label="Креатив" value={r.screens.creative} onChange={(v) => set((d) => (d.result.screens.creative = v))} />
-            <ImgOne label="Статистика поста" value={r.screens.stats} onChange={(v) => set((d) => (d.result.screens.stats = v))} />
+            <ImgOne label="Креатив" value={r.screens.creative} upload={upload} onChange={(v) => set((d) => (d.result.screens.creative = v))} />
+            <ImgOne label="Статистика поста" value={r.screens.stats} upload={upload} onChange={(v) => set((d) => (d.result.screens.stats = v))} />
           </div>
           <div className="mt-4">
             <Label>Скрины комментов</Label>
             <Gallery
               imgs={r.screens.comments}
+              upload={upload}
               onAdd={(url) => set((d) => d.result.screens.comments.push(url))}
               onRemove={(i) => set((d) => d.result.screens.comments.splice(i, 1))}
             />
@@ -295,8 +343,11 @@ function Editor({
         </Block>
 
         <p className="text-[12px] text-[var(--color-faint)] text-center">
-          Изменения сохраняются на этом устройстве. Общий доступ для команды — после
-          подключения Supabase.
+          {SUPABASE_ENABLED
+            ? saving
+              ? "Сохраняю…"
+              : "Сохранено — изменения видит вся команда"
+            : "Изменения сохраняются на этом устройстве (Supabase не подключён)"}
         </p>
       </div>
     </div>
@@ -426,10 +477,12 @@ function ImgOne({
   label,
   value,
   onChange,
+  upload,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
+  upload: (file: File) => Promise<string>;
 }) {
   const ref = useRef<HTMLInputElement>(null);
   return (
@@ -462,7 +515,7 @@ function ImgOne({
         hidden
         onChange={async (e) => {
           const f = e.target.files?.[0];
-          if (f) onChange(await readImage(f));
+          if (f) onChange(await upload(f));
           e.target.value = "";
         }}
       />
@@ -474,10 +527,12 @@ function Gallery({
   imgs,
   onAdd,
   onRemove,
+  upload,
 }: {
   imgs: string[];
   onAdd: (url: string) => void;
   onRemove: (i: number) => void;
+  upload: (file: File) => Promise<string>;
 }) {
   const ref = useRef<HTMLInputElement>(null);
   return (
@@ -509,7 +564,7 @@ function Gallery({
         hidden
         onChange={async (e) => {
           const files = Array.from(e.target.files ?? []);
-          for (const f of files) onAdd(await readImage(f));
+          for (const f of files) onAdd(await upload(f));
           e.target.value = "";
         }}
       />

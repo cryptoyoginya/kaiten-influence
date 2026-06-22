@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { createClient, SUPABASE_ENABLED } from "@/lib/supabase/server";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -18,7 +19,21 @@ function NavLink({ href, label }: { href: string; label: string }) {
   );
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+async function currentEmail(): Promise<string | null> {
+  if (!SUPABASE_ENABLED) return null;
+  try {
+    const s = await createClient();
+    const {
+      data: { user },
+    } = await s.auth.getUser();
+    return user?.email ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const email = await currentEmail();
   return (
     <html lang="ru">
       <head>
@@ -41,8 +56,21 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <NavLink href="/results" label="Результаты" />
               <NavLink href="/analytics" label="Сводка" />
             </nav>
-            <div className="ml-auto text-[13px] text-[var(--color-faint)]">
-              Kaiten · продвижение
+            <div className="ml-auto flex items-center gap-3">
+              {email ? (
+                <>
+                  <span className="text-[13px] text-[var(--color-muted)]">{email}</span>
+                  <form action="/auth/signout" method="post">
+                    <button className="text-[13px] text-[var(--color-faint)] hover:text-[var(--color-ink)]">
+                      выйти
+                    </button>
+                  </form>
+                </>
+              ) : (
+                <span className="text-[13px] text-[var(--color-faint)]">
+                  Kaiten · продвижение
+                </span>
+              )}
             </div>
           </div>
         </header>
