@@ -66,6 +66,7 @@ export type Placement = {
     comment_kristina?: string;
     // реквизиты для автосборки договора (ключи = подстановки шаблона)
     contract?: Record<string, string>;
+    ord_report_done?: boolean;
   };
 };
 

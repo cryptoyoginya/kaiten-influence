@@ -448,6 +448,11 @@ function Editor({
                 <p className="text-[13px] text-[var(--color-muted)]">
                   Заполни блок «Креатив» ниже ↓ (картинка + текст) и отметь согласования.
                 </p>
+              ) : field.key === "erid" ? (
+                <p className="text-[13px] text-[var(--color-muted)]">
+                  Заполни блок «Маркировка» ниже ↓ — внеси erid из Click.ru, платформа
+                  соберёт промаркированную ссылку и текст.
+                </p>
               ) : (
                 <>
                   <Label>{field.label}</Label>
@@ -568,6 +573,32 @@ function Editor({
             >
               {genBusy ? "Собираю…" : "Сформировать договор (.docx)"}
             </button>
+          </Section>
+
+          {/* маркировка через Click.ru */}
+          <Section title="Маркировка (Click.ru)">
+            <p className="text-[12px] text-[var(--color-faint)]">
+              erid выпускаешь в мастере Click.ru с вашим кабинетом и вносишь сюда —
+              платформа соберёт промаркированную ссылку и текст-плашку для блогера.
+            </p>
+            <F label="erid (из Click.ru)" v={d.erid ?? ""} on={(v) => set((x) => ((x.data ??= {}).erid = v))} />
+            <CopyField label="Промаркированная ссылка" value={markedLink(p.landing, d.erid ?? "")} />
+            <CopyField label="Текст-плашка «Реклама»" value={disclosure(d.erid ?? "")} />
+            <div className="rounded-[var(--radius-md)] bg-[var(--color-surface)] border border-[var(--color-line)] p-3 text-[12px] text-[var(--color-muted)] leading-relaxed">
+              <div className="text-[11px] text-[var(--color-faint)] mb-1">Данные для мастера Click.ru:</div>
+              Рекламодатель: ООО «Кайтен Софтвер», ИНН 7714426252, ОГРН 1187746341804
+              <br />
+              Площадка / канал: {c.channel || p.landing || "—"} · Формат: {c.format || "пост"}
+              <br />
+              Договор: {c.contract_date || "—"} · Креатив:{" "}
+              {d.creative_text ? "текст есть" : "—"}
+              {d.creative_image ? ", картинка есть" : ""}
+            </div>
+            <Check
+              label="Отчёт в ОРД за месяц сдан"
+              on={d.ord_report_done}
+              toggle={() => set((x) => ((x.data ??= {}).ord_report_done = !d.ord_report_done))}
+            />
           </Section>
 
           {/* все артефакты этапов */}
@@ -788,6 +819,45 @@ function CreativeImage({
           e.target.value = "";
         }}
       />
+    </div>
+  );
+}
+
+// сборка промаркированной ссылки и текста-плашки
+function markedLink(landing: string, erid: string): string {
+  if (!erid) return "";
+  if (!landing) return `erid: ${erid}`;
+  const sep = landing.includes("?") ? "&" : "?";
+  return `${landing}${sep}erid=${encodeURIComponent(erid)}`;
+}
+function disclosure(erid: string): string {
+  if (!erid) return "";
+  return `Реклама. ООО «Кайтен Софтвер», ИНН 7714426252. erid: ${erid}`;
+}
+
+// поле «только чтение» с кнопкой «копировать»
+function CopyField({ label, value }: { label: string; value: string }) {
+  const [done, setDone] = useState(false);
+  return (
+    <div>
+      <Label>{label}</Label>
+      <div className="flex gap-2">
+        <div className="flex-1 bg-[var(--color-surface-2)] border border-[var(--color-line-soft)] rounded-[var(--radius-md)] px-2.5 py-1.5 text-[13px] break-all">
+          {value || <span className="text-[var(--color-faint)]">—</span>}
+        </div>
+        <button
+          onClick={() => {
+            if (!value) return;
+            navigator.clipboard?.writeText(value);
+            setDone(true);
+            setTimeout(() => setDone(false), 1500);
+          }}
+          disabled={!value}
+          className="shrink-0 px-3 rounded-[var(--radius-md)] border border-[var(--color-line)] text-[12px] text-[var(--color-muted)] hover:border-[var(--color-accent)] disabled:opacity-50"
+        >
+          {done ? "✓" : "копир."}
+        </button>
+      </div>
     </div>
   );
 }
