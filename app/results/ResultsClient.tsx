@@ -1,0 +1,605 @@
+"use client";
+
+import { useEffect, useMemo, useRef, useState } from "react";
+import type { Integration } from "@/lib/data";
+
+const LS_KEY = "kaiten-integrations-v1";
+
+type Override = { published: boolean; result: Integration["result"] };
+
+export default function ResultsClient({ seed }: { seed: Integration[] }) {
+  const [items, setItems] = useState<Integration[]>(seed);
+  const [openId, setOpenId] = useState<string | null>(null);
+
+  // подмешиваем сохранённые правки из localStorage
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(LS_KEY);
+      if (!raw) return;
+      const ov = JSON.parse(raw) as Record<string, Override>;
+      setItems(
+        seed.map((it) =>
+          ov[it.id]
+            ? {
+                ...it,
+                published: ov[it.id].published ?? it.published,
+                result: { ...it.result, ...ov[it.id].result },
+              }
+            : it
+        )
+      );
+    } catch {
+      /* пусто */
+    }
+  }, [seed]);
+
+  function persist(next: Integration[]) {
+    const map: Record<string, Override> = {};
+    next.forEach((it) => (map[it.id] = { published: it.published, result: it.result }));
+    try {
+      localStorage.setItem(LS_KEY, JSON.stringify(map));
+    } catch {
+      /* квота */
+    }
+  }
+
+  function update(id: string, mut: (it: Integration) => void) {
+    setItems((prev) => {
+      const next = prev.map((it) => {
+        if (it.id !== id) return it;
+        const copy: Integration = structuredClone(it);
+        mut(copy);
+        return copy;
+      });
+      persist(next);
+      return next;
+    });
+  }
+
+  const open = useMemo(() => items.find((i) => i.id === openId) ?? null, [items, openId]);
+  const live = items.filter((i) => i.published).length;
+
+  // закрытие по Esc
+  useEffect(() => {
+    if (!openId) return;
+    const h = (e: KeyboardEvent) => e.key === "Escape" && setOpenId(null);
+    window.addEventListener("keydown", h);
+    return () => window.removeEventListener("keydown", h);
+  }, [openId]);
+
+  return (
+    <div>
+      <div className="mb-6">
+        <h1 className="text-[26px] font-semibold leading-tight">Результаты интеграций</h1>
+        <p className="text-[14px] text-[var(--color-muted)] mt-1">
+          Нажми на карточку — откроются все показатели, можно заполнить и приложить
+          скрины. {items.length} интеграций · вышло {live}.
+        </p>
+      </div>
+
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {items.map((it) => (
+          <button
+            key={it.id}
+            onClick={() => setOpenId(it.id)}
+            className="text-left rounded-[var(--radius-xl)] border border-[var(--color-line)] bg-[var(--color-surface)] p-4 hover:border-[var(--color-accent)] hover:shadow-[0_1px_8px_rgba(125,76,207,0.08)] transition-all"
+          >
+            <div className="flex items-start justify-between gap-2">
+              <div className="font-semibold text-[15px] leading-snug">{it.name}</div>
+              <Status published={it.published} />
+            </div>
+            <div className="text-[12px] text-[var(--color-muted)] mt-1 flex flex-wrap gap-x-2">
+              {it.niche && <span>{it.niche}</span>}
+              <span>· {fmtDate(it.date) || "—"}</span>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2 mt-3">
+              <Mini label="CPV план" v={it.plan.cpv} />
+              <Mini label="ROMI" v={it.result.unit.romi} accent />
+              <Mini label="Выручка" v={it.result.conversion.revenue} />
+            </div>
+
+            <div className="mt-3 flex items-center justify-between">
+              <Progress pct={fillPercent(it)} />
+              {it.result.lessons.verdict ? (
+                <span className="text-[11px] px-2 py-0.5 rounded-full bg-[var(--color-accent-soft)] text-[var(--color-accent-hover)]">
+                  {it.result.lessons.verdict}
+                </span>
+              ) : (
+                <span className="text-[12px] text-[var(--color-accent)]">заполнить →</span>
+              )}
+            </div>
+          </button>
+        ))}
+      </div>
+
+      {open && (
+        <Modal onClose={() => setOpenId(null)}>
+          <Editor it={open} update={update} />
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+/* ============ модалка ============ */
+
+function Modal({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
+  return (
+    <div
+      className="fixed inset-0 z-50 bg-black/45 flex items-start justify-center p-4 overflow-y-auto"
+      onClick={onClose}
+    >
+      <div
+        className="relative w-full max-w-3xl my-6 rounded-[var(--radius-xl)] bg-[var(--color-surface)] shadow-xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {children}
+        <button
+          onClick={onClose}
+          aria-label="Закрыть"
+          className="absolute top-3 right-3 w-8 h-8 rounded-full bg-[var(--color-surface-2)] hover:bg-[var(--color-line-soft)] flex items-center justify-center text-[var(--color-muted)] text-[18px] leading-none"
+        >
+          ×
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ============ редактор ============ */
+
+function Editor({
+  it,
+  update,
+}: {
+  it: Integration;
+  update: (id: string, mut: (it: Integration) => void) => void;
+}) {
+  const r = it.result;
+  const set = (mut: (it: Integration) => void) => update(it.id, mut);
+
+  return (
+    <div>
+      {/* шапка */}
+      <header className="px-6 py-5 border-b border-[var(--color-line-soft)] bg-[var(--color-surface-2)] rounded-t-[var(--radius-xl)]">
+        <div className="flex items-center gap-3 pr-8">
+          <h2 className="text-[19px] font-semibold">{it.name}</h2>
+          <button
+            onClick={() => set((d) => (d.published = !d.published))}
+            className="shrink-0"
+            title="переключить статус"
+          >
+            <Status published={it.published} />
+          </button>
+        </div>
+        <div className="text-[12px] text-[var(--color-muted)] mt-1 flex flex-wrap gap-x-3">
+          {it.niche && <span>{it.niche}</span>}
+          <span>дата: {fmtDate(it.date) || "—"}</span>
+          {it.landing && (
+            <a href={it.landing} target="_blank" rel="noreferrer" className="text-[var(--color-accent)] hover:underline">
+              лендинг
+            </a>
+          )}
+        </div>
+        <div className="mt-3">
+          <Label>Ссылка на пост</Label>
+          <Txt v={r.post_link} onChange={(v) => set((d) => (d.result.post_link = v))} placeholder="https://t.me/…" />
+        </div>
+      </header>
+
+      <div className="p-6 flex flex-col gap-5">
+        <Block title="План → факт" accent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <PlanFact label="Охват" plan={it.plan.reach} v={r.reach.reach} onChange={(v) => set((d) => (d.result.reach.reach = v))} />
+            <PlanFact label="Просмотры" plan={it.plan.views} v={r.reach.views} onChange={(v) => set((d) => (d.result.reach.views = v))} />
+            <PlanFact label="ERR / ER" plan={it.plan.err} v={r.reach.er} onChange={(v) => set((d) => (d.result.reach.er = v))} />
+            <PlanFact label="CPV, ₽" plan={it.plan.cpv} v={r.unit.cpv} onChange={(v) => set((d) => (d.result.unit.cpv = v))} />
+          </div>
+        </Block>
+
+        <div className="grid lg:grid-cols-2 gap-5">
+          <Block title="Затраты">
+            <Grid>
+              <F label="Цена размещения" hint={it.plan.price} v={r.costs.price} on={(v) => set((d) => (d.result.costs.price = v))} />
+              <F label="Маркировка" v={r.costs.marking} on={(v) => set((d) => (d.result.costs.marking = v))} />
+              <F label="Налог / комиссия" v={r.costs.tax} on={(v) => set((d) => (d.result.costs.tax = v))} />
+              <F label="Итого затрат" v={r.costs.total} on={(v) => set((d) => (d.result.costs.total = v))} />
+            </Grid>
+          </Block>
+
+          <Block title="Охват и вовлечение (факт)">
+            <Grid>
+              <F label="Просмотры" v={r.reach.views} on={(v) => set((d) => (d.result.reach.views = v))} />
+              <F label="Охват" v={r.reach.reach} on={(v) => set((d) => (d.result.reach.reach = v))} />
+              <F label="Лайки / реакции" v={r.reach.likes} on={(v) => set((d) => (d.result.reach.likes = v))} />
+              <F label="Репосты" v={r.reach.reposts} on={(v) => set((d) => (d.result.reach.reposts = v))} />
+              <F label="Комментарии" v={r.reach.comments_count} on={(v) => set((d) => (d.result.reach.comments_count = v))} />
+              <F label="ER, %" v={r.reach.er} on={(v) => set((d) => (d.result.reach.er = v))} />
+            </Grid>
+          </Block>
+
+          <Block title="Переходы и конверсия">
+            <Grid>
+              <F label="Переходы по ссылке" v={r.conversion.clicks} on={(v) => set((d) => (d.result.conversion.clicks = v))} />
+              <F label="Регистрации" v={r.conversion.registrations} on={(v) => set((d) => (d.result.conversion.registrations = v))} />
+              <F label="Активации" v={r.conversion.activations} on={(v) => set((d) => (d.result.conversion.activations = v))} />
+              <F label="Платящие" v={r.conversion.paying} on={(v) => set((d) => (d.result.conversion.paying = v))} />
+              <F label="Выручка, ₽" v={r.conversion.revenue} on={(v) => set((d) => (d.result.conversion.revenue = v))} />
+            </Grid>
+          </Block>
+
+          <Block title="Юнит-экономика и окупаемость">
+            <Grid>
+              <F label="CPV факт, ₽" v={r.unit.cpv} on={(v) => set((d) => (d.result.unit.cpv = v))} />
+              <F label="CPM, ₽" v={r.unit.cpm} on={(v) => set((d) => (d.result.unit.cpm = v))} />
+              <F label="CTR, %" v={r.unit.ctr} on={(v) => set((d) => (d.result.unit.ctr = v))} />
+              <F label="CPL (за рег.), ₽" v={r.unit.cpl} on={(v) => set((d) => (d.result.unit.cpl = v))} />
+              <F label="CAC (за клиента), ₽" v={r.unit.cac} on={(v) => set((d) => (d.result.unit.cac = v))} />
+              <F label="ROMI, %" v={r.unit.romi} on={(v) => set((d) => (d.result.unit.romi = v))} />
+            </Grid>
+            <div className="mt-3">
+              <Label>Окупаемость (окупилась? за какой срок?)</Label>
+              <Txt v={r.unit.payback} onChange={(v) => set((d) => (d.result.unit.payback = v))} placeholder="напр. окупилась за 3 недели" />
+            </div>
+          </Block>
+        </div>
+
+        {/* скрины */}
+        <Block title="Скриншоты">
+          <div className="grid md:grid-cols-2 gap-4">
+            <ImgOne label="Креатив" value={r.screens.creative} onChange={(v) => set((d) => (d.result.screens.creative = v))} />
+            <ImgOne label="Статистика поста" value={r.screens.stats} onChange={(v) => set((d) => (d.result.screens.stats = v))} />
+          </div>
+          <div className="mt-4">
+            <Label>Скрины комментов</Label>
+            <Gallery
+              imgs={r.screens.comments}
+              onAdd={(url) => set((d) => d.result.screens.comments.push(url))}
+              onRemove={(i) => set((d) => d.result.screens.comments.splice(i, 1))}
+            />
+          </div>
+        </Block>
+
+        {/* выводы */}
+        <Block title="Чему научились">
+          <div className="grid lg:grid-cols-3 gap-4">
+            <Note label="Что сработало" tone="green" v={r.lessons.worked} on={(v) => set((d) => (d.result.lessons.worked = v))} />
+            <Note label="Что не сработало" tone="red" v={r.lessons.failed} on={(v) => set((d) => (d.result.lessons.failed = v))} />
+            <Note label="Тональность комментов" v={r.lessons.sentiment} on={(v) => set((d) => (d.result.lessons.sentiment = v))} />
+          </div>
+          <div className="mt-4">
+            <Label>Главный вывод / гипотеза на следующий раз</Label>
+            <Area v={r.lessons.learned} onChange={(v) => set((d) => (d.result.lessons.learned = v))} />
+          </div>
+          <div className="mt-4 flex items-center gap-2 flex-wrap">
+            <span className="text-[12px] text-[var(--color-faint)] mr-1">Вердикт:</span>
+            {["Повторить", "Изменить подход", "Отказаться"].map((o) => {
+              const active = r.lessons.verdict === o;
+              return (
+                <button
+                  key={o}
+                  onClick={() => set((d) => (d.result.lessons.verdict = active ? "" : o))}
+                  className={[
+                    "px-3 py-1 rounded-full text-[13px] border transition-colors",
+                    active
+                      ? "bg-[var(--color-accent)] border-[var(--color-accent)] text-white"
+                      : "bg-[var(--color-surface)] border-[var(--color-line)] text-[var(--color-muted)] hover:border-[var(--color-accent)]",
+                  ].join(" ")}
+                >
+                  {o}
+                </button>
+              );
+            })}
+          </div>
+        </Block>
+
+        <p className="text-[12px] text-[var(--color-faint)] text-center">
+          Изменения сохраняются на этом устройстве. Общий доступ для команды — после
+          подключения Supabase.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+/* ============ поля ============ */
+
+function Label({ children }: { children: React.ReactNode }) {
+  return <div className="text-[11px] text-[var(--color-faint)] mb-1">{children}</div>;
+}
+
+function Txt({
+  v,
+  onChange,
+  placeholder,
+}: {
+  v: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+}) {
+  return (
+    <input
+      value={v}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={placeholder}
+      className="w-full bg-[var(--color-surface)] text-[13px] px-2.5 py-1.5 rounded-[var(--radius-md)] border border-[var(--color-line)] outline-none focus:border-[var(--color-accent)] placeholder:text-[var(--color-faint)]"
+    />
+  );
+}
+
+function Area({ v, onChange }: { v: string; onChange: (v: string) => void }) {
+  return (
+    <textarea
+      value={v}
+      onChange={(e) => onChange(e.target.value)}
+      rows={2}
+      className="w-full bg-[var(--color-surface)] text-[13px] px-2.5 py-1.5 rounded-[var(--radius-md)] border border-[var(--color-line)] outline-none focus:border-[var(--color-accent)] resize-y"
+    />
+  );
+}
+
+function F({
+  label,
+  v,
+  on,
+  hint,
+}: {
+  label: string;
+  v: string;
+  on: (v: string) => void;
+  hint?: string;
+}) {
+  return (
+    <div>
+      <div className="text-[11px] text-[var(--color-faint)]">
+        {label}
+        {hint && <span> · план {hint}</span>}
+      </div>
+      <Txt v={v} onChange={on} />
+    </div>
+  );
+}
+
+function PlanFact({
+  label,
+  plan,
+  v,
+  onChange,
+}: {
+  label: string;
+  plan: string;
+  v: string;
+  onChange: (v: string) => void;
+}) {
+  return (
+    <div className="rounded-[var(--radius-md)] bg-[var(--color-surface)] border border-[var(--color-line)] px-3 py-2">
+      <div className="text-[11px] text-[var(--color-faint)]">{label}</div>
+      <div className="text-[12px] text-[var(--color-muted)] mt-0.5">план: {plan || "—"}</div>
+      <input
+        value={v}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder="факт"
+        className="w-full mt-1 bg-transparent text-[15px] font-semibold tabular-nums outline-none border-b border-[var(--color-line)] focus:border-[var(--color-accent)] placeholder:text-[var(--color-faint)] placeholder:font-normal"
+      />
+    </div>
+  );
+}
+
+function Note({
+  label,
+  v,
+  on,
+  tone,
+}: {
+  label: string;
+  v: string;
+  on: (v: string) => void;
+  tone?: "green" | "red";
+}) {
+  const bar =
+    tone === "green"
+      ? "border-l-[var(--color-green)]"
+      : tone === "red"
+        ? "border-l-[var(--color-red)]"
+        : "border-l-[var(--color-line)]";
+  return (
+    <div className={`pl-3 border-l-2 ${bar}`}>
+      <Label>{label}</Label>
+      <Area v={v} onChange={on} />
+    </div>
+  );
+}
+
+/* ============ картинки ============ */
+
+function readImage(file: File): Promise<string> {
+  return new Promise((res, rej) => {
+    const fr = new FileReader();
+    fr.onload = () => res(String(fr.result));
+    fr.onerror = rej;
+    fr.readAsDataURL(file);
+  });
+}
+
+function ImgOne({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  const ref = useRef<HTMLInputElement>(null);
+  return (
+    <div>
+      <Label>{label}</Label>
+      {value ? (
+        <div className="relative group">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={value} alt={label} className="w-full max-h-56 object-contain rounded-[var(--radius-md)] border border-[var(--color-line)] bg-[var(--color-surface-2)]" />
+          <button
+            onClick={() => onChange("")}
+            className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/60 text-white text-[15px] leading-none"
+            aria-label="Удалить"
+          >
+            ×
+          </button>
+        </div>
+      ) : (
+        <button
+          onClick={() => ref.current?.click()}
+          className="w-full aspect-[16/9] rounded-[var(--radius-md)] border border-dashed border-[var(--color-line)] bg-[var(--color-surface-2)] text-[13px] text-[var(--color-muted)] hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"
+        >
+          + загрузить
+        </button>
+      )}
+      <input
+        ref={ref}
+        type="file"
+        accept="image/*"
+        hidden
+        onChange={async (e) => {
+          const f = e.target.files?.[0];
+          if (f) onChange(await readImage(f));
+          e.target.value = "";
+        }}
+      />
+    </div>
+  );
+}
+
+function Gallery({
+  imgs,
+  onAdd,
+  onRemove,
+}: {
+  imgs: string[];
+  onAdd: (url: string) => void;
+  onRemove: (i: number) => void;
+}) {
+  const ref = useRef<HTMLInputElement>(null);
+  return (
+    <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+      {imgs.map((src, i) => (
+        <div key={i} className="relative group aspect-square">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={src} alt={`коммент ${i + 1}`} className="w-full h-full object-cover rounded-[var(--radius-md)] border border-[var(--color-line)]" />
+          <button
+            onClick={() => onRemove(i)}
+            className="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/60 text-white text-[13px] leading-none opacity-0 group-hover:opacity-100"
+            aria-label="Удалить"
+          >
+            ×
+          </button>
+        </div>
+      ))}
+      <button
+        onClick={() => ref.current?.click()}
+        className="aspect-square rounded-[var(--radius-md)] border border-dashed border-[var(--color-line)] bg-[var(--color-surface-2)] text-[12px] text-[var(--color-muted)] hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"
+      >
+        + скрин
+      </button>
+      <input
+        ref={ref}
+        type="file"
+        accept="image/*"
+        multiple
+        hidden
+        onChange={async (e) => {
+          const files = Array.from(e.target.files ?? []);
+          for (const f of files) onAdd(await readImage(f));
+          e.target.value = "";
+        }}
+      />
+    </div>
+  );
+}
+
+/* ============ мелочи ============ */
+
+function Status({ published }: { published: boolean }) {
+  return published ? (
+    <span className="text-[12px] px-2 py-0.5 rounded-full bg-[var(--color-green-soft)] text-[#2e7d32] whitespace-nowrap">
+      вышла
+    </span>
+  ) : (
+    <span className="text-[12px] px-2 py-0.5 rounded-full bg-[var(--color-orange-soft)] text-[#b26a00] whitespace-nowrap">
+      в работе
+    </span>
+  );
+}
+
+function Mini({ label, v, accent }: { label: string; v: string; accent?: boolean }) {
+  return (
+    <div className="rounded-[var(--radius-md)] bg-[var(--color-surface-2)] px-2 py-1.5">
+      <div className="text-[10px] text-[var(--color-faint)]">{label}</div>
+      <div className={`text-[13px] font-medium tabular-nums ${accent ? "text-[var(--color-accent-hover)]" : ""}`}>
+        {v || "—"}
+      </div>
+    </div>
+  );
+}
+
+function Block({
+  title,
+  accent,
+  children,
+}: {
+  title: string;
+  accent?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <div
+      className={[
+        "rounded-[var(--radius-lg)] p-4",
+        accent
+          ? "bg-[var(--color-accent-soft)]"
+          : "bg-[var(--color-surface-2)] border border-[var(--color-line-soft)]",
+      ].join(" ")}
+    >
+      <div className="text-[13px] font-semibold mb-3">{title}</div>
+      {children}
+    </div>
+  );
+}
+
+function Grid({ children }: { children: React.ReactNode }) {
+  return <div className="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-3">{children}</div>;
+}
+
+function Progress({ pct }: { pct: number }) {
+  return (
+    <div className="flex items-center gap-2">
+      <div className="w-20 h-1.5 rounded-full bg-[var(--color-line-soft)] overflow-hidden">
+        <div className="h-full bg-[var(--color-accent)]" style={{ width: `${pct}%` }} />
+      </div>
+      <span className="text-[11px] text-[var(--color-faint)] tabular-nums">{pct}%</span>
+    </div>
+  );
+}
+
+function fillPercent(it: Integration): number {
+  const r = it.result;
+  const leaves: string[] = [
+    r.post_link,
+    ...Object.values(r.costs),
+    ...Object.values(r.reach),
+    ...Object.values(r.conversion),
+    ...Object.values(r.unit),
+    r.screens.creative,
+    r.screens.stats,
+    r.screens.comments.length ? "1" : "",
+    ...Object.values(r.lessons),
+  ];
+  const filled = leaves.filter((x) => String(x).trim()).length;
+  return Math.round((filled / leaves.length) * 100);
+}
+
+function fmtDate(s: string): string {
+  const m = s.match(/(\d{4})-(\d{2})-(\d{2})/);
+  if (m) return `${m[3]}.${m[2]}.${m[1]}`;
+  return s.split(" ")[0] || s;
+}
