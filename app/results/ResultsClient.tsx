@@ -48,21 +48,31 @@ export default function ResultsClient({ seed }: { seed: Integration[] }) {
     }
   }
 
+  function rowOf(it: Integration) {
+    return {
+      brief: it.brief,
+      result: it.result,
+      published: it.published,
+      updated_at: new Date().toISOString(),
+    };
+  }
+
   function scheduleSave(it: Integration) {
     if (!supabase) return;
     clearTimeout(timers.current[it.id]);
     setSaving(true);
     timers.current[it.id] = setTimeout(async () => {
-      await supabase
-        .from("integrations")
-        .update({
-          result: it.result,
-          published: it.published,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", it.id);
+      await supabase.from("integrations").update(rowOf(it)).eq("id", it.id);
       setSaving(false);
     }, 500);
+  }
+
+  async function saveNow(it: Integration) {
+    if (!supabase) return;
+    clearTimeout(timers.current[it.id]);
+    setSaving(true);
+    await supabase.from("integrations").update(rowOf(it)).eq("id", it.id);
+    setSaving(false);
   }
 
   // загрузка картинки: в Supabase Storage (вернёт URL) либо base64-фолбэк
@@ -159,6 +169,7 @@ export default function ResultsClient({ seed }: { seed: Integration[] }) {
             update={update}
             upload={(f) => uploadImage(open.id, f)}
             saving={saving}
+            onSave={() => saveNow(open)}
           />
         </Modal>
       )}
@@ -198,11 +209,13 @@ function Editor({
   update,
   upload,
   saving,
+  onSave,
 }: {
   it: Integration;
   update: (id: string, mut: (it: Integration) => void) => void;
   upload: (file: File) => Promise<string>;
   saving: boolean;
+  onSave: () => void;
 }) {
   const r = it.result;
   const set = (mut: (it: Integration) => void) => update(it.id, mut);
@@ -360,13 +373,18 @@ function Editor({
           </div>
         </Block>
 
-        <p className="text-[12px] text-[var(--color-faint)] text-center">
-          {SUPABASE_ENABLED
-            ? saving
-              ? "Сохраняю…"
-              : "Сохранено — изменения видит вся команда"
-            : "Изменения сохраняются на этом устройстве (Supabase не подключён)"}
-        </p>
+        <div className="flex items-center justify-end gap-3 pt-1">
+          <span className="text-[12px] text-[var(--color-faint)]">
+            {saving ? "сохраняю…" : "✓ сохранено"}
+          </span>
+          <button
+            onClick={onSave}
+            disabled={saving}
+            className="h-9 px-5 rounded-[var(--radius-lg)] bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white text-[14px] font-medium disabled:opacity-60"
+          >
+            Сохранить
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -55,6 +55,7 @@ export default function SprintBoard({ sprint }: { sprint: Sprint }) {
   const [items, setItems] = useState<Placement[]>(sprint.placements);
   const [openId, setOpenId] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState<number | null>(null);
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
   const supabase = useMemo(() => (SUPABASE_ENABLED ? createClient() : null), []);
   const timers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
@@ -67,9 +68,22 @@ export default function SprintBoard({ sprint }: { sprint: Sprint }) {
   function scheduleSave(p: Placement) {
     if (!supabase || !p.id) return;
     clearTimeout(timers.current[p.id]);
-    timers.current[p.id] = setTimeout(() => {
-      supabase.from("placements").update(rowOf(p)).eq("id", p.id!).then(() => {});
+    setSaveState("saving");
+    timers.current[p.id] = setTimeout(async () => {
+      await supabase.from("placements").update(rowOf(p)).eq("id", p.id!);
+      setSaveState("saved");
     }, 500);
+  }
+
+  async function saveNow(p: Placement) {
+    if (!supabase || !p.id) {
+      setSaveState("saved");
+      return;
+    }
+    clearTimeout(timers.current[p.id]);
+    setSaveState("saving");
+    await supabase.from("placements").update(rowOf(p)).eq("id", p.id);
+    setSaveState("saved");
   }
 
   function update(id: string, mut: (p: Placement) => void) {
@@ -208,7 +222,10 @@ export default function SprintBoard({ sprint }: { sprint: Sprint }) {
                     <Card
                       key={p.id ?? p.name}
                       p={p}
-                      onOpen={() => setOpenId(p.id ?? p.name)}
+                      onOpen={() => {
+                        setSaveState("idle");
+                        setOpenId(p.id ?? p.name);
+                      }}
                     />
                   ))}
                 </div>
@@ -225,6 +242,8 @@ export default function SprintBoard({ sprint }: { sprint: Sprint }) {
           update={update}
           remove={remove}
           upload={uploadFile}
+          saveState={saveState}
+          onSave={() => saveNow(open)}
           onClose={() => setOpenId(null)}
         />
       )}
@@ -292,6 +311,8 @@ function Editor({
   update,
   remove,
   upload,
+  saveState,
+  onSave,
   onClose,
 }: {
   p: Placement;
@@ -299,6 +320,8 @@ function Editor({
   update: (id: string, mut: (p: Placement) => void) => void;
   remove: (id: string) => void;
   upload: (f: File) => Promise<string>;
+  saveState: "idle" | "saving" | "saved";
+  onSave: () => void;
   onClose: () => void;
 }) {
   const set = (mut: (p: Placement) => void) => update(id, mut);
@@ -445,9 +468,22 @@ function Editor({
             >
               удалить размещение
             </button>
-            <span className="text-[12px] text-[var(--color-faint)]">
-              {SUPABASE_ENABLED ? "сохраняется для команды" : "локально"}
-            </span>
+            <div className="flex items-center gap-3">
+              <span className="text-[12px] text-[var(--color-faint)]">
+                {saveState === "saving"
+                  ? "сохраняю…"
+                  : saveState === "saved"
+                    ? "✓ сохранено"
+                    : ""}
+              </span>
+              <button
+                onClick={onSave}
+                disabled={saveState === "saving"}
+                className="h-9 px-5 rounded-[var(--radius-lg)] bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white text-[14px] font-medium disabled:opacity-60"
+              >
+                Сохранить
+              </button>
+            </div>
           </div>
         </div>
 
