@@ -7,3 +7,4 @@ out/
 !.env.example
 __pycache__/
 .context/
+.vercel
