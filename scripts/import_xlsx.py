@@ -246,6 +246,17 @@ def main():
                 "date": p["post_date"],
                 "landing": p["landing"],
                 "published": bool(p["steps"].get("Опубликовано")),
+                # бриф размещения — редактируемые данные карточки
+                "brief": {
+                    "author_desc": p["author_desc"],
+                    "audience": p["audience"],
+                    "date": p["post_date"],
+                    "post_topic": p["post_topic"],
+                    "offer": p["offer"],
+                    "creative": p["creative"],
+                    "landing": p["landing"],
+                    "utm": p["utm"],
+                },
                 # план (из спринта) — для сравнения план→факт
                 "plan": {
                     "price": p["price_discount"] or p["price"],

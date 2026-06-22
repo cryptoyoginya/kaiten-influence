@@ -83,6 +83,7 @@ export default function ResultsClient({ seed }: { seed: Integration[] }) {
         if (it.id !== id) return it;
         const copy: Integration = structuredClone(it);
         mut(copy);
+        applyDerived(copy);
         return copy;
       });
       const changed = next.find((i) => i.id === id);
@@ -236,12 +237,29 @@ function Editor({
       </header>
 
       <div className="p-6 flex flex-col gap-5">
+        {/* бриф размещения — все данные карточки */}
+        <Block title="Бриф размещения">
+          <div className="grid gap-y-3">
+            <FA label="Описание автора" v={it.brief.author_desc} on={(v) => set((d) => (d.brief.author_desc = v))} />
+            <FA label="Аудитория" v={it.brief.audience} on={(v) => set((d) => (d.brief.audience = v))} />
+            <FA label="Тематика поста" v={it.brief.post_topic} on={(v) => set((d) => (d.brief.post_topic = v))} />
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-3 mt-3">
+            <F label="Дата" v={it.brief.date} on={(v) => set((d) => (d.brief.date = v))} />
+            <F label="Оффер" v={it.brief.offer} on={(v) => set((d) => (d.brief.offer = v))} />
+            <F label="Креос" v={it.brief.creative} on={(v) => set((d) => (d.brief.creative = v))} />
+            <F label="Ленд" v={it.brief.landing} on={(v) => set((d) => (d.brief.landing = v))} />
+            <F label="UTM" v={it.brief.utm} on={(v) => set((d) => (d.brief.utm = v))} />
+          </div>
+        </Block>
+
+        {/* план → факт (факт считается из введённого) */}
         <Block title="План → факт" accent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <PlanFact label="Охват" plan={it.plan.reach} v={r.reach.reach} onChange={(v) => set((d) => (d.result.reach.reach = v))} />
-            <PlanFact label="Просмотры" plan={it.plan.views} v={r.reach.views} onChange={(v) => set((d) => (d.result.reach.views = v))} />
-            <PlanFact label="ERR / ER" plan={it.plan.err} v={r.reach.er} onChange={(v) => set((d) => (d.result.reach.er = v))} />
-            <PlanFact label="CPV, ₽" plan={it.plan.cpv} v={r.unit.cpv} onChange={(v) => set((d) => (d.result.unit.cpv = v))} />
+            <PlanFact label="Охват" plan={it.plan.reach} fact={r.reach.reach} />
+            <PlanFact label="Просмотры" plan={it.plan.views} fact={r.reach.views} />
+            <PlanFact label="ER, %" plan={it.plan.err} fact={r.reach.er} />
+            <PlanFact label="CPV, ₽" plan={it.plan.cpv} fact={r.unit.cpv} />
           </div>
         </Block>
 
@@ -251,42 +269,42 @@ function Editor({
               <F label="Цена размещения" hint={it.plan.price} v={r.costs.price} on={(v) => set((d) => (d.result.costs.price = v))} />
               <F label="Маркировка" v={r.costs.marking} on={(v) => set((d) => (d.result.costs.marking = v))} />
               <F label="Налог / комиссия" v={r.costs.tax} on={(v) => set((d) => (d.result.costs.tax = v))} />
-              <F label="Итого затрат" v={r.costs.total} on={(v) => set((d) => (d.result.costs.total = v))} />
+              <ReadF label="Итого затрат, ₽" v={r.costs.total} />
             </Grid>
           </Block>
 
-          <Block title="Охват и вовлечение (факт)">
+          <Block title="Охват и вовлечение — вводишь сырые числа">
             <Grid>
               <F label="Просмотры" v={r.reach.views} on={(v) => set((d) => (d.result.reach.views = v))} />
               <F label="Охват" v={r.reach.reach} on={(v) => set((d) => (d.result.reach.reach = v))} />
               <F label="Лайки / реакции" v={r.reach.likes} on={(v) => set((d) => (d.result.reach.likes = v))} />
               <F label="Репосты" v={r.reach.reposts} on={(v) => set((d) => (d.result.reach.reposts = v))} />
               <F label="Комментарии" v={r.reach.comments_count} on={(v) => set((d) => (d.result.reach.comments_count = v))} />
-              <F label="ER, %" v={r.reach.er} on={(v) => set((d) => (d.result.reach.er = v))} />
+              <ReadF label="ER, %" v={r.reach.er} />
             </Grid>
           </Block>
 
           <Block title="Переходы и конверсия">
             <Grid>
               <F label="Переходы по ссылке" v={r.conversion.clicks} on={(v) => set((d) => (d.result.conversion.clicks = v))} />
-              <F label="Регистрации" v={r.conversion.registrations} on={(v) => set((d) => (d.result.conversion.registrations = v))} />
+              <F label="Лиды / регистрации" v={r.conversion.registrations} on={(v) => set((d) => (d.result.conversion.registrations = v))} />
               <F label="Активации" v={r.conversion.activations} on={(v) => set((d) => (d.result.conversion.activations = v))} />
               <F label="Платящие" v={r.conversion.paying} on={(v) => set((d) => (d.result.conversion.paying = v))} />
               <F label="Выручка, ₽" v={r.conversion.revenue} on={(v) => set((d) => (d.result.conversion.revenue = v))} />
             </Grid>
           </Block>
 
-          <Block title="Юнит-экономика и окупаемость">
+          <Block title="Юнит-экономика — считается автоматически">
             <Grid>
-              <F label="CPV факт, ₽" v={r.unit.cpv} on={(v) => set((d) => (d.result.unit.cpv = v))} />
-              <F label="CPM, ₽" v={r.unit.cpm} on={(v) => set((d) => (d.result.unit.cpm = v))} />
-              <F label="CTR, %" v={r.unit.ctr} on={(v) => set((d) => (d.result.unit.ctr = v))} />
-              <F label="CPL (за рег.), ₽" v={r.unit.cpl} on={(v) => set((d) => (d.result.unit.cpl = v))} />
-              <F label="CAC (за клиента), ₽" v={r.unit.cac} on={(v) => set((d) => (d.result.unit.cac = v))} />
-              <F label="ROMI, %" v={r.unit.romi} on={(v) => set((d) => (d.result.unit.romi = v))} />
+              <ReadF label="CPV, ₽" v={r.unit.cpv} />
+              <ReadF label="CPM, ₽" v={r.unit.cpm} />
+              <ReadF label="CTR, %" v={r.unit.ctr} />
+              <ReadF label="CPL (за лид), ₽" v={r.unit.cpl} />
+              <ReadF label="CAC (за платящего), ₽" v={r.unit.cac} />
+              <ReadF label="ROMI, %" v={r.unit.romi} accent />
             </Grid>
             <div className="mt-3">
-              <Label>Окупаемость (окупилась? за какой срок?)</Label>
+              <Label>Окупаемость (вывод словами)</Label>
               <Txt v={r.unit.payback} onChange={(v) => set((d) => (d.result.unit.payback = v))} placeholder="напр. окупилась за 3 недели" />
             </div>
           </Block>
@@ -412,27 +430,48 @@ function F({
   );
 }
 
-function PlanFact({
-  label,
-  plan,
-  v,
-  onChange,
-}: {
-  label: string;
-  plan: string;
-  v: string;
-  onChange: (v: string) => void;
-}) {
+// поле-textarea на всю ширину (для брифа)
+function FA({ label, v, on }: { label: string; v: string; on: (v: string) => void }) {
+  return (
+    <div>
+      <Label>{label}</Label>
+      <Area v={v} onChange={on} />
+    </div>
+  );
+}
+
+// авто-поле: значение считается, руками не правится
+function ReadF({ label, v, accent }: { label: string; v: string; accent?: boolean }) {
+  return (
+    <div>
+      <div className="text-[11px] text-[var(--color-faint)]">{label}</div>
+      <div
+        className={[
+          "mt-0.5 px-2.5 py-1.5 rounded-[var(--radius-md)] text-[13px] tabular-nums border",
+          accent
+            ? "bg-[var(--color-accent-soft)] border-[var(--color-accent-soft)] text-[var(--color-accent-hover)] font-semibold"
+            : "bg-[var(--color-surface-2)] border-[var(--color-line-soft)] text-[var(--color-ink)]",
+        ].join(" ")}
+      >
+        {v || <span className="text-[var(--color-faint)] font-normal">—</span>}
+      </div>
+    </div>
+  );
+}
+
+function PlanFact({ label, plan, fact }: { label: string; plan: string; fact: string }) {
   return (
     <div className="rounded-[var(--radius-md)] bg-[var(--color-surface)] border border-[var(--color-line)] px-3 py-2">
       <div className="text-[11px] text-[var(--color-faint)]">{label}</div>
-      <div className="text-[12px] text-[var(--color-muted)] mt-0.5">план: {plan || "—"}</div>
-      <input
-        value={v}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder="факт"
-        className="w-full mt-1 bg-transparent text-[15px] font-semibold tabular-nums outline-none border-b border-[var(--color-line)] focus:border-[var(--color-accent)] placeholder:text-[var(--color-faint)] placeholder:font-normal"
-      />
+      <div className="flex items-baseline gap-2 mt-1">
+        <span className="text-[12px] text-[var(--color-muted)] tabular-nums">
+          {plan || "—"}
+        </span>
+        <span className="text-[var(--color-faint)] text-[11px]">→</span>
+        <span className="text-[15px] font-semibold tabular-nums">
+          {fact || <span className="text-[var(--color-faint)] font-normal">факт</span>}
+        </span>
+      </div>
     </div>
   );
 }
@@ -634,6 +673,47 @@ function Progress({ pct }: { pct: number }) {
       <span className="text-[11px] text-[var(--color-faint)] tabular-nums">{pct}%</span>
     </div>
   );
+}
+
+// ───────── автосчёт показателей из введённых сырых данных ─────────
+function n(s: string): number {
+  const m = String(s ?? "").replace(/\s/g, "").replace(",", ".").match(/-?\d+(\.\d+)?/);
+  return m ? parseFloat(m[0]) : 0;
+}
+function dec(x: number, d = 1): string {
+  if (!isFinite(x) || x === 0) return "";
+  const r = Math.round(x * 10 ** d) / 10 ** d;
+  return String(r).replace(".", ",");
+}
+function derive(r: Integration["result"]) {
+  const cost = n(r.costs.price) + n(r.costs.marking) + n(r.costs.tax);
+  const views = n(r.reach.views);
+  const engaged = n(r.reach.likes) + n(r.reach.reposts) + n(r.reach.comments_count);
+  const clicks = n(r.conversion.clicks);
+  const regs = n(r.conversion.registrations);
+  const paying = n(r.conversion.paying);
+  const revenue = n(r.conversion.revenue);
+  return {
+    total: cost ? String(Math.round(cost)) : "",
+    er: views ? dec((engaged / views) * 100, 1) : "",
+    cpv: views && cost ? dec(cost / views, 2) : "",
+    cpm: views && cost ? dec((cost / views) * 1000, 0) : "",
+    ctr: views && clicks ? dec((clicks / views) * 100, 2) : "",
+    cpl: regs && cost ? dec(cost / regs, 0) : "",
+    cac: paying && cost ? dec(cost / paying, 0) : "",
+    romi: cost ? dec(((revenue - cost) / cost) * 100, 0) : "",
+  };
+}
+function applyDerived(it: Integration) {
+  const d = derive(it.result);
+  it.result.costs.total = d.total;
+  it.result.reach.er = d.er;
+  it.result.unit.cpv = d.cpv;
+  it.result.unit.cpm = d.cpm;
+  it.result.unit.ctr = d.ctr;
+  it.result.unit.cpl = d.cpl;
+  it.result.unit.cac = d.cac;
+  it.result.unit.romi = d.romi;
 }
 
 function fillPercent(it: Integration): number {

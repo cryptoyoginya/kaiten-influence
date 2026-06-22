@@ -81,11 +81,12 @@ async function main() {
   for (const i of integrations) {
     await client.query(
       `insert into integrations
-        (id, sprint_id, name, niche, date, landing, published, plan, result)
-       values ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
+        (id, sprint_id, name, niche, date, landing, published, brief, plan, result)
+       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
       [
         i.id, i.sprint_id, i.name, i.niche ?? "", i.date ?? "", i.landing ?? "",
-        !!i.published, JSON.stringify(i.plan ?? {}), JSON.stringify(i.result ?? {}),
+        !!i.published, JSON.stringify(i.brief ?? {}),
+        JSON.stringify(i.plan ?? {}), JSON.stringify(i.result ?? {}),
       ]
     );
   }

@@ -74,6 +74,16 @@ export type Integration = {
   date: string;
   landing: string;
   published: boolean;
+  brief: {
+    author_desc: string;
+    audience: string;
+    date: string;
+    post_topic: string;
+    offer: string;
+    creative: string;
+    landing: string;
+    utm: string;
+  };
   plan: { price: string; reach: string; cpv: string; err: string; views: string };
   result: {
     post_link: string;
