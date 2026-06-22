@@ -46,6 +46,11 @@ export type Placement = {
   // артефакты по этапам пайплайна
   data?: {
     creative?: string;
+    creative_image?: string;
+    creative_text?: string;
+    approve_dima?: boolean;
+    approve_dasha?: boolean;
+    approve_lesha?: boolean;
     contract_data?: string;
     contract_file?: string;
     payment?: string;

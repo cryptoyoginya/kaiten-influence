@@ -237,7 +237,11 @@ function Card({ p, onOpen }: { p: Placement; onOpen: () => void }) {
   const done = doneCount(p);
   const stage = stageOf(p);
   const field = stage < STEPS.length ? STAGE_FIELD[stage] : null;
-  const filled = field ? !!p.data?.[field.key] : true;
+  const filled = field
+    ? field.key === "creative"
+      ? !!(p.data?.creative_image || p.data?.creative_text)
+      : !!p.data?.[field.key]
+    : true;
   return (
     <div
       draggable
@@ -325,12 +329,20 @@ function Editor({
               <div className="text-[12px] font-semibold text-[var(--color-accent-hover)] mb-1">
                 Сейчас на шаге: {STEPS[stage]}
               </div>
-              <Label>{field.label}</Label>
-              <FileField
-                v={d[field.key] ?? ""}
-                on={(v) => set((x) => ((x.data ??= {})[field.key] = v))}
-                upload={field.file ? upload : undefined}
-              />
+              {field.key === "creative" ? (
+                <p className="text-[13px] text-[var(--color-muted)]">
+                  Заполни блок «Креатив» ниже ↓ (картинка + текст) и отметь согласования.
+                </p>
+              ) : (
+                <>
+                  <Label>{field.label}</Label>
+                  <FileField
+                    v={d[field.key] ?? ""}
+                    on={(v) => set((x) => ((x.data ??= {})[field.key] = v))}
+                    upload={field.file ? upload : undefined}
+                  />
+                </>
+              )}
               <button
                 onClick={() => set((x) => ((x.steps ??= {})[STEPS[stage]] = true))}
                 className="mt-3 h-8 px-3 rounded-[var(--radius-md)] bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white text-[13px] font-medium"
@@ -361,10 +373,36 @@ function Editor({
             </div>
           </Section>
 
+          {/* креатив: картинка + текст + согласования */}
+          <Section title="Креатив">
+            <CreativeImage
+              v={d.creative_image ?? ""}
+              on={(v) => set((x) => ((x.data ??= {}).creative_image = v))}
+              upload={upload}
+            />
+            <div>
+              <Label>Текст креатива</Label>
+              <textarea
+                value={d.creative_text ?? ""}
+                onChange={(e) => set((x) => ((x.data ??= {}).creative_text = e.target.value))}
+                rows={4}
+                placeholder="Текст поста / сценарий…"
+                className="w-full bg-[var(--color-surface)] text-[13px] px-2.5 py-1.5 rounded-[var(--radius-md)] border border-[var(--color-line)] outline-none focus:border-[var(--color-accent)] resize-y"
+              />
+            </div>
+            <div>
+              <Label>Согласования</Label>
+              <div className="flex flex-wrap gap-2">
+                <Check label="Согласование от Димы" on={d.approve_dima} toggle={() => set((x) => ((x.data ??= {}).approve_dima = !d.approve_dima))} />
+                <Check label="Согласование от Даши" on={d.approve_dasha} toggle={() => set((x) => ((x.data ??= {}).approve_dasha = !d.approve_dasha))} />
+                <Check label="Согласование от Лёши" on={d.approve_lesha} toggle={() => set((x) => ((x.data ??= {}).approve_lesha = !d.approve_lesha))} />
+              </div>
+            </div>
+          </Section>
+
           {/* все артефакты этапов */}
           <Section title="Артефакты по этапам">
             <div className="grid md:grid-cols-2 gap-x-4 gap-y-3">
-              <FF label="Креатив" v={d.creative ?? ""} on={(v) => set((x) => ((x.data ??= {}).creative = v))} upload={upload} />
               <F label="Данные договора" v={d.contract_data ?? ""} on={(v) => set((x) => ((x.data ??= {}).contract_data = v))} />
               <FF label="Файл договора" v={d.contract_file ?? ""} on={(v) => set((x) => ((x.data ??= {}).contract_file = v))} upload={upload} />
               <F label="Счёт / оплата" v={d.payment ?? ""} on={(v) => set((x) => ((x.data ??= {}).payment = v))} />
@@ -507,6 +545,86 @@ function FileField({
     </div>
   );
 }
+// картинка креатива: превью + загрузка/замена
+function CreativeImage({
+  v,
+  on,
+  upload,
+}: {
+  v: string;
+  on: (v: string) => void;
+  upload: (f: File) => Promise<string>;
+}) {
+  const ref = useRef<HTMLInputElement>(null);
+  const [busy, setBusy] = useState(false);
+  return (
+    <div>
+      <Label>Картинка креатива</Label>
+      {v ? (
+        <div className="relative group inline-block">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={v} alt="креатив" className="max-h-64 rounded-[var(--radius-md)] border border-[var(--color-line)] bg-[var(--color-surface-2)]" />
+          <button
+            onClick={() => on("")}
+            className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/60 text-white text-[15px] leading-none"
+            aria-label="Удалить"
+          >
+            ×
+          </button>
+        </div>
+      ) : (
+        <button
+          onClick={() => ref.current?.click()}
+          disabled={busy}
+          className="w-full aspect-[16/9] max-w-md rounded-[var(--radius-md)] border border-dashed border-[var(--color-line)] bg-[var(--color-surface-2)] text-[13px] text-[var(--color-muted)] hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] disabled:opacity-50"
+        >
+          {busy ? "загрузка…" : "+ загрузить картинку"}
+        </button>
+      )}
+      <input
+        ref={ref}
+        type="file"
+        accept="image/*"
+        hidden
+        onChange={async (e) => {
+          const f = e.target.files?.[0];
+          if (f) {
+            setBusy(true);
+            on(await upload(f));
+            setBusy(false);
+          }
+          e.target.value = "";
+        }}
+      />
+    </div>
+  );
+}
+
+// галочка-чекбокс
+function Check({ label, on, toggle }: { label: string; on?: boolean; toggle: () => void }) {
+  return (
+    <button
+      onClick={toggle}
+      className={[
+        "flex items-center gap-2 px-3 py-1.5 rounded-[var(--radius-md)] border text-[13px] transition-colors",
+        on
+          ? "bg-[var(--color-green-soft)] border-[var(--color-green-soft)] text-[#2e7d32]"
+          : "bg-[var(--color-surface)] border-[var(--color-line)] text-[var(--color-muted)] hover:border-[var(--color-accent)]",
+      ].join(" ")}
+    >
+      <span
+        className={[
+          "inline-flex items-center justify-center w-4 h-4 rounded-[4px] border text-[11px] leading-none",
+          on ? "bg-[var(--color-green)] border-[var(--color-green)] text-white" : "border-[var(--color-line)]",
+        ].join(" ")}
+      >
+        {on ? "✓" : ""}
+      </span>
+      {label}
+    </button>
+  );
+}
+
 // FileField с подписью
 function FF(props: { label: string; v: string; on: (v: string) => void; upload: (f: File) => Promise<string> }) {
   return (
