@@ -1,120 +1,106 @@
-// Заливка data/*.json в Supabase. Запуск: node supabase/seed.mjs
-// Нужны переменные окружения (из .env.local):
-//   NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
-import { createClient } from "@supabase/supabase-js";
+// Заливка data/*.json в Supabase по DATABASE_URL (идемпотентно: чистит и наливает).
+// Запуск: node --env-file=.env.local supabase/seed.mjs
+import pg from "pg";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
-const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const conn = process.env.DATABASE_URL;
 
-if (!url || !key) {
+if (!conn || conn.includes("<PASSWORD>")) {
   console.error(
-    "✗ Нет NEXT_PUBLIC_SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY.\n" +
-      "  Заполни .env.local и запусти:  node --env-file=.env.local supabase/seed.mjs"
+    "✗ Нет DATABASE_URL (или не подставлен пароль) в .env.local.\n" +
+      "  Раскомментируй строку DATABASE_URL и впиши пароль БД."
   );
   process.exit(1);
 }
 
-const db = createClient(url, key, { auth: { persistSession: false } });
 const read = (f) => JSON.parse(readFileSync(join(ROOT, "data", f), "utf-8"));
+const client = new pg.Client({ connectionString: conn, ssl: { rejectUnauthorized: false } });
 
 async function main() {
   const channels = read("channels.json");
   const sprints = read("sprints.json");
   const integrations = read("integrations.json");
 
+  await client.connect();
+  await client.query("begin");
+  // чистим контентные таблицы (профили/аудит не трогаем)
+  await client.query(
+    "truncate integrations, placements, sprints, channels restart identity cascade"
+  );
+
   // channels
-  {
-    const rows = channels.map((c) => ({
-      name: c.name,
-      link: c.link || null,
-      niches: c.niches ?? [],
-      subscribers: c.subscribers ?? "",
-      audience: c.audience ?? "",
-      themes: c.themes ?? "",
-      err_views: c.err_views ?? "",
-      price_raw: c.price_raw ?? "",
-      referral: c.referral ?? "",
-      comments: c.comments ?? [],
-      draft: !!c.draft,
-      shortlisted: !!c.shortlisted,
-      post_date: c.post_date ?? "",
-      post_topic: c.post_topic ?? "",
-      offer: c.offer ?? "",
-      creative: c.creative ?? "",
-      landing: c.landing ?? "",
-      utm: c.utm ?? "",
-    }));
-    const { error } = await db.from("channels").insert(rows);
-    if (error) throw error;
-    console.log(`✓ channels: ${rows.length}`);
+  for (const c of channels) {
+    await client.query(
+      `insert into channels
+        (name, link, niches, subscribers, audience, themes, err_views,
+         price_raw, referral, comments, draft, shortlisted,
+         post_date, post_topic, offer, creative, landing, utm)
+       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18)`,
+      [
+        c.name, c.link || null, c.niches ?? [], c.subscribers ?? "", c.audience ?? "",
+        c.themes ?? "", c.err_views ?? "", c.price_raw ?? "", c.referral ?? "",
+        c.comments ?? [], !!c.draft, !!c.shortlisted, c.post_date ?? "",
+        c.post_topic ?? "", c.offer ?? "", c.creative ?? "", c.landing ?? "", c.utm ?? "",
+      ]
+    );
   }
+  console.log(`✓ channels: ${channels.length}`);
 
   // sprints + placements
+  let plCount = 0;
   for (const s of sprints) {
-    const { error: se } = await db
-      .from("sprints")
-      .upsert({
-        id: s.id,
-        title: s.title,
-        date_from: s.date_from,
-        date_to: s.date_to,
-        status: s.status,
-      });
-    if (se) throw se;
-
-    const rows = (s.placements ?? []).map((p) => ({
-      sprint_id: s.id,
-      name: p.name,
-      author_desc: p.author_desc ?? "",
-      audience: p.audience ?? "",
-      post_date: p.post_date ?? "",
-      post_topic: p.post_topic ?? "",
-      offer: p.offer ?? "",
-      creative: p.creative ?? "",
-      landing: p.landing ?? "",
-      utm: p.utm ?? "",
-      price: p.price ?? "",
-      price_discount: p.price_discount ?? "",
-      subscribers: p.subscribers ?? "",
-      avg_views: p.avg_views ?? "",
-      err: p.err ?? "",
-      forecast_reach: p.forecast_reach ?? "",
-      forecast_cpv: p.forecast_cpv ?? "",
-      steps: p.steps ?? {},
-    }));
-    if (rows.length) {
-      const { error } = await db.from("placements").insert(rows);
-      if (error) throw error;
+    await client.query(
+      `insert into sprints (id, title, date_from, date_to, status)
+       values ($1,$2,$3,$4,$5)`,
+      [s.id, s.title, s.date_from, s.date_to, s.status]
+    );
+    for (const p of s.placements ?? []) {
+      await client.query(
+        `insert into placements
+          (sprint_id, name, author_desc, audience, post_date, post_topic, offer,
+           creative, landing, utm, price, price_discount, subscribers, avg_views,
+           err, forecast_reach, forecast_cpv, steps)
+         values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18)`,
+        [
+          s.id, p.name, p.author_desc ?? "", p.audience ?? "", p.post_date ?? "",
+          p.post_topic ?? "", p.offer ?? "", p.creative ?? "", p.landing ?? "",
+          p.utm ?? "", p.price ?? "", p.price_discount ?? "", p.subscribers ?? "",
+          p.avg_views ?? "", p.err ?? "", p.forecast_reach ?? "", p.forecast_cpv ?? "",
+          JSON.stringify(p.steps ?? {}),
+        ]
+      );
+      plCount++;
     }
-    console.log(`✓ sprint ${s.id}: ${rows.length} placements`);
   }
+  console.log(`✓ sprints: ${sprints.length}, placements: ${plCount}`);
 
   // integrations
-  {
-    const rows = integrations.map((i) => ({
-      id: i.id,
-      sprint_id: i.sprint_id,
-      name: i.name,
-      niche: i.niche ?? "",
-      date: i.date ?? "",
-      landing: i.landing ?? "",
-      published: !!i.published,
-      plan: i.plan ?? {},
-      result: i.result ?? {},
-    }));
-    const { error } = await db.from("integrations").upsert(rows);
-    if (error) throw error;
-    console.log(`✓ integrations: ${rows.length}`);
+  for (const i of integrations) {
+    await client.query(
+      `insert into integrations
+        (id, sprint_id, name, niche, date, landing, published, plan, result)
+       values ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
+      [
+        i.id, i.sprint_id, i.name, i.niche ?? "", i.date ?? "", i.landing ?? "",
+        !!i.published, JSON.stringify(i.plan ?? {}), JSON.stringify(i.result ?? {}),
+      ]
+    );
   }
+  console.log(`✓ integrations: ${integrations.length}`);
 
+  await client.query("commit");
   console.log("\nГотово. Данные в Supabase.");
 }
 
-main().catch((e) => {
-  console.error("✗ Ошибка:", e.message ?? e);
-  process.exit(1);
-});
+main()
+  .catch(async (e) => {
+    try {
+      await client.query("rollback");
+    } catch {}
+    console.error("✗ Ошибка:", e.message ?? e);
+    process.exitCode = 1;
+  })
+  .finally(() => client.end());
