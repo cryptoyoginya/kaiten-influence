@@ -48,8 +48,12 @@ export type Placement = {
     creative?: string;
     creative_image?: string;
     creative_text?: string;
-    // несколько вариантов креатива: картинка + текст
-    creatives?: { image?: string; text?: string }[];
+    // несколько вариантов креатива: картинка + текст + история версий текста
+    creatives?: {
+      image?: string;
+      text?: string;
+      history?: { text: string; at: string }[];
+    }[];
     approve_dima?: boolean;
     approve_dasha?: boolean;
     approve_lesha?: boolean;
@@ -165,14 +169,14 @@ export function getIntegrations(): Integration[] {
 
 // порядок этапов пайплайна — единый источник для канбана
 export const PIPELINE_STEPS = [
-  "Креатив согл. Кайтен",
-  "Креатив согл. автор",
-  "Данные договора",
-  "Договор составлен",
+  "Внутреннее согласование",
+  "Согласование с инфлом",
+  "Реквизиты для договора",
+  "Договор готов",
   "Договор подписан",
-  "Счёт оплачен",
-  "Маркировка готова",
-  "Маркировка нанесена",
+  "Оплата",
+  "Маркировка получена",
+  "Маркировка в посте",
   "Опубликовано",
   "Аналитика",
 ];

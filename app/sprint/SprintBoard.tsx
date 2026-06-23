@@ -5,14 +5,14 @@ import type { Sprint, Placement } from "@/lib/data";
 import { createClient, SUPABASE_ENABLED } from "@/lib/supabase/client";
 
 const STEPS = [
-  "Креатив согл. Кайтен",
-  "Креатив согл. автор",
-  "Данные договора",
-  "Договор составлен",
+  "Внутреннее согласование",
+  "Согласование с инфлом",
+  "Реквизиты для договора",
+  "Договор готов",
   "Договор подписан",
-  "Счёт оплачен",
-  "Маркировка готова",
-  "Маркировка нанесена",
+  "Оплата",
+  "Маркировка получена",
+  "Маркировка в посте",
   "Опубликовано",
   "Аналитика",
 ];
@@ -213,6 +213,23 @@ export default function SprintBoard({ sprints }: { sprints: Sprint[] }) {
     setOpenId(null);
   }
 
+  async function moveToWeek(targetId: string) {
+    if (!open || targetId === current.id) return;
+    const p = open;
+    const key = p.id ?? p.name;
+    if (supabase && p.id) await supabase.from("placements").update({ sprint_id: targetId }).eq("id", p.id);
+    setWeeks((prev) =>
+      prev.map((w) => {
+        if (w.id === current.id)
+          return { ...w, placements: w.placements.filter((x) => (x.id ?? x.name) !== key) };
+        if (w.id === targetId)
+          return { ...w, placements: [{ ...p, sprint_id: targetId }, ...w.placements] };
+        return w;
+      })
+    );
+    setOpenId(null);
+  }
+
   async function uploadFile(file: File): Promise<string> {
     if (!supabase) return URL.createObjectURL(file);
     const ext = (file.name.split(".").pop() || "bin").toLowerCase();
@@ -351,6 +368,9 @@ export default function SprintBoard({ sprints }: { sprints: Sprint[] }) {
           saveState={saveState}
           onSave={() => saveNow(open)}
           onClose={() => setOpenId(null)}
+          weeks={weeks.map((w) => ({ id: w.id, title: w.title }))}
+          currentId={current.id}
+          onMoveWeek={moveToWeek}
         />
       )}
     </div>
@@ -442,6 +462,9 @@ function Editor({
   saveState,
   onSave,
   onClose,
+  weeks,
+  currentId,
+  onMoveWeek,
 }: {
   p: Placement;
   id: string;
@@ -451,6 +474,9 @@ function Editor({
   saveState: "idle" | "saving" | "saved";
   onSave: () => void;
   onClose: () => void;
+  weeks: { id: string; title: string }[];
+  currentId: string;
+  onMoveWeek: (targetId: string) => void;
 }) {
   const set = (mut: (p: Placement) => void) => update(id, mut);
   const stage = stageOf(p);
@@ -620,6 +646,7 @@ function Editor({
                   <RichText
                     value={cr.text ?? ""}
                     placeholder="Текст поста / сценарий…"
+                    history={cr.history ?? []}
                     onChange={(html) =>
                       set((x) => {
                         x.data ??= {};
@@ -627,6 +654,28 @@ function Editor({
                           ...(x.data.creatives![i] ?? {}),
                           text: html,
                         };
+                      })
+                    }
+                    onSnapshot={() =>
+                      set((x) => {
+                        x.data ??= {};
+                        const arr = (x.data.creatives ??= []);
+                        const v = arr[i] ?? {};
+                        const hist = v.history ?? [];
+                        const last = hist.length ? hist[hist.length - 1].text : null;
+                        if ((v.text ?? "") && v.text !== last) {
+                          arr[i] = {
+                            ...v,
+                            history: [...hist, { text: v.text ?? "", at: new Date().toISOString() }],
+                          };
+                        }
+                      })
+                    }
+                    onRestore={(t) =>
+                      set((x) => {
+                        x.data ??= {};
+                        const arr = (x.data.creatives ??= []);
+                        arr[i] = { ...(arr[i] ?? {}), text: t };
                       })
                     }
                   />
@@ -791,6 +840,22 @@ function Editor({
             </div>
           </Section>
 
+          {weeks.length > 1 && (
+            <div className="flex items-center gap-2 pt-1">
+              <span className="text-[12px] text-[var(--color-faint)]">Перенести в неделю:</span>
+              <select
+                value={currentId}
+                onChange={(e) => onMoveWeek(e.target.value)}
+                className="text-[13px] px-2 py-1 rounded-[var(--radius-md)] border border-[var(--color-line)] bg-[var(--color-surface)] outline-none focus:border-[var(--color-accent)]"
+              >
+                {weeks.map((w) => (
+                  <option key={w.id} value={w.id}>
+                    {w.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
           <div className="flex items-center justify-between pt-2">
             <button
               onClick={() => {
@@ -937,13 +1002,20 @@ function RichText({
   value,
   onChange,
   placeholder,
+  history = [],
+  onSnapshot,
+  onRestore,
 }: {
   value: string;
   onChange: (html: string) => void;
   placeholder?: string;
+  history?: { text: string; at: string }[];
+  onSnapshot?: () => void;
+  onRestore?: (text: string) => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const [full, setFull] = useState(false);
+  const [showHist, setShowHist] = useState(false);
   useEffect(() => {
     const el = ref.current;
     if (el && el.innerHTML !== (value || "")) el.innerHTML = value || "";
@@ -968,14 +1040,54 @@ function RichText({
       <TB title="Ссылка" onClick={link}>
         🔗
       </TB>
+      {(onSnapshot || history.length > 0) && (
+        <button
+          type="button"
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={() => setShowHist((s) => !s)}
+          className="ml-auto text-[12px] text-[var(--color-muted)] hover:text-[var(--color-accent)]"
+        >
+          ⟲ история{history.length ? ` (${history.length})` : ""}
+        </button>
+      )}
       <button
         type="button"
         onMouseDown={(e) => e.preventDefault()}
         onClick={() => setFull((f) => !f)}
-        className="ml-auto text-[12px] text-[var(--color-muted)] hover:text-[var(--color-accent)]"
+        className={`${onSnapshot || history.length > 0 ? "" : "ml-auto"} text-[12px] text-[var(--color-muted)] hover:text-[var(--color-accent)]`}
       >
         {full ? "свернуть" : "⛶ развернуть"}
       </button>
+    </div>
+  );
+
+  const histPanel = showHist && (
+    <div className="mt-2 rounded-[var(--radius-md)] border border-[var(--color-line)] bg-[var(--color-surface-2)] p-2 max-h-48 overflow-auto">
+      {history.length === 0 ? (
+        <div className="text-[12px] text-[var(--color-faint)]">
+          Версий пока нет. Жми «Сохранить» в развёрнутом окне — будет сохраняться версия.
+        </div>
+      ) : (
+        <div className="flex flex-col gap-1">
+          {[...history].reverse().map((h, i) => (
+            <button
+              key={i}
+              onClick={() => {
+                onRestore?.(h.text);
+                setShowHist(false);
+              }}
+              className="text-left px-2 py-1.5 rounded-[var(--radius-md)] hover:bg-[var(--color-surface)] border border-transparent hover:border-[var(--color-line)]"
+            >
+              <div className="text-[11px] text-[var(--color-faint)]">
+                {new Date(h.at).toLocaleString("ru-RU")} · восстановить
+              </div>
+              <div className="text-[12px] text-[var(--color-muted)] line-clamp-1">
+                {h.text.replace(/<[^>]+>/g, " ").slice(0, 70) || "—"}
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
   const editor = (
@@ -1002,7 +1114,25 @@ function RichText({
           onClick={(e) => e.stopPropagation()}
         >
           {toolbar}
+          {histPanel}
           {editor}
+          <div className="flex items-center justify-end gap-2 mt-3">
+            <button
+              onClick={() => setFull(false)}
+              className="text-[13px] text-[var(--color-muted)] hover:text-[var(--color-ink)]"
+            >
+              закрыть
+            </button>
+            <button
+              onClick={() => {
+                onSnapshot?.();
+                setFull(false);
+              }}
+              className="h-9 px-5 rounded-[var(--radius-lg)] bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white text-[14px] font-medium"
+            >
+              Сохранить
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -1010,6 +1140,7 @@ function RichText({
   return (
     <div>
       {toolbar}
+      {histPanel}
       {editor}
     </div>
   );

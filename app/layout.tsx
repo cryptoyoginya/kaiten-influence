@@ -33,12 +33,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <PasscodeGate>
           <header className="sticky top-0 z-10 bg-[var(--color-surface)] border-b border-[var(--color-line)]">
             <div className="mx-auto max-w-[1216px] px-6 h-14 flex items-center gap-4">
-              <Link href="/" className="flex items-center gap-2.5">
+              <Link href="/" className="flex items-center">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src="/kaiten-logo.svg" alt="Kaiten" className="h-7 w-auto" />
-                <span className="text-[14px] text-[var(--color-muted)] hidden sm:inline">
-                  Инфлюенс-маркетинг
-                </span>
               </Link>
               <nav className="flex items-center gap-1 ml-2">
                 <NavLink href="/sprint" label="Спринт" />
