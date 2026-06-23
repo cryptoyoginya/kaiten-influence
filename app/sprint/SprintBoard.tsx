@@ -458,6 +458,7 @@ function Editor({
     });
   const [genBusy, setGenBusy] = useState(false);
   const [lightbox, setLightbox] = useState<string | null>(null);
+  const [showComments, setShowComments] = useState(false);
   const creatives = d.creatives ?? [];
   async function genContract() {
     setGenBusy(true);
@@ -681,6 +682,70 @@ function Editor({
                 <Check label="Согласование от Лёши" on={d.approve_lesha} toggle={() => set((x) => ((x.data ??= {}).approve_lesha = !d.approve_lesha))} />
               </div>
             </div>
+
+            {/* комментарии команды — сворачиваемые */}
+            <div className="rounded-[var(--radius-md)] border border-[var(--color-line)] bg-[var(--color-surface)]">
+              <button
+                onClick={() => setShowComments((s) => !s)}
+                className="w-full flex items-center justify-between px-3 py-2.5 text-[13px] font-medium"
+              >
+                <span>Комментарии команды</span>
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className={`text-[var(--color-muted)] transition-transform ${showComments ? "rotate-180" : ""}`}
+                >
+                  <path d="M6 9l6 6 6-6" />
+                </svg>
+              </button>
+              {showComments && (
+                <div className="px-3 pb-3 flex flex-col gap-3">
+                  {([
+                    ["dasha", "Даша"],
+                    ["dima", "Дима"],
+                    ["lesha", "Лёша"],
+                    ["ksyusha", "Ксюша"],
+                    ["kristina", "Кристина"],
+                  ] as const).map(([k, label]) => {
+                    const dd = d as Record<string, unknown>;
+                    return (
+                      <PersonComment
+                        key={k}
+                        label={label}
+                        text={(dd[`comment_${k}`] as string) ?? ""}
+                        audios={(dd[`audio_${k}`] as string[]) ?? []}
+                        upload={upload}
+                        onText={(v) =>
+                          set((x) => {
+                            x.data ??= {};
+                            (x.data as Record<string, unknown>)[`comment_${k}`] = v;
+                          })
+                        }
+                        onAddAudio={(url) =>
+                          set((x) => {
+                            x.data ??= {};
+                            const m = x.data as Record<string, string[]>;
+                            (m[`audio_${k}`] ??= []).push(url);
+                          })
+                        }
+                        onRemoveAudio={(i) =>
+                          set((x) => {
+                            const m = x.data as Record<string, string[]>;
+                            m[`audio_${k}`]?.splice(i, 1);
+                          })
+                        }
+                      />
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </Section>
 
           {/* договор — автосборка по реквизитам блогера */}
@@ -761,46 +826,6 @@ function Editor({
             <FA label="Заметка" v={d.note ?? ""} on={(v) => set((x) => ((x.data ??= {}).note = v))} />
           </Section>
 
-          {/* комментарии команды: текст + голос */}
-          <Section title="Комментарии">
-            {([
-              ["dasha", "Даша"],
-              ["dima", "Дима"],
-              ["lesha", "Лёша"],
-              ["ksyusha", "Ксюша"],
-              ["kristina", "Кристина"],
-            ] as const).map(([k, label]) => {
-              const dd = d as Record<string, unknown>;
-              return (
-                <PersonComment
-                  key={k}
-                  label={label}
-                  text={(dd[`comment_${k}`] as string) ?? ""}
-                  audios={(dd[`audio_${k}`] as string[]) ?? []}
-                  upload={upload}
-                  onText={(v) =>
-                    set((x) => {
-                      x.data ??= {};
-                      (x.data as Record<string, unknown>)[`comment_${k}`] = v;
-                    })
-                  }
-                  onAddAudio={(url) =>
-                    set((x) => {
-                      x.data ??= {};
-                      const m = x.data as Record<string, string[]>;
-                      (m[`audio_${k}`] ??= []).push(url);
-                    })
-                  }
-                  onRemoveAudio={(i) =>
-                    set((x) => {
-                      const m = x.data as Record<string, string[]>;
-                      m[`audio_${k}`]?.splice(i, 1);
-                    })
-                  }
-                />
-              );
-            })}
-          </Section>
 
           {/* чеклист этапов */}
           <Section title="Этапы">
@@ -1529,8 +1554,8 @@ function DatePill({ s }: { s: string }) {
   const due = dueInfo(s);
   if (!d || !due) {
     return (
-      <span className="inline-block text-[11px] px-2 py-0.5 rounded-full bg-[var(--color-surface-2)] text-[var(--color-faint)]">
-        без даты
+      <span className="inline-block text-[11px] px-2 py-0.5 rounded-full bg-[var(--color-surface-2)] text-[var(--color-muted)]">
+        Дата согласуется
       </span>
     );
   }
