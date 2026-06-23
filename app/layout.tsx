@@ -1,23 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import PasscodeGate from "./PasscodeGate";
+import Nav from "./Nav";
 import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Kaiten · инфлюенс-маркетинг",
   description: "Бэклог блогеров и спринт-доска размещений",
 };
-
-function NavLink({ href, label }: { href: string; label: string }) {
-  return (
-    <Link
-      href={href}
-      className="px-3 py-1.5 rounded-[var(--radius-md)] text-[15px] text-[var(--color-muted)] hover:text-[var(--color-ink)] hover:bg-[var(--color-surface-2)] transition-colors"
-    >
-      {label}
-    </Link>
-  );
-}
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -37,12 +27,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src="/kaiten-logo.svg" alt="Kaiten" className="h-7 w-auto" />
               </Link>
-              <nav className="flex items-center gap-1 ml-2">
-                <NavLink href="/sprint" label="Спринт" />
-                <NavLink href="/backlog" label="Бэклог" />
-                <NavLink href="/results" label="Результаты" />
-                <NavLink href="/analytics" label="Сводка" />
-              </nav>
+              <Nav />
             </div>
           </header>
           <main className="mx-auto max-w-[1216px] px-6 py-8">{children}</main>

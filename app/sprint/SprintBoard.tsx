@@ -1560,13 +1560,12 @@ function DatePill({ s }: { s: string }) {
     );
   }
   const c = DUE_COLORS[due.cls];
-  const dm = `${String(d.getDate()).padStart(2, "0")}.${String(d.getMonth() + 1).padStart(2, "0")}`;
   return (
     <span
-      className="inline-block text-[11px] px-2 py-0.5 rounded-full font-medium"
+      className="inline-block text-[11px] px-2 py-0.5 rounded-full font-medium tabular-nums"
       style={{ background: c.bg, color: c.fg }}
     >
-      {dm} · {due.label}
+      {fmtDate(s)}
     </span>
   );
 }
