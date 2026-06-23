@@ -242,23 +242,7 @@ export default function SprintBoard({ sprints }: { sprints: Sprint[] }) {
           >
             ‹
           </button>
-          <div className="relative">
-            <select
-              value={current.id}
-              onChange={(e) => setWi(Math.max(0, weeks.findIndex((w) => w.id === e.target.value)))}
-              className="h-10 pl-3.5 pr-9 rounded-[var(--radius-lg)] border border-[var(--color-line)] bg-[var(--color-surface)] text-[15px] font-semibold text-[var(--color-ink)] outline-none focus:border-[var(--color-accent)] appearance-none cursor-pointer"
-            >
-              {weeks.map((w) => (
-                <option key={w.id} value={w.id}>
-                  {w.title}
-                  {weekRange(w.date_from, w.date_to) ? ` · ${weekRange(w.date_from, w.date_to)}` : ""}
-                </option>
-              ))}
-            </select>
-            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-[var(--color-muted)]">
-              ▼
-            </span>
-          </div>
+          <WeekPicker weeks={weeks} wi={Math.min(wi, weeks.length - 1)} onPick={setWi} />
           <button
             onClick={() => setWi((i) => Math.min(weeks.length - 1, i + 1))}
             disabled={wi >= weeks.length - 1}
@@ -1458,6 +1442,83 @@ function Section({ title, children }: { title: string; children: React.ReactNode
     <div className="rounded-[var(--radius-lg)] bg-[var(--color-surface-2)] border border-[var(--color-line-soft)] p-4">
       <div className="text-[13px] font-semibold mb-3">{title}</div>
       <div className="flex flex-col gap-3">{children}</div>
+    </div>
+  );
+}
+
+function WeekPicker({
+  weeks,
+  wi,
+  onPick,
+}: {
+  weeks: Sprint[];
+  wi: number;
+  onPick: (i: number) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const h = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", h);
+    return () => document.removeEventListener("mousedown", h);
+  }, [open]);
+  const cur = weeks[wi];
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="flex items-center gap-2 h-10 pl-3.5 pr-3 rounded-[var(--radius-lg)] border border-[var(--color-line)] bg-[var(--color-surface)] hover:border-[var(--color-accent)] transition-colors"
+      >
+        <span className="text-[15px] font-semibold text-[var(--color-ink)]">{cur.title}</span>
+        <span className="text-[13px] text-[var(--color-muted)] tabular-nums">
+          {weekRange(cur.date_from, cur.date_to)}
+        </span>
+        <svg
+          width="12"
+          height="12"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className={`text-[var(--color-muted)] transition-transform ${open ? "rotate-180" : ""}`}
+        >
+          <path d="M6 9l6 6 6-6" />
+        </svg>
+      </button>
+      {open && (
+        <div className="absolute z-30 mt-1.5 left-0 min-w-[240px] max-h-[320px] overflow-auto rounded-[var(--radius-xl)] border border-[var(--color-line)] bg-[var(--color-surface)] shadow-[0_8px_24px_rgba(0,0,0,0.10)] p-1">
+          {weeks.map((w, i) => (
+            <button
+              key={w.id}
+              onClick={() => {
+                onPick(i);
+                setOpen(false);
+              }}
+              className={[
+                "w-full flex items-center justify-between gap-4 px-3 py-2 rounded-[var(--radius-md)] text-left transition-colors",
+                i === wi
+                  ? "bg-[var(--color-accent-soft)] text-[var(--color-accent-hover)]"
+                  : "hover:bg-[var(--color-surface-2)]",
+              ].join(" ")}
+            >
+              <span className="text-[14px] font-medium">{w.title}</span>
+              <span
+                className={[
+                  "text-[12px] tabular-nums",
+                  i === wi ? "text-[var(--color-accent-hover)]" : "text-[var(--color-faint)]",
+                ].join(" ")}
+              >
+                {weekRange(w.date_from, w.date_to)}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
