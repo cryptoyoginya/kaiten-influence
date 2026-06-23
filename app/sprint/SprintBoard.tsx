@@ -1579,11 +1579,16 @@ function DatePill({ s }: { s: string }) {
   }
   const c = DUE_COLORS[due.cls];
   return (
-    <span
-      className="inline-block text-[11px] px-2 py-0.5 rounded-full font-medium"
-      style={{ background: c.bg, color: c.fg }}
-    >
-      {fmtDate(s)} {due.label}
+    <span className="inline-flex items-center gap-1.5 flex-wrap">
+      <span className="inline-block text-[11px] px-2 py-0.5 rounded-full font-medium bg-[var(--color-surface-2)] text-[var(--color-ink)] tabular-nums">
+        {fmtDate(s)}
+      </span>
+      <span
+        className="inline-block text-[11px] px-2 py-0.5 rounded-full font-medium"
+        style={{ background: c.bg, color: c.fg }}
+      >
+        {due.label}
+      </span>
     </span>
   );
 }
