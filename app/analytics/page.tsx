@@ -84,10 +84,6 @@ export default async function AnalyticsPage() {
     <div>
       <div className="mb-6">
         <h1 className="text-[26px] font-semibold leading-tight">Аналитика</h1>
-        <p className="text-[14px] text-[var(--color-muted)] mt-1">
-          Срез по всей базе блогеров и текущему спринту · {sprint.title} (
-          {sprint.date_from} — {sprint.date_to})
-        </p>
       </div>
 
       {/* KPI */}
