@@ -44,3 +44,17 @@ body {
 * {
   box-sizing: border-box;
 }
+
+/* редактор форматированного текста */
+.rich[contenteditable]:empty::before {
+  content: attr(data-ph);
+  color: var(--color-faint);
+  pointer-events: none;
+}
+.rich a {
+  color: var(--color-accent);
+  text-decoration: underline;
+}
+.rich:focus {
+  outline: none;
+}

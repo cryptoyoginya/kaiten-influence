@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { Sprint, Placement } from "@/lib/data";
 import { createClient, SUPABASE_ENABLED } from "@/lib/supabase/client";
 
@@ -551,21 +551,21 @@ function Editor({
                   }
                   onZoom={() => cr.image && setLightbox(cr.image)}
                 />
-                <textarea
-                  value={cr.text ?? ""}
-                  onChange={(e) =>
-                    set((x) => {
-                      x.data ??= {};
-                      (x.data.creatives ??= [])[i] = {
-                        ...(x.data.creatives![i] ?? {}),
-                        text: e.target.value,
-                      };
-                    })
-                  }
-                  rows={3}
-                  placeholder="Текст поста / сценарий…"
-                  className="w-full mt-2 bg-[var(--color-surface)] text-[13px] px-2.5 py-1.5 rounded-[var(--radius-md)] border border-[var(--color-line)] outline-none focus:border-[var(--color-accent)] resize-y"
-                />
+                <div className="mt-2">
+                  <RichText
+                    value={cr.text ?? ""}
+                    placeholder="Текст поста / сценарий…"
+                    onChange={(html) =>
+                      set((x) => {
+                        x.data ??= {};
+                        (x.data.creatives ??= [])[i] = {
+                          ...(x.data.creatives![i] ?? {}),
+                          text: html,
+                        };
+                      })
+                    }
+                  />
+                </div>
               </div>
             ))}
             <button
@@ -867,6 +867,112 @@ function FileField({
     </div>
   );
 }
+// редактор текста с форматированием (жирный/курсив/ссылки) + разворот на весь экран
+function RichText({
+  value,
+  onChange,
+  placeholder,
+}: {
+  value: string;
+  onChange: (html: string) => void;
+  placeholder?: string;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [full, setFull] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (el && el.innerHTML !== (value || "")) el.innerHTML = value || "";
+  }, [value, full]);
+  const push = () => onChange(ref.current?.innerHTML || "");
+  const exec = (cmd: string, arg?: string) => {
+    document.execCommand(cmd, false, arg);
+    push();
+  };
+  const link = () => {
+    const url = window.prompt("Ссылка (URL):", "https://");
+    if (url) exec("createLink", url);
+  };
+  const toolbar = (
+    <div className="flex items-center gap-1 mb-1">
+      <TB title="Жирный" onClick={() => exec("bold")} className="font-bold">
+        Ж
+      </TB>
+      <TB title="Курсив" onClick={() => exec("italic")} className="italic">
+        К
+      </TB>
+      <TB title="Ссылка" onClick={link}>
+        🔗
+      </TB>
+      <button
+        type="button"
+        onMouseDown={(e) => e.preventDefault()}
+        onClick={() => setFull((f) => !f)}
+        className="ml-auto text-[12px] text-[var(--color-muted)] hover:text-[var(--color-accent)]"
+      >
+        {full ? "свернуть" : "⛶ развернуть"}
+      </button>
+    </div>
+  );
+  const editor = (
+    <div
+      ref={ref}
+      contentEditable
+      suppressContentEditableWarning
+      onInput={push}
+      data-ph={placeholder}
+      className={[
+        "rich w-full bg-[var(--color-surface)] text-[13px] leading-relaxed px-2.5 py-2 rounded-[var(--radius-md)] border border-[var(--color-line)] outline-none focus:border-[var(--color-accent)] overflow-auto whitespace-pre-wrap",
+        full ? "min-h-[60vh]" : "min-h-[120px] max-h-[320px]",
+      ].join(" ")}
+    />
+  );
+  if (full) {
+    return (
+      <div
+        className="fixed inset-0 z-[60] bg-black/40 flex items-start justify-center p-4 overflow-y-auto"
+        onClick={() => setFull(false)}
+      >
+        <div
+          className="w-full max-w-2xl my-6 bg-[var(--color-surface)] rounded-[var(--radius-xl)] p-4 shadow-xl"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {toolbar}
+          {editor}
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div>
+      {toolbar}
+      {editor}
+    </div>
+  );
+}
+function TB({
+  children,
+  onClick,
+  title,
+  className = "",
+}: {
+  children: React.ReactNode;
+  onClick: () => void;
+  title: string;
+  className?: string;
+}) {
+  return (
+    <button
+      type="button"
+      title={title}
+      onMouseDown={(e) => e.preventDefault()}
+      onClick={onClick}
+      className={`w-7 h-7 rounded-[var(--radius-md)] border border-[var(--color-line)] text-[13px] text-[var(--color-ink)] hover:border-[var(--color-accent)] ${className}`}
+    >
+      {children}
+    </button>
+  );
+}
+
 // картинка креатива: превью + загрузка/замена
 function CreativeImage({
   v,
