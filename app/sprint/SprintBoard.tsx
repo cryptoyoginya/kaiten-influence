@@ -571,7 +571,7 @@ function Editor({
               <input
                 value={p.offer}
                 onChange={(e) => set((x) => (x.offer = e.target.value))}
-                placeholder="Что предлагаем блогеру…"
+                placeholder="Что предлагаем аудитории…"
                 className="w-full bg-[var(--color-surface)] text-[14px] px-3 py-2 rounded-[var(--radius-md)] border border-[var(--color-accent)] outline-none focus:border-[var(--color-accent-hover)]"
               />
             </div>
