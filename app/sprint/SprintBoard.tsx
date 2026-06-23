@@ -705,9 +705,24 @@ function Editor({
             <div className="rounded-[var(--radius-md)] border border-[var(--color-line)] bg-[var(--color-surface)]">
               <button
                 onClick={() => setShowComments((s) => !s)}
-                className="w-full flex items-center justify-between px-3 py-2.5 text-[13px] font-medium"
+                className="w-full flex items-center justify-between px-3 py-2.5 text-[13px] font-medium hover:bg-[var(--color-surface-2)] rounded-[var(--radius-md)] transition-colors"
               >
-                <span>Комментарии команды</span>
+                <span className="flex items-center gap-2">
+                  <svg
+                    width="15"
+                    height="15"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="text-[var(--color-accent)]"
+                  >
+                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+                  </svg>
+                  Комментарии команды
+                </span>
                 <svg
                   width="14"
                   height="14"
@@ -768,10 +783,6 @@ function Editor({
 
           {/* договор — автосборка по реквизитам блогера */}
           <Section title="Договор">
-            <p className="text-[12px] text-[var(--color-faint)]">
-              Заполни реквизиты, которые прислал блогер, и нажми «Сформировать
-              договор» — соберётся .docx по типовому шаблону. Дальше — апрув и подпись.
-            </p>
             <div className="grid md:grid-cols-2 gap-x-4 gap-y-3">
               <F label="ФИО полностью" v={c.fio ?? ""} on={cset("fio")} />
               <F label="ФИО для подписи (Иванов И.И.)" v={c.fio_short ?? ""} on={cset("fio_short")} />
@@ -804,10 +815,6 @@ function Editor({
 
           {/* маркировка через Click.ru */}
           <Section title="Маркировка (Click.ru)">
-            <p className="text-[12px] text-[var(--color-faint)]">
-              erid выпускаешь в мастере Click.ru с вашим кабинетом и вносишь сюда —
-              платформа соберёт промаркированную ссылку и текст-плашку для блогера.
-            </p>
             <F label="erid (из Click.ru)" v={d.erid ?? ""} on={(v) => set((x) => ((x.data ??= {}).erid = v))} />
             <CopyField label="Промаркированная ссылка" value={markedLink(p.landing, d.erid ?? "")} />
             <CopyField label="Текст-плашка «Реклама»" value={disclosure(d.erid ?? "")} />
