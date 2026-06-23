@@ -92,19 +92,55 @@ function doneCount(p: Placement): number {
   return STEPS.filter((s) => p.steps?.[s]).length;
 }
 
-export default function SprintBoard({ sprint }: { sprint: Sprint }) {
-  const [items, setItems] = useState<Placement[]>(sprint.placements);
+export default function SprintBoard({ sprints }: { sprints: Sprint[] }) {
+  const [weeks, setWeeks] = useState<Sprint[]>(
+    sprints.length ? sprints : [{ id: "week-1", title: "Неделя 1", date_from: "", date_to: "", status: "active", placements: [] }]
+  );
+  const [wi, setWi] = useState(0);
   const [openId, setOpenId] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState<number | null>(null);
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
   const supabase = useMemo(() => (SUPABASE_ENABLED ? createClient() : null), []);
   const timers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
+  const current = weeks[Math.min(wi, weeks.length - 1)];
+  const items = current.placements;
+  // обновление списка размещений текущей недели
+  function setItems(updater: (prev: Placement[]) => Placement[]) {
+    setWeeks((prev) =>
+      prev.map((w, i) => (i === wi ? { ...w, placements: updater(w.placements) } : w))
+    );
+  }
+
   const econ = useMemo(() => {
     const spent = items.reduce((a, p) => a + num(p.price_discount || p.price), 0);
     const reach = items.reduce((a, p) => a + num(p.forecast_reach), 0);
     return { spent, reach, count: items.length };
   }, [items]);
+
+  async function addWeek() {
+    // даты новой недели — от конца последней
+    const last = [...weeks].sort((a, b) => (a.date_to > b.date_to ? 1 : -1)).pop();
+    const base = last?.date_to ? parseDate(last.date_to) : null;
+    const from = base ? new Date(base.getTime() + 86400000) : new Date();
+    const to = new Date(from.getTime() + 4 * 86400000);
+    const iso = (dt: Date) => dt.toISOString().slice(0, 10);
+    const w: Sprint = {
+      id: `week-${Date.now().toString(36)}`,
+      title: `Неделя ${weeks.length + 1}`,
+      date_from: iso(from),
+      date_to: iso(to),
+      status: "active",
+      placements: [],
+    };
+    if (supabase) {
+      await supabase.from("sprints").insert({
+        id: w.id, title: w.title, date_from: w.date_from, date_to: w.date_to, status: w.status,
+      });
+    }
+    setWeeks((prev) => [...prev, w]);
+    setWi(weeks.length);
+  }
 
   function scheduleSave(p: Placement) {
     if (!supabase || !p.id) return;
@@ -159,7 +195,7 @@ export default function SprintBoard({ sprint }: { sprint: Sprint }) {
     if (supabase) {
       const { data, error } = await supabase
         .from("placements")
-        .insert({ ...rowOf(blank), sprint_id: sprint.id })
+        .insert({ ...rowOf(blank), sprint_id: current.id })
         .select()
         .single();
       if (!error && data) blank.id = data.id;
@@ -196,15 +232,37 @@ export default function SprintBoard({ sprint }: { sprint: Sprint }) {
 
   return (
     <div>
-      <div className="flex items-end justify-between gap-4 mb-5">
-        <div>
-          <h1 className="text-[26px] font-semibold leading-tight">
-            Спринт · {sprint.title}
-          </h1>
-          <p className="text-[14px] text-[var(--color-muted)] mt-1">
-            {sprint.date_from} — {sprint.date_to} · {econ.count} размещений · бюджет{" "}
-            {fmt(econ.spent)} ₽ · прогноз охвата {fmtShort(econ.reach)}
-          </p>
+      {/* листалка недель */}
+      <div className="flex items-center justify-between gap-4 mb-4">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setWi((i) => Math.max(0, i - 1))}
+            disabled={wi === 0}
+            className="w-8 h-8 rounded-[var(--radius-md)] border border-[var(--color-line)] text-[var(--color-muted)] hover:border-[var(--color-accent)] disabled:opacity-40"
+            aria-label="Предыдущая неделя"
+          >
+            ‹
+          </button>
+          <div className="text-center min-w-[180px]">
+            <div className="text-[20px] font-semibold leading-tight">{current.title}</div>
+            <div className="text-[12px] text-[var(--color-faint)]">
+              {fmtDate(current.date_from)} — {fmtDate(current.date_to)} · {wi + 1}/{weeks.length}
+            </div>
+          </div>
+          <button
+            onClick={() => setWi((i) => Math.min(weeks.length - 1, i + 1))}
+            disabled={wi >= weeks.length - 1}
+            className="w-8 h-8 rounded-[var(--radius-md)] border border-[var(--color-line)] text-[var(--color-muted)] hover:border-[var(--color-accent)] disabled:opacity-40"
+            aria-label="Следующая неделя"
+          >
+            ›
+          </button>
+          <button
+            onClick={addWeek}
+            className="ml-1 h-8 px-3 rounded-[var(--radius-md)] border border-dashed border-[var(--color-line)] text-[13px] text-[var(--color-muted)] hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"
+          >
+            + неделя
+          </button>
         </div>
         <button
           onClick={create}
@@ -212,6 +270,13 @@ export default function SprintBoard({ sprint }: { sprint: Sprint }) {
         >
           + размещение
         </button>
+      </div>
+
+      {/* мини-дашборд недели */}
+      <div className="grid grid-cols-3 gap-3 mb-5">
+        <MiniStat label="Размещений" value={String(econ.count)} />
+        <MiniStat label="Итоговая стоимость" value={fmt(econ.spent) + " ₽"} />
+        <MiniStat label="Прогноз охвата" value={fmtShort(econ.reach)} />
       </div>
 
       <p className="text-[12px] text-[var(--color-faint)] mb-2">
@@ -1227,6 +1292,15 @@ function Section({ title, children }: { title: string; children: React.ReactNode
     <div className="rounded-[var(--radius-lg)] bg-[var(--color-surface-2)] border border-[var(--color-line-soft)] p-4">
       <div className="text-[13px] font-semibold mb-3">{title}</div>
       <div className="flex flex-col gap-3">{children}</div>
+    </div>
+  );
+}
+
+function MiniStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-[var(--radius-xl)] border border-[var(--color-line)] bg-[var(--color-surface)] px-4 py-3">
+      <div className="text-[12px] text-[var(--color-muted)]">{label}</div>
+      <div className="text-[20px] font-semibold mt-0.5 tabular-nums">{value}</div>
     </div>
   );
 }

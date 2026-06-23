@@ -33,9 +33,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <PasscodeGate>
           <header className="sticky top-0 z-10 bg-[var(--color-surface)] border-b border-[var(--color-line)]">
             <div className="mx-auto max-w-[1216px] px-6 h-14 flex items-center gap-4">
-              <Link href="/" className="flex items-center gap-2 font-semibold text-[15px]">
-                <span className="inline-block w-6 h-6 rounded-[var(--radius-md)] bg-[var(--color-accent)]" />
-                Инфлюенс-маркетинг
+              <Link href="/" className="flex items-center gap-2.5">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/kaiten-logo.svg" alt="Kaiten" className="h-7 w-auto" />
+                <span className="text-[14px] text-[var(--color-muted)] hidden sm:inline">
+                  Инфлюенс-маркетинг
+                </span>
               </Link>
               <nav className="flex items-center gap-1 ml-2">
                 <NavLink href="/sprint" label="Спринт" />
@@ -43,9 +46,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <NavLink href="/results" label="Результаты" />
                 <NavLink href="/analytics" label="Сводка" />
               </nav>
-              <div className="ml-auto text-[13px] text-[var(--color-faint)]">
-                Kaiten · продвижение
-              </div>
             </div>
           </header>
           <main className="mx-auto max-w-[1216px] px-6 py-8">{children}</main>

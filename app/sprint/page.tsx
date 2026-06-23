@@ -5,6 +5,7 @@ export const dynamic = "force-dynamic";
 
 export default async function SprintPage() {
   const sprints = await fetchSprints();
-  const sprint = sprints.find((s) => s.status === "active") ?? sprints[0];
-  return <SprintBoard sprint={sprint} />;
+  // недели по возрастанию даты
+  sprints.sort((a, b) => (a.date_from > b.date_from ? 1 : -1));
+  return <SprintBoard sprints={sprints} />;
 }
