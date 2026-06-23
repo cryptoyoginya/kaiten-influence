@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 export type Channel = {
+  id?: string;
   name: string;
   link: string;
   niches: string[];

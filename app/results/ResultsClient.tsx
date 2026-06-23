@@ -119,11 +119,14 @@ export default function ResultsClient({ seed }: { seed: Integration[] }) {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-[26px] font-semibold leading-tight">Результаты интеграций</h1>
-        <p className="text-[14px] text-[var(--color-muted)] mt-1">
-          Нажми на карточку — откроются все показатели, можно заполнить и приложить
-          скрины. {items.length} интеграций · вышло {live}.
-        </p>
+        <h1 className="text-[26px] font-semibold leading-tight mb-3">
+          Результаты интеграций
+        </h1>
+        <div className="grid grid-cols-3 gap-3 max-w-lg">
+          <RStat label="Интеграций" value={items.length} />
+          <RStat label="Вышло" value={live} accent />
+          <RStat label="В работе" value={items.length - live} />
+        </div>
       </div>
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -173,6 +176,29 @@ export default function ResultsClient({ seed }: { seed: Integration[] }) {
           />
         </Modal>
       )}
+    </div>
+  );
+}
+
+function RStat({ label, value, accent }: { label: string; value: number; accent?: boolean }) {
+  return (
+    <div
+      className={[
+        "rounded-[var(--radius-xl)] border px-4 py-3",
+        accent
+          ? "border-[var(--color-accent)] bg-[var(--color-accent-soft)]"
+          : "border-[var(--color-line)] bg-[var(--color-surface)]",
+      ].join(" ")}
+    >
+      <div className="text-[12px] text-[var(--color-muted)]">{label}</div>
+      <div
+        className={[
+          "text-[22px] font-semibold mt-0.5 tabular-nums",
+          accent ? "text-[var(--color-accent-hover)]" : "",
+        ].join(" ")}
+      >
+        {value}
+      </div>
     </div>
   );
 }

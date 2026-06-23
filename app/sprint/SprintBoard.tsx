@@ -118,30 +118,6 @@ export default function SprintBoard({ sprints }: { sprints: Sprint[] }) {
     return { spent, reach, count: items.length };
   }, [items]);
 
-  async function addWeek() {
-    // даты новой недели — от конца последней
-    const last = [...weeks].sort((a, b) => (a.date_to > b.date_to ? 1 : -1)).pop();
-    const base = last?.date_to ? parseDate(last.date_to) : null;
-    const from = base ? new Date(base.getTime() + 86400000) : new Date();
-    const to = new Date(from.getTime() + 4 * 86400000);
-    const iso = (dt: Date) => dt.toISOString().slice(0, 10);
-    const w: Sprint = {
-      id: `week-${Date.now().toString(36)}`,
-      title: `Неделя ${weeks.length + 1}`,
-      date_from: iso(from),
-      date_to: iso(to),
-      status: "active",
-      placements: [],
-    };
-    if (supabase) {
-      await supabase.from("sprints").insert({
-        id: w.id, title: w.title, date_from: w.date_from, date_to: w.date_to, status: w.status,
-      });
-    }
-    setWeeks((prev) => [...prev, w]);
-    setWi(weeks.length);
-  }
-
   function scheduleSave(p: Placement) {
     if (!supabase || !p.id) return;
     clearTimeout(timers.current[p.id]);
@@ -274,12 +250,6 @@ export default function SprintBoard({ sprints }: { sprints: Sprint[] }) {
           >
             ›
           </button>
-          <button
-            onClick={addWeek}
-            className="ml-1 h-8 px-3 rounded-[var(--radius-md)] border border-dashed border-[var(--color-line)] text-[13px] text-[var(--color-muted)] hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"
-          >
-            + неделя
-          </button>
         </div>
         <button
           onClick={create}
@@ -295,10 +265,6 @@ export default function SprintBoard({ sprints }: { sprints: Sprint[] }) {
         <MiniStat label="Итоговая стоимость" value={fmt(econ.spent) + " ₽"} />
         <MiniStat label="Прогноз охвата" value={fmtShort(econ.reach)} />
       </div>
-
-      <p className="text-[12px] text-[var(--color-faint)] mb-2">
-        Перетаскивай карточки между этапами. Клик — открыть и заполнить артефакт текущего шага.
-      </p>
 
       <div className="overflow-x-auto pb-3">
         <div className="flex gap-3" style={{ minWidth: "max-content" }}>
