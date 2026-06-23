@@ -140,9 +140,13 @@ export default function ResultsClient({ seed }: { seed: Integration[] }) {
               <div className="font-semibold text-[15px] leading-snug">{it.name}</div>
               <Status published={it.published} />
             </div>
-            <div className="text-[12px] text-[var(--color-muted)] mt-1 flex flex-wrap gap-x-2">
-              {it.niche && <span>{it.niche}</span>}
-              <span>· {fmtDate(it.date) || "—"}</span>
+            <div className="text-[12px] text-[var(--color-muted)] mt-1 flex flex-wrap gap-x-1.5">
+              {it.niche && <span>{it.niche} ·</span>}
+              {fmtDate(it.date) ? (
+                <span className="tabular-nums">{fmtDate(it.date)}</span>
+              ) : (
+                <span className="text-[var(--color-faint)]">без даты</span>
+              )}
             </div>
 
             <div className="grid grid-cols-3 gap-2 mt-3">
@@ -262,7 +266,7 @@ function Editor({
         </div>
         <div className="text-[12px] text-[var(--color-muted)] mt-1 flex flex-wrap gap-x-3">
           {it.niche && <span>{it.niche}</span>}
-          <span>дата: {fmtDate(it.date) || "—"}</span>
+          <span>дата: {fmtDate(it.date) || "без даты"}</span>
           {it.landing && (
             <a href={it.landing} target="_blank" rel="noreferrer" className="text-[var(--color-accent)] hover:underline">
               лендинг
@@ -778,7 +782,13 @@ function fillPercent(it: Integration): number {
 }
 
 function fmtDate(s: string): string {
-  const m = s.match(/(\d{4})-(\d{2})-(\d{2})/);
+  let m = s.match(/(\d{1,2})\.(\d{1,2})\.(\d{2,4})/);
+  if (m) {
+    let y = +m[3];
+    if (y < 100) y += 2000;
+    return `${m[1].padStart(2, "0")}.${m[2].padStart(2, "0")}.${y}`;
+  }
+  m = s.match(/(\d{4})-(\d{2})-(\d{2})/);
   if (m) return `${m[3]}.${m[2]}.${m[1]}`;
-  return s.split(" ")[0] || s;
+  return "";
 }

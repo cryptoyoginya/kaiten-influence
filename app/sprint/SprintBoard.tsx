@@ -1562,10 +1562,10 @@ function DatePill({ s }: { s: string }) {
   const c = DUE_COLORS[due.cls];
   return (
     <span
-      className="inline-block text-[11px] px-2 py-0.5 rounded-full font-medium tabular-nums"
+      className="inline-block text-[11px] px-2 py-0.5 rounded-full font-medium"
       style={{ background: c.bg, color: c.fg }}
     >
-      {fmtDate(s)}
+      {fmtDate(s)} {due.label}
     </span>
   );
 }
