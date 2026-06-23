@@ -48,6 +48,8 @@ export type Placement = {
     creative?: string;
     creative_image?: string;
     creative_text?: string;
+    // несколько вариантов креатива: картинка + текст
+    creatives?: { image?: string; text?: string }[];
     approve_dima?: boolean;
     approve_dasha?: boolean;
     approve_lesha?: boolean;

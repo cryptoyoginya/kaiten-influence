@@ -299,7 +299,11 @@ function Card({ p, onOpen }: { p: Placement; onOpen: () => void }) {
   const field = stage < STEPS.length ? STAGE_FIELD[stage] : null;
   const filled = field
     ? field.key === "creative"
-      ? !!(p.data?.creative_image || p.data?.creative_text)
+      ? !!(
+          p.data?.creatives?.some((c) => c.image || c.text) ||
+          p.data?.creative_image ||
+          p.data?.creative_text
+        )
       : !!p.data?.[field.key]
     : true;
   const due = dueInfo(p.post_date);
@@ -395,6 +399,8 @@ function Editor({
       x.data.contract[k] = v;
     });
   const [genBusy, setGenBusy] = useState(false);
+  const [lightbox, setLightbox] = useState<string | null>(null);
+  const creatives = d.creatives ?? [];
   async function genContract() {
     setGenBusy(true);
     try {
@@ -512,23 +518,62 @@ function Editor({
             </div>
           </Section>
 
-          {/* креатив: картинка + текст + согласования */}
+          {/* креатив: несколько вариантов (картинка + текст) + согласования */}
           <Section title="Креатив">
-            <CreativeImage
-              v={d.creative_image ?? ""}
-              on={(v) => set((x) => ((x.data ??= {}).creative_image = v))}
-              upload={upload}
-            />
-            <div>
-              <Label>Текст креатива</Label>
-              <textarea
-                value={d.creative_text ?? ""}
-                onChange={(e) => set((x) => ((x.data ??= {}).creative_text = e.target.value))}
-                rows={4}
-                placeholder="Текст поста / сценарий…"
-                className="w-full bg-[var(--color-surface)] text-[13px] px-2.5 py-1.5 rounded-[var(--radius-md)] border border-[var(--color-line)] outline-none focus:border-[var(--color-accent)] resize-y"
-              />
-            </div>
+            {creatives.length === 0 && (
+              <p className="text-[12px] text-[var(--color-faint)]">
+                Добавь варианты креатива — картинку и текст. Картинку можно открыть на
+                весь экран.
+              </p>
+            )}
+            {creatives.map((cr, i) => (
+              <div
+                key={i}
+                className="rounded-[var(--radius-md)] border border-[var(--color-line)] p-3"
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <Label>Вариант {i + 1}</Label>
+                  <button
+                    onClick={() => set((x) => x.data?.creatives?.splice(i, 1))}
+                    className="text-[12px] text-[var(--color-red)] hover:underline"
+                  >
+                    удалить
+                  </button>
+                </div>
+                <CreativeImage
+                  v={cr.image ?? ""}
+                  upload={upload}
+                  onChange={(v) =>
+                    set((x) => {
+                      x.data ??= {};
+                      (x.data.creatives ??= [])[i] = { ...(x.data.creatives![i] ?? {}), image: v };
+                    })
+                  }
+                  onZoom={() => cr.image && setLightbox(cr.image)}
+                />
+                <textarea
+                  value={cr.text ?? ""}
+                  onChange={(e) =>
+                    set((x) => {
+                      x.data ??= {};
+                      (x.data.creatives ??= [])[i] = {
+                        ...(x.data.creatives![i] ?? {}),
+                        text: e.target.value,
+                      };
+                    })
+                  }
+                  rows={3}
+                  placeholder="Текст поста / сценарий…"
+                  className="w-full mt-2 bg-[var(--color-surface)] text-[13px] px-2.5 py-1.5 rounded-[var(--radius-md)] border border-[var(--color-line)] outline-none focus:border-[var(--color-accent)] resize-y"
+                />
+              </div>
+            ))}
+            <button
+              onClick={() => set((x) => ((x.data ??= {}).creatives ??= []).push({}))}
+              className="h-8 px-3 rounded-[var(--radius-md)] border border-dashed border-[var(--color-line)] text-[13px] text-[var(--color-muted)] hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"
+            >
+              + вариант креатива
+            </button>
             <div>
               <Label>Согласования</Label>
               <div className="flex flex-wrap gap-2">
@@ -591,8 +636,11 @@ function Editor({
               Площадка / канал: {c.channel || p.landing || "—"} · Формат: {c.format || "пост"}
               <br />
               Договор: {c.contract_date || "—"} · Креатив:{" "}
-              {d.creative_text ? "текст есть" : "—"}
-              {d.creative_image ? ", картинка есть" : ""}
+              {creatives.length
+                ? `${creatives.length} вар.`
+                : d.creative_text || d.creative_image
+                  ? "есть"
+                  : "—"}
             </div>
             <Check
               label="Отчёт в ОРД за месяц сдан"
@@ -714,6 +762,25 @@ function Editor({
           ×
         </button>
       </div>
+
+      {lightbox && (
+        <div
+          className="fixed inset-0 z-[60] bg-black/90 flex items-center justify-center p-4"
+          onClick={(e) => {
+            e.stopPropagation();
+            setLightbox(null);
+          }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={lightbox} alt="креатив" className="max-w-full max-h-full object-contain" />
+          <button
+            aria-label="Закрыть"
+            className="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/15 text-white text-[20px] leading-none"
+          >
+            ×
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -803,22 +870,36 @@ function FileField({
 // картинка креатива: превью + загрузка/замена
 function CreativeImage({
   v,
-  on,
+  onChange,
   upload,
+  onZoom,
 }: {
   v: string;
-  on: (v: string) => void;
+  onChange: (v: string) => void;
   upload: (f: File) => Promise<string>;
+  onZoom?: () => void;
 }) {
   const ref = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
+  const on = onChange;
   return (
     <div>
-      <Label>Картинка креатива</Label>
+      <Label>Картинка</Label>
       {v ? (
         <div className="relative group inline-block">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={v} alt="креатив" className="max-h-64 rounded-[var(--radius-md)] border border-[var(--color-line)] bg-[var(--color-surface-2)]" />
+          <img
+            src={v}
+            alt="креатив"
+            onClick={onZoom}
+            className="max-h-64 rounded-[var(--radius-md)] border border-[var(--color-line)] bg-[var(--color-surface-2)] cursor-zoom-in"
+          />
+          <button
+            onClick={onZoom}
+            className="absolute bottom-2 left-2 text-[11px] px-2 py-0.5 rounded bg-black/60 text-white"
+          >
+            ⛶ на весь экран
+          </button>
           <button
             onClick={() => on("")}
             className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/60 text-white text-[15px] leading-none"
