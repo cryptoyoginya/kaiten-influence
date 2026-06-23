@@ -80,6 +80,10 @@ export default async function AnalyticsPage() {
     (s) => pl.filter((p) => p.steps[s]).length
   );
 
+  // рефералка
+  const refReady = pl.filter((p) => p.data?.ref_ready).length;
+  const refReg = pl.filter((p) => p.data?.ref_registered).length;
+
   return (
     <div>
       <div className="mb-6">
@@ -94,6 +98,8 @@ export default async function AnalyticsPage() {
         <Kpi label="Бюджет недели" value={fmt(budget) + " ₽"} />
         <Kpi label="Прогноз охвата" value={fmtShort(reach)} />
         <Kpi label="Средний CPV" value={avgCpv ? avgCpv.toFixed(1) + " ₽" : "—"} />
+        <Kpi label="Готовы на рефералку" value={fmt(refReady)} />
+        <Kpi label="Зарегистрированы в рефералке" value={fmt(refReg)} />
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6 mb-6">

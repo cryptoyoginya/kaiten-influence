@@ -359,11 +359,7 @@ function Card({ p, onOpen }: { p: Placement; onOpen: () => void }) {
   const field = stage < STEPS.length ? STAGE_FIELD[stage] : null;
   const filled = field
     ? field.key === "creative"
-      ? !!(
-          p.data?.creatives?.some((c) => c.image || c.text) ||
-          p.data?.creative_image ||
-          p.data?.creative_text
-        )
+      ? !!(p.data?.approve_dima && p.data?.approve_dasha && p.data?.approve_lesha)
       : !!p.data?.[field.key]
     : true;
   const due = dueInfo(p.post_date);
@@ -406,6 +402,13 @@ function Card({ p, onOpen }: { p: Placement; onOpen: () => void }) {
                   : field.key === "post_link"
                     ? "пост"
                     : "аналитика"}
+        </div>
+      )}
+      {(p.data?.ref_ready || p.data?.ref_registered) && (
+        <div className="mt-1.5">
+          <span className="inline-block text-[10px] px-2 py-0.5 rounded-full bg-[var(--color-accent-soft)] text-[var(--color-accent-hover)] font-medium">
+            реферал{p.data?.ref_registered ? " · зарегистрирован" : ""}
+          </span>
         </div>
       )}
       <div className="flex items-center justify-between mt-2 text-[11px]">
@@ -592,6 +595,21 @@ function Editor({
               <F label="Цена со скидкой" v={p.price_discount} on={(v) => set((x) => (x.price_discount = v))} />
               <F label="Прогноз охвата" v={p.forecast_reach} on={(v) => set((x) => (x.forecast_reach = v))} />
               <F label="Прогноз CPV" v={p.forecast_cpv} on={(v) => set((x) => (x.forecast_cpv = v))} />
+            </div>
+            <div>
+              <Label>Рефералка</Label>
+              <div className="flex flex-wrap gap-2">
+                <Check
+                  label="Готов на рефералку"
+                  on={d.ref_ready}
+                  toggle={() => set((x) => ((x.data ??= {}).ref_ready = !d.ref_ready))}
+                />
+                <Check
+                  label="Зарегистрирован в рефералке"
+                  on={d.ref_registered}
+                  toggle={() => set((x) => ((x.data ??= {}).ref_registered = !d.ref_registered))}
+                />
+              </div>
             </div>
           </Section>
 

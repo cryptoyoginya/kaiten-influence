@@ -58,6 +58,8 @@ export type Placement = {
     approve_dima?: boolean;
     approve_dasha?: boolean;
     approve_lesha?: boolean;
+    ref_ready?: boolean;
+    ref_registered?: boolean;
     contract_data?: string;
     contract_file?: string;
     payment?: string;
