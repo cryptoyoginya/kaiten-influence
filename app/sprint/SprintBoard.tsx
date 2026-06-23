@@ -90,6 +90,26 @@ function dueInfo(s: string): { label: string; cls: keyof typeof DUE_COLORS } | n
   return { label: `через ${n} дн.`, cls: "green" };
 }
 
+function stageHint(key: string): string {
+  switch (key) {
+    case "creative":
+      return "Заполни блок «Креатив»: картинка, текст и согласования.";
+    case "contract_data":
+    case "contract_file":
+      return "Заполни блок «Договор»: реквизиты и файл.";
+    case "payment":
+      return "Внеси оплату в блоке «Артефакты по этапам».";
+    case "erid":
+      return "Внеси erid в блоке «Маркировка».";
+    case "post_link":
+      return "Добавь ссылку на пост в блоке «Артефакты по этапам».";
+    case "analytics":
+      return "Добавь аналитику в блоке «Артефакты по этапам».";
+    default:
+      return "";
+  }
+}
+
 function stageOf(p: Placement): number {
   for (let i = 0; i < STEPS.length; i++) if (!p.steps?.[STEPS[i]]) return i;
   return STEPS.length;
@@ -519,30 +539,12 @@ function Editor({
               <div className="text-[12px] font-semibold text-[var(--color-accent-hover)] mb-1">
                 Сейчас на шаге: {STEPS[stage]}
               </div>
-              {field.key === "creative" ? (
-                <p className="text-[13px] text-[var(--color-muted)]">
-                  Заполни блок «Креатив» ниже ↓ (картинка + текст) и отметь согласования.
-                </p>
-              ) : field.key === "erid" ? (
-                <p className="text-[13px] text-[var(--color-muted)]">
-                  Заполни блок «Маркировка» ниже ↓ — внеси erid из Click.ru, платформа
-                  соберёт промаркированную ссылку и текст.
-                </p>
-              ) : (
-                <>
-                  <Label>{field.label}</Label>
-                  <FileField
-                    v={d[field.key] ?? ""}
-                    on={(v) => set((x) => ((x.data ??= {})[field.key] = v))}
-                    upload={field.file ? upload : undefined}
-                  />
-                </>
-              )}
+              <p className="text-[13px] text-[var(--color-muted)]">{stageHint(field.key)}</p>
               <button
                 onClick={() => set((x) => ((x.steps ??= {})[STEPS[stage]] = true))}
                 className="mt-3 h-8 px-3 rounded-[var(--radius-md)] bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white text-[13px] font-medium"
               >
-                Шаг выполнен →
+                Шаг выполнен
               </button>
             </div>
           ) : (
