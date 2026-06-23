@@ -260,7 +260,7 @@ export default function SprintBoard({ sprints }: { sprints: Sprint[] }) {
   return (
     <div>
       {/* листалка недель */}
-      <div className="flex items-center justify-between gap-4 mb-4">
+      <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
         <div className="flex items-center gap-1.5">
           <button
             onClick={() => setWi((i) => Math.max(0, i - 1))}
@@ -510,9 +510,9 @@ function Editor({
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/45 flex items-start justify-center p-4 overflow-y-auto" onClick={onClose}>
-      <div className="relative w-full max-w-2xl my-6 rounded-[var(--radius-xl)] bg-[var(--color-surface)] shadow-xl" onClick={(e) => e.stopPropagation()}>
-        <header className="sticky top-0 z-10 px-6 py-4 border-b border-[var(--color-line-soft)] bg-[var(--color-surface-2)] rounded-t-[var(--radius-xl)] pr-12">
+    <div className="fixed inset-0 z-50 bg-black/45 flex items-start justify-center p-2 sm:p-4 overflow-y-auto" onClick={onClose}>
+      <div className="relative w-full max-w-2xl my-3 sm:my-6 rounded-[var(--radius-xl)] bg-[var(--color-surface)] shadow-xl" onClick={(e) => e.stopPropagation()}>
+        <header className="sticky top-0 z-10 px-4 sm:px-6 py-4 border-b border-[var(--color-line-soft)] bg-[var(--color-surface-2)] rounded-t-[var(--radius-xl)] pr-12">
           <button
             onClick={onClose}
             aria-label="Закрыть"
@@ -532,7 +532,7 @@ function Editor({
           </div>
         </header>
 
-        <div className="p-6 flex flex-col gap-5">
+        <div className="p-4 sm:p-6 flex flex-col gap-5">
           {/* текущий шаг */}
           {field ? (
             <div className="rounded-[var(--radius-lg)] bg-[var(--color-accent-soft)] p-4">

@@ -212,11 +212,11 @@ function RStat({ label, value, accent }: { label: string; value: number; accent?
 function Modal({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
   return (
     <div
-      className="fixed inset-0 z-50 bg-black/45 flex items-start justify-center p-4 overflow-y-auto"
+      className="fixed inset-0 z-50 bg-black/45 flex items-start justify-center p-2 sm:p-4 overflow-y-auto"
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-3xl my-6 rounded-[var(--radius-xl)] bg-[var(--color-surface)] shadow-xl"
+        className="relative w-full max-w-3xl my-3 sm:my-6 rounded-[var(--radius-xl)] bg-[var(--color-surface)] shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
         {children}
@@ -253,7 +253,7 @@ function Editor({
   return (
     <div>
       {/* шапка */}
-      <header className="px-6 py-5 border-b border-[var(--color-line-soft)] bg-[var(--color-surface-2)] rounded-t-[var(--radius-xl)]">
+      <header className="px-4 sm:px-6 py-5 border-b border-[var(--color-line-soft)] bg-[var(--color-surface-2)] rounded-t-[var(--radius-xl)]">
         <div className="flex items-center gap-3 pr-8">
           <h2 className="text-[19px] font-semibold">{it.name}</h2>
           <button
@@ -279,7 +279,7 @@ function Editor({
         </div>
       </header>
 
-      <div className="p-6 flex flex-col gap-5">
+      <div className="p-4 sm:p-6 flex flex-col gap-5">
         {/* бриф размещения — все данные карточки */}
         <Block title="Бриф размещения">
           <div className="grid gap-y-3">

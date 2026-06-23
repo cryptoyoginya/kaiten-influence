@@ -164,7 +164,7 @@ export default function BacklogView({ channels }: { channels: Channel[] }) {
 
   return (
     <div>
-      <div className="flex items-start justify-between gap-4 mb-5">
+      <div className="flex items-start justify-between gap-3 mb-5 flex-wrap">
         <div>
           <h1 className="text-[26px] font-semibold leading-tight mb-3">Бэклог</h1>
           <div className="grid grid-cols-3 gap-3 max-w-lg">
@@ -319,14 +319,14 @@ function ChannelEditor({
   const set = (mut: (c: Channel) => void) => update(id, mut);
   return (
     <div
-      className="fixed inset-0 z-50 bg-black/45 flex items-start justify-center p-4 overflow-y-auto"
+      className="fixed inset-0 z-50 bg-black/45 flex items-start justify-center p-2 sm:p-4 overflow-y-auto"
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-2xl my-6 rounded-[var(--radius-xl)] bg-[var(--color-surface)] shadow-xl"
+        className="relative w-full max-w-2xl my-3 sm:my-6 rounded-[var(--radius-xl)] bg-[var(--color-surface)] shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <header className="px-6 py-4 border-b border-[var(--color-line-soft)] bg-[var(--color-surface-2)] rounded-t-[var(--radius-xl)] pr-12 flex items-center justify-between gap-3">
+        <header className="px-4 sm:px-6 py-4 border-b border-[var(--color-line-soft)] bg-[var(--color-surface-2)] rounded-t-[var(--radius-xl)] pr-12 flex items-center justify-between gap-3">
           <input
             value={c.name}
             onChange={(e) => set((x) => (x.name = e.target.value))}
@@ -340,7 +340,7 @@ function ChannelEditor({
           />
         </header>
 
-        <div className="p-6 flex flex-col gap-3">
+        <div className="p-4 sm:p-6 flex flex-col gap-3">
           <F label="Ссылка" v={c.link} on={(v) => set((x) => (x.link = v))} />
           <F label="Ниши (через запятую)" v={c.niches.join(", ")} on={(v) => set((x) => (x.niches = v.split(",").map((s) => s.trim()).filter(Boolean)))} />
           <FA label="Аудитория" v={c.audience} on={(v) => set((x) => (x.audience = v))} />

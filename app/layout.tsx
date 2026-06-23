@@ -22,15 +22,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <PasscodeGate>
           <header className="sticky top-0 z-10 bg-[var(--color-surface)] border-b border-[var(--color-line)]">
-            <div className="mx-auto max-w-[1216px] px-6 h-14 flex items-center gap-4">
-              <Link href="/" className="flex items-center">
+            <div className="mx-auto max-w-[1216px] px-4 sm:px-6 h-14 flex items-center gap-2 sm:gap-4 overflow-x-auto">
+              <Link href="/" className="flex items-center shrink-0">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/kaiten-logo.svg" alt="Kaiten" className="h-7 w-auto" />
+                <img src="/kaiten-logo.svg" alt="Kaiten" className="h-6 sm:h-7 w-auto" />
               </Link>
               <Nav />
             </div>
           </header>
-          <main className="mx-auto max-w-[1216px] px-6 py-8">{children}</main>
+          <main className="mx-auto max-w-[1216px] px-4 sm:px-6 py-6 sm:py-8">{children}</main>
         </PasscodeGate>
       </body>
     </html>
