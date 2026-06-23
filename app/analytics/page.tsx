@@ -91,15 +91,15 @@ export default async function AnalyticsPage() {
       </div>
 
       {/* KPI */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
         <Kpi label="Блогеров в базе" value={fmt(channels.length)} />
         <Kpi label="В шортлисте" value={fmt(shortlisted)} accent />
         <Kpi label="В спринте" value={fmt(pl.length)} accent />
         <Kpi label="Бюджет недели" value={fmt(budget) + " ₽"} />
         <Kpi label="Прогноз охвата" value={fmtShort(reach)} />
         <Kpi label="Средний CPV" value={avgCpv ? avgCpv.toFixed(1) + " ₽" : "—"} />
-        <Kpi label="Готовы на рефералку" value={fmt(refReady)} />
-        <Kpi label="Зарегистрированы в рефералке" value={fmt(refReg)} />
+        <Kpi label="Готовы к рефералке" value={fmt(refReady)} />
+        <Kpi label="Зарегистрированы" value={fmt(refReg)} />
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6 mb-6">
