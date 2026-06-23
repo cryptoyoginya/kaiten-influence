@@ -1030,34 +1030,49 @@ function RichText({
     if (url) exec("createLink", url);
   };
   const toolbar = (
-    <div className="flex items-center gap-1 mb-1">
-      <TB title="Жирный" onClick={() => exec("bold")} className="font-bold">
-        Ж
-      </TB>
-      <TB title="Курсив" onClick={() => exec("italic")} className="italic">
-        К
-      </TB>
-      <TB title="Ссылка" onClick={link}>
-        🔗
-      </TB>
-      {(onSnapshot || history.length > 0) && (
-        <button
-          type="button"
-          onMouseDown={(e) => e.preventDefault()}
-          onClick={() => setShowHist((s) => !s)}
-          className="ml-auto text-[12px] text-[var(--color-muted)] hover:text-[var(--color-accent)]"
-        >
-          ⟲ история{history.length ? ` (${history.length})` : ""}
-        </button>
-      )}
-      <button
-        type="button"
-        onMouseDown={(e) => e.preventDefault()}
-        onClick={() => setFull((f) => !f)}
-        className={`${onSnapshot || history.length > 0 ? "" : "ml-auto"} text-[12px] text-[var(--color-muted)] hover:text-[var(--color-accent)]`}
-      >
-        {full ? "свернуть" : "⛶ развернуть"}
-      </button>
+    <div className="flex items-center gap-2 mb-1.5">
+      <div className="flex items-center gap-0.5 p-0.5 rounded-[var(--radius-md)] bg-[var(--color-surface-2)] border border-[var(--color-line-soft)]">
+        <TB title="Жирный" onClick={() => exec("bold")} className="font-bold">
+          Ж
+        </TB>
+        <TB title="Курсив" onClick={() => exec("italic")} className="italic">
+          К
+        </TB>
+        <TB title="Ссылка" onClick={link}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M10 13a5 5 0 0 0 7.07 0l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+            <path d="M14 11a5 5 0 0 0-7.07 0l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+          </svg>
+        </TB>
+      </div>
+
+      <div className="ml-auto flex items-center gap-1.5">
+        {(onSnapshot || history.length > 0) && (
+          <PillBtn active={showHist} onClick={() => setShowHist((s) => !s)} title="История версий">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 3v5h5" />
+              <path d="M3.05 13A9 9 0 1 0 6 5.3L3 8" />
+              <path d="M12 7v5l3 2" />
+            </svg>
+            История
+            {history.length > 0 && (
+              <span className="inline-flex items-center justify-center min-w-4 h-4 px-1 rounded-full bg-[var(--color-accent-soft)] text-[10px] text-[var(--color-accent-hover)]">
+                {history.length}
+              </span>
+            )}
+          </PillBtn>
+        )}
+        <PillBtn onClick={() => setFull((f) => !f)} title={full ? "Свернуть" : "Развернуть"}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            {full ? (
+              <path d="M9 9H4M9 9V4M15 9h5M15 9V4M9 15H4M9 15v5M15 15h5M15 15v5" />
+            ) : (
+              <path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3" />
+            )}
+          </svg>
+          {full ? "Свернуть" : "Развернуть"}
+        </PillBtn>
+      </div>
     </div>
   );
 
@@ -1162,7 +1177,35 @@ function TB({
       title={title}
       onMouseDown={(e) => e.preventDefault()}
       onClick={onClick}
-      className={`w-7 h-7 rounded-[var(--radius-md)] border border-[var(--color-line)] text-[13px] text-[var(--color-ink)] hover:border-[var(--color-accent)] ${className}`}
+      className={`w-7 h-7 rounded-[6px] flex items-center justify-center text-[13px] text-[var(--color-ink)] hover:bg-[var(--color-surface)] ${className}`}
+    >
+      {children}
+    </button>
+  );
+}
+function PillBtn({
+  children,
+  onClick,
+  title,
+  active,
+}: {
+  children: React.ReactNode;
+  onClick: () => void;
+  title: string;
+  active?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      title={title}
+      onMouseDown={(e) => e.preventDefault()}
+      onClick={onClick}
+      className={[
+        "inline-flex items-center gap-1.5 h-7 px-2.5 rounded-[var(--radius-md)] border text-[12px] font-medium transition-colors",
+        active
+          ? "bg-[var(--color-accent-soft)] border-[var(--color-accent)] text-[var(--color-accent-hover)]"
+          : "bg-[var(--color-surface)] border-[var(--color-line)] text-[var(--color-muted)] hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]",
+      ].join(" ")}
     >
       {children}
     </button>
