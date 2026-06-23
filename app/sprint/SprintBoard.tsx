@@ -62,6 +62,12 @@ function fmtDate(s: string): string {
   const p = (n: number) => String(n).padStart(2, "0");
   return `${p(d.getDate())}.${p(d.getMonth() + 1)}.${d.getFullYear()}`;
 }
+function weekRange(from: string, to: string): string {
+  const a = parseDate(from), b = parseDate(to);
+  if (!a || !b) return "";
+  const dm = (d: Date) => `${String(d.getDate()).padStart(2, "0")}.${String(d.getMonth() + 1).padStart(2, "0")}`;
+  return `${dm(a)}–${dm(b)}`;
+}
 const DUE_COLORS: Record<string, { bg: string; fg: string; border: string }> = {
   red: { bg: "#fde8e6", fg: "#b3261e", border: "#f44336" },
   orange: { bg: "#fff3e0", fg: "#b26a00", border: "#ffa100" },
@@ -227,25 +233,36 @@ export default function SprintBoard({ sprints }: { sprints: Sprint[] }) {
     <div>
       {/* листалка недель */}
       <div className="flex items-center justify-between gap-4 mb-4">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           <button
             onClick={() => setWi((i) => Math.max(0, i - 1))}
             disabled={wi === 0}
-            className="w-8 h-8 rounded-[var(--radius-md)] border border-[var(--color-line)] text-[var(--color-muted)] hover:border-[var(--color-accent)] disabled:opacity-40"
+            className="w-10 h-10 grid place-items-center rounded-[var(--radius-lg)] border border-[var(--color-line)] bg-[var(--color-surface)] text-[18px] text-[var(--color-muted)] hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] disabled:opacity-40 disabled:hover:border-[var(--color-line)]"
             aria-label="Предыдущая неделя"
           >
             ‹
           </button>
-          <div className="text-center min-w-[180px]">
-            <div className="text-[20px] font-semibold leading-tight">{current.title}</div>
-            <div className="text-[12px] text-[var(--color-faint)]">
-              {fmtDate(current.date_from)} — {fmtDate(current.date_to)} · {wi + 1}/{weeks.length}
-            </div>
+          <div className="relative">
+            <select
+              value={current.id}
+              onChange={(e) => setWi(Math.max(0, weeks.findIndex((w) => w.id === e.target.value)))}
+              className="h-10 pl-3.5 pr-9 rounded-[var(--radius-lg)] border border-[var(--color-line)] bg-[var(--color-surface)] text-[15px] font-semibold text-[var(--color-ink)] outline-none focus:border-[var(--color-accent)] appearance-none cursor-pointer"
+            >
+              {weeks.map((w) => (
+                <option key={w.id} value={w.id}>
+                  {w.title}
+                  {weekRange(w.date_from, w.date_to) ? ` · ${weekRange(w.date_from, w.date_to)}` : ""}
+                </option>
+              ))}
+            </select>
+            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-[var(--color-muted)]">
+              ▼
+            </span>
           </div>
           <button
             onClick={() => setWi((i) => Math.min(weeks.length - 1, i + 1))}
             disabled={wi >= weeks.length - 1}
-            className="w-8 h-8 rounded-[var(--radius-md)] border border-[var(--color-line)] text-[var(--color-muted)] hover:border-[var(--color-accent)] disabled:opacity-40"
+            className="w-10 h-10 grid place-items-center rounded-[var(--radius-lg)] border border-[var(--color-line)] bg-[var(--color-surface)] text-[18px] text-[var(--color-muted)] hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] disabled:opacity-40 disabled:hover:border-[var(--color-line)]"
             aria-label="Следующая неделя"
           >
             ›
