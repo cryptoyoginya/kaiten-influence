@@ -487,7 +487,14 @@ function Editor({
   return (
     <div className="fixed inset-0 z-50 bg-black/45 flex items-start justify-center p-4 overflow-y-auto" onClick={onClose}>
       <div className="relative w-full max-w-2xl my-6 rounded-[var(--radius-xl)] bg-[var(--color-surface)] shadow-xl" onClick={(e) => e.stopPropagation()}>
-        <header className="px-6 py-4 border-b border-[var(--color-line-soft)] bg-[var(--color-surface-2)] rounded-t-[var(--radius-xl)] pr-12">
+        <header className="sticky top-0 z-10 px-6 py-4 border-b border-[var(--color-line-soft)] bg-[var(--color-surface-2)] rounded-t-[var(--radius-xl)] pr-12">
+          <button
+            onClick={onClose}
+            aria-label="Закрыть"
+            className="absolute top-3 right-3 w-8 h-8 rounded-full bg-[var(--color-surface)] hover:bg-[var(--color-line-soft)] flex items-center justify-center text-[var(--color-muted)] text-[18px]"
+          >
+            ×
+          </button>
           <input
             value={p.name}
             onChange={(e) => set((x) => (x.name = e.target.value))}
@@ -555,6 +562,18 @@ function Editor({
             <FA label="Описание автора" v={p.author_desc} on={(v) => set((x) => (x.author_desc = v))} />
             <FA label="Аудитория" v={p.audience} on={(v) => set((x) => (x.audience = v))} />
             <FA label="Тематика поста" v={p.post_topic} on={(v) => set((x) => (x.post_topic = v))} />
+
+            {/* оффер — отдельной выделенной строкой */}
+            <div className="rounded-[var(--radius-md)] bg-[var(--color-accent-soft)] border border-[var(--color-accent)]/30 p-3">
+              <Label>Оффер</Label>
+              <input
+                value={p.offer}
+                onChange={(e) => set((x) => (x.offer = e.target.value))}
+                placeholder="Что предлагаем блогеру…"
+                className="w-full bg-[var(--color-surface)] text-[14px] px-3 py-2 rounded-[var(--radius-md)] border border-[var(--color-accent)] outline-none focus:border-[var(--color-accent-hover)]"
+              />
+            </div>
+
             <div className="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-3">
               <div>
                 <Label>Дата (01.01.2001)</Label>
@@ -565,7 +584,6 @@ function Editor({
                   className="w-full bg-[var(--color-surface)] text-[13px] px-2.5 py-1.5 rounded-[var(--radius-md)] border border-[var(--color-line)] outline-none focus:border-[var(--color-accent)]"
                 />
               </div>
-              <F label="Оффер" v={p.offer} on={(v) => set((x) => (x.offer = v))} />
               <F label="Ленд" v={p.landing} on={(v) => set((x) => (x.landing = v))} />
               <F label="UTM" v={p.utm} on={(v) => set((x) => (x.utm = v))} />
               <F label="Цена, ₽" v={p.price} on={(v) => set((x) => (x.price = v))} />
@@ -849,16 +867,7 @@ function Editor({
             </div>
           </div>
         </div>
-
-        <button
-          onClick={onClose}
-          aria-label="Закрыть"
-          className="absolute top-3 right-3 w-8 h-8 rounded-full bg-[var(--color-surface-2)] hover:bg-[var(--color-line-soft)] flex items-center justify-center text-[var(--color-muted)] text-[18px]"
-        >
-          ×
-        </button>
       </div>
-
       {lightbox && (
         <div
           className="fixed inset-0 z-[60] bg-black/90 flex items-center justify-center p-4"
