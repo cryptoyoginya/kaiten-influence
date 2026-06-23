@@ -167,25 +167,33 @@ export default function SprintBoard({ sprints }: { sprints: Sprint[] }) {
   }
 
   async function create() {
+    const tmpId = "tmp-" + Date.now();
+    const sprintId = current.id;
     const blank: Placement = {
+      id: tmpId,
+      sprint_id: sprintId,
       name: "Новое размещение",
       author_desc: "", audience: "", post_date: "", post_topic: "", offer: "",
       creative: "", landing: "", utm: "", price: "", price_discount: "",
       subscribers: "", avg_views: "", err: "", forecast_reach: "", forecast_cpv: "",
       steps: {}, data: {},
     };
+    // сразу показываем карточку и открываем редактор
+    setItems((prev) => [blank, ...prev]);
+    setOpenId(tmpId);
     if (supabase) {
       const { data, error } = await supabase
         .from("placements")
-        .insert({ ...rowOf(blank), sprint_id: current.id })
-        .select()
+        .insert({ ...rowOf(blank), sprint_id: sprintId })
+        .select("id")
         .single();
-      if (!error && data) blank.id = data.id;
-    } else {
-      blank.id = "local-" + Date.now();
+      if (!error && data) {
+        setItems((prev) => prev.map((p) => (p.id === tmpId ? { ...p, id: data.id } : p)));
+        setOpenId((cur) => (cur === tmpId ? data.id : cur));
+      } else if (error) {
+        console.error("create placement:", error.message);
+      }
     }
-    setItems((prev) => [blank, ...prev]);
-    setOpenId(blank.id ?? blank.name);
   }
 
   async function remove(id: string) {
@@ -369,16 +377,8 @@ function Card({ p, onOpen }: { p: Placement; onOpen: () => void }) {
       className="rounded-[var(--radius-lg)] border border-[var(--color-line)] bg-[var(--color-surface)] p-2.5 cursor-pointer hover:border-[var(--color-accent)]"
     >
       <div className="text-[13px] font-medium leading-snug">{p.name || "—"}</div>
-      <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-        <span className="text-[11px] text-[var(--color-muted)]">{fmtDate(p.post_date)}</span>
-        {due && dueC && (
-          <span
-            className="text-[10px] px-1.5 py-0.5 rounded font-medium"
-            style={{ background: dueC.bg, color: dueC.fg }}
-          >
-            {due.label}
-          </span>
-        )}
+      <div className="mt-1.5">
+        <DatePill s={p.post_date} />
       </div>
       {p.data?.now_needed && (
         <div className="text-[11px] text-[#b26a00] mt-1 line-clamp-2">
@@ -1520,6 +1520,29 @@ function WeekPicker({
         </div>
       )}
     </div>
+  );
+}
+
+// единый сегмент: дата + срочность цветом; без даты — нейтральный сегмент
+function DatePill({ s }: { s: string }) {
+  const d = parseDate(s);
+  const due = dueInfo(s);
+  if (!d || !due) {
+    return (
+      <span className="inline-block text-[11px] px-2 py-0.5 rounded-full bg-[var(--color-surface-2)] text-[var(--color-faint)]">
+        без даты
+      </span>
+    );
+  }
+  const c = DUE_COLORS[due.cls];
+  const dm = `${String(d.getDate()).padStart(2, "0")}.${String(d.getMonth() + 1).padStart(2, "0")}`;
+  return (
+    <span
+      className="inline-block text-[11px] px-2 py-0.5 rounded-full font-medium"
+      style={{ background: c.bg, color: c.fg }}
+    >
+      {dm} · {due.label}
+    </span>
   );
 }
 
