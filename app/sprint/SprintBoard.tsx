@@ -573,6 +573,8 @@ function Editor({
   const [genBusy, setGenBusy] = useState(false);
   const [lightbox, setLightbox] = useState<string | null>(null);
   const [showComments, setShowComments] = useState(false);
+  const [addNiche, setAddNiche] = useState(false);
+  const [newNiche, setNewNiche] = useState("");
   const creatives = d.creatives ?? [];
   async function genContract() {
     setGenBusy(true);
@@ -673,7 +675,7 @@ function Editor({
             <div>
               <Label>Сегмент</Label>
               <div className="flex flex-wrap gap-1.5">
-                {NICHES.map((n) => {
+                {[...NICHES, ...(d.niche && !NICHES.includes(d.niche) ? [d.niche] : [])].map((n) => {
                   const sel = d.niche === n;
                   return (
                     <button
@@ -690,6 +692,38 @@ function Editor({
                     </button>
                   );
                 })}
+                {addNiche ? (
+                  <input
+                    autoFocus
+                    value={newNiche}
+                    onChange={(e) => setNewNiche(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && newNiche.trim()) {
+                        set((x) => ((x.data ??= {}).niche = newNiche.trim()));
+                        setNewNiche("");
+                        setAddNiche(false);
+                      }
+                      if (e.key === "Escape") {
+                        setNewNiche("");
+                        setAddNiche(false);
+                      }
+                    }}
+                    onBlur={() => {
+                      if (newNiche.trim()) set((x) => ((x.data ??= {}).niche = newNiche.trim()));
+                      setNewNiche("");
+                      setAddNiche(false);
+                    }}
+                    placeholder="своя ниша…"
+                    className="h-7 px-2.5 rounded-[var(--radius-md)] text-[12px] border border-[var(--color-accent)] bg-[var(--color-surface)] outline-none w-32"
+                  />
+                ) : (
+                  <button
+                    onClick={() => setAddNiche(true)}
+                    className="h-7 px-2.5 rounded-[var(--radius-md)] text-[12px] border border-dashed border-[var(--color-line)] text-[var(--color-muted)] hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"
+                  >
+                    + своя
+                  </button>
+                )}
               </div>
             </div>
             <FA label="Описание автора" v={p.author_desc} on={(v) => set((x) => (x.author_desc = v))} />
