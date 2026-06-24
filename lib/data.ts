@@ -60,6 +60,7 @@ export type Placement = {
     approve_lesha?: boolean;
     ref_ready?: boolean;
     ref_registered?: boolean;
+    channel_link?: string;
     contract_data?: string;
     contract_file?: string;
     payment?: string;

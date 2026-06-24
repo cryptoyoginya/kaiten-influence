@@ -90,6 +90,12 @@ function dueInfo(s: string): { label: string; cls: keyof typeof DUE_COLORS } | n
   return { label: `через ${n} дн.`, cls: "green" };
 }
 
+// ссылка на статистику канала в TGStat из ссылки t.me
+function tgstatUrl(link: string): string {
+  const m = String(link ?? "").match(/t\.me\/([a-zA-Z0-9_]{3,})/);
+  return m ? `https://tgstat.ru/channel/@${m[1]}` : "";
+}
+
 function stageHint(key: string): string {
   switch (key) {
     case "creative":
@@ -581,6 +587,43 @@ function Editor({
             <FA label="Описание автора" v={p.author_desc} on={(v) => set((x) => (x.author_desc = v))} />
             <FA label="Аудитория" v={p.audience} on={(v) => set((x) => (x.audience = v))} />
             <FA label="Тематика поста" v={p.post_topic} on={(v) => set((x) => (x.post_topic = v))} />
+
+            {/* ссылка на канал + авто-ссылка на статистику */}
+            <div>
+              <Label>Ссылка на канал</Label>
+              <div className="flex items-center gap-2">
+                <input
+                  value={d.channel_link ?? ""}
+                  onChange={(e) => set((x) => ((x.data ??= {}).channel_link = e.target.value))}
+                  placeholder="https://t.me/channel"
+                  className="flex-1 bg-[var(--color-surface)] text-[13px] px-2.5 py-1.5 rounded-[var(--radius-md)] border border-[var(--color-line)] outline-none focus:border-[var(--color-accent)]"
+                />
+                {d.channel_link && /^https?:/.test(d.channel_link) && (
+                  <a
+                    href={d.channel_link}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-[12px] text-[var(--color-accent)] hover:underline shrink-0"
+                  >
+                    открыть
+                  </a>
+                )}
+              </div>
+              {tgstatUrl(d.channel_link ?? "") && (
+                <a
+                  href={tgstatUrl(d.channel_link ?? "")}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1.5 mt-1.5 h-7 px-2.5 rounded-[var(--radius-md)] border border-[var(--color-line)] text-[12px] text-[var(--color-muted)] hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"
+                >
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 3v18h18" />
+                    <path d="M7 15l3-4 3 3 4-6" />
+                  </svg>
+                  Статистика в TGStat
+                </a>
+              )}
+            </div>
 
             {/* оффер — отдельной выделенной строкой */}
             <div className="rounded-[var(--radius-md)] bg-[var(--color-accent-soft)] border border-[var(--color-accent)]/30 p-3">
