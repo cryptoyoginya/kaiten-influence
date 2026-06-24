@@ -61,6 +61,7 @@ export type Placement = {
     ref_ready?: boolean;
     ref_registered?: boolean;
     channel_link?: string;
+    niche?: string;
     contract_data?: string;
     contract_file?: string;
     payment?: string;

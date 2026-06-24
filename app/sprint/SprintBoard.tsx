@@ -4,6 +4,18 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { Sprint, Placement } from "@/lib/data";
 import { createClient, SUPABASE_ENABLED } from "@/lib/supabase/client";
 
+const NICHES = [
+  "Бизнес",
+  "Продакты и CEO",
+  "PM и управление",
+  "CTO и тимлид",
+  "Консалтинг",
+  "Производство",
+  "Финансы",
+  "Агентства и медиа",
+  "Бизнес (вне ниш)",
+];
+
 const STEPS = [
   "Внутреннее согласование",
   "Согласование с инфлом",
@@ -184,41 +196,45 @@ export default function SprintBoard({ sprints }: { sprints: Sprint[] }) {
     setSaveState("saved");
   }
 
-  // при публикации заводим карточку в Результатах (если ещё нет)
+  // карточка в Результатах: создаём при публикации, сегмент/имя держим в синхроне
   async function ensureIntegration(p: Placement) {
     if (!supabase || !p.id || p.id.startsWith("tmp-")) return;
-    if (!p.steps?.["Опубликовано"]) return;
-    await supabase.from("integrations").upsert(
-      {
-        id: `pl-${p.id}`,
-        sprint_id: p.sprint_id ?? current.id,
-        name: p.name,
-        niche: "",
-        date: p.post_date,
-        landing: p.landing,
-        published: true,
-        brief: {
-          author_desc: p.author_desc, audience: p.audience, date: p.post_date,
-          post_topic: p.post_topic, offer: p.offer, creative: p.creative,
-          landing: p.landing, utm: p.utm,
-        },
-        plan: {
-          price: p.price_discount || p.price, reach: p.forecast_reach,
-          cpv: p.forecast_cpv, err: p.err, views: p.avg_views,
-        },
-        result: {
-          ...EMPTY_RESULT,
-          costs: {
-            ...EMPTY_RESULT.costs,
-            price: p.price_discount || p.price || "",
-            total: num(p.price_discount || p.price)
-              ? String(Math.round(num(p.price_discount || p.price)))
-              : "",
+    const niche = p.data?.niche ?? "";
+    if (p.steps?.["Опубликовано"]) {
+      await supabase.from("integrations").upsert(
+        {
+          id: `pl-${p.id}`,
+          sprint_id: p.sprint_id ?? current.id,
+          name: p.name,
+          niche,
+          date: p.post_date,
+          landing: p.landing,
+          published: true,
+          brief: {
+            author_desc: p.author_desc, audience: p.audience, date: p.post_date,
+            post_topic: p.post_topic, offer: p.offer, creative: p.creative,
+            landing: p.landing, utm: p.utm,
+          },
+          plan: {
+            price: p.price_discount || p.price, reach: p.forecast_reach,
+            cpv: p.forecast_cpv, err: p.err, views: p.avg_views,
+          },
+          result: {
+            ...EMPTY_RESULT,
+            costs: {
+              ...EMPTY_RESULT.costs,
+              price: p.price_discount || p.price || "",
+              total: num(p.price_discount || p.price)
+                ? String(Math.round(num(p.price_discount || p.price)))
+                : "",
+            },
           },
         },
-      },
-      { onConflict: "id", ignoreDuplicates: true }
-    );
+        { onConflict: "id", ignoreDuplicates: true }
+      );
+    }
+    // синхронизируем сегмент и имя, если карточка в Результатах уже есть
+    await supabase.from("integrations").update({ niche, name: p.name }).eq("id", `pl-${p.id}`);
   }
 
   function update(id: string, mut: (p: Placement) => void) {
@@ -654,6 +670,28 @@ function Editor({
 
           {/* бриф */}
           <Section title="Бриф">
+            <div>
+              <Label>Сегмент</Label>
+              <div className="flex flex-wrap gap-1.5">
+                {NICHES.map((n) => {
+                  const sel = d.niche === n;
+                  return (
+                    <button
+                      key={n}
+                      onClick={() => set((x) => ((x.data ??= {}).niche = sel ? "" : n))}
+                      className={[
+                        "h-7 px-2.5 rounded-[var(--radius-md)] text-[12px] border transition-colors",
+                        sel
+                          ? "bg-[var(--color-accent-soft)] border-[var(--color-accent)] text-[var(--color-accent-hover)]"
+                          : "bg-[var(--color-surface)] border-[var(--color-line)] text-[var(--color-muted)] hover:border-[var(--color-accent)]",
+                      ].join(" ")}
+                    >
+                      {n}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
             <FA label="Описание автора" v={p.author_desc} on={(v) => set((x) => (x.author_desc = v))} />
             <FA label="Аудитория" v={p.audience} on={(v) => set((x) => (x.audience = v))} />
             <FA label="Тематика поста" v={p.post_topic} on={(v) => set((x) => (x.post_topic = v))} />
