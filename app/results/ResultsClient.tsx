@@ -12,6 +12,9 @@ export default function ResultsClient({ seed }: { seed: Integration[] }) {
   const [items, setItems] = useState<Integration[]>(seed);
   const [openId, setOpenId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [q, setQ] = useState("");
+  const [status, setStatus] = useState<"all" | "live" | "work">("all");
+  const [niche, setNiche] = useState<string | null>(null);
   const supabase = useMemo(() => (SUPABASE_ENABLED ? createClient() : null), []);
   const timers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
@@ -115,6 +118,26 @@ export default function ResultsClient({ seed }: { seed: Integration[] }) {
   const open = useMemo(() => items.find((i) => i.id === openId) ?? null, [items, openId]);
   const live = items.filter((i) => i.published).length;
 
+  const niches = useMemo(() => {
+    const m = new Map<string, number>();
+    items.forEach((i) => i.niche && m.set(i.niche, (m.get(i.niche) ?? 0) + 1));
+    return [...m.entries()].sort((a, b) => b[1] - a[1]);
+  }, [items]);
+
+  const filtered = useMemo(() => {
+    const needle = q.trim().toLowerCase();
+    return items.filter((i) => {
+      if (status === "live" && !i.published) return false;
+      if (status === "work" && i.published) return false;
+      if (niche && i.niche !== niche) return false;
+      if (!needle) return true;
+      return (
+        i.name.toLowerCase().includes(needle) ||
+        (i.niche ?? "").toLowerCase().includes(needle)
+      );
+    });
+  }, [items, q, status, niche]);
+
   // закрытие по Esc
   useEffect(() => {
     if (!openId) return;
@@ -136,8 +159,41 @@ export default function ResultsClient({ seed }: { seed: Integration[] }) {
         </div>
       </div>
 
+      <div className="flex flex-wrap items-center gap-2 mb-5">
+        <input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="Поиск по названию, нише…"
+          className="h-9 px-3 rounded-[var(--radius-lg)] border border-[var(--color-line)] bg-[var(--color-surface)] text-[14px] w-64 outline-none focus:border-[var(--color-accent)]"
+        />
+        <button onClick={() => setStatus("all")} className={rchip(status === "all")}>
+          Все
+        </button>
+        <button onClick={() => setStatus("live")} className={rchip(status === "live")}>
+          Вышли
+        </button>
+        <button onClick={() => setStatus("work")} className={rchip(status === "work")}>
+          В работе
+        </button>
+        {niches.length > 0 && <span className="w-px h-5 bg-[var(--color-line)] mx-1" />}
+        {niche && (
+          <button onClick={() => setNiche(null)} className={rchip(false)}>
+            ✕ ниша
+          </button>
+        )}
+        {niches.map(([n, k]) => (
+          <button key={n} onClick={() => setNiche(niche === n ? null : n)} className={rchip(niche === n)}>
+            {n} <span className="opacity-60">{k}</span>
+          </button>
+        ))}
+      </div>
+
+      <div className="text-[12px] text-[var(--color-faint)] mb-2">
+        Показано: {filtered.length} из {items.length}
+      </div>
+
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {items.map((it) => (
+        {filtered.map((it) => (
           <button
             key={it.id}
             onClick={() => setOpenId(it.id)}
@@ -189,6 +245,15 @@ export default function ResultsClient({ seed }: { seed: Integration[] }) {
       )}
     </div>
   );
+}
+
+function rchip(active: boolean) {
+  return [
+    "h-8 px-3 rounded-[var(--radius-lg)] text-[13px] border transition-colors",
+    active
+      ? "bg-[var(--color-accent-soft)] border-[var(--color-accent)] text-[var(--color-accent-hover)]"
+      : "bg-[var(--color-surface)] border-[var(--color-line)] text-[var(--color-muted)] hover:border-[var(--color-faint)]",
+  ].join(" ");
 }
 
 function RStat({ label, value, accent }: { label: string; value: number; accent?: boolean }) {
