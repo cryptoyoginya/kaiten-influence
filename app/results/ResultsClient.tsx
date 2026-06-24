@@ -15,6 +15,12 @@ export default function ResultsClient({ seed }: { seed: Integration[] }) {
   const supabase = useMemo(() => (SUPABASE_ENABLED ? createClient() : null), []);
   const timers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
+  // открыть конкретную интеграцию по ?open=...
+  useEffect(() => {
+    const o = new URLSearchParams(window.location.search).get("open");
+    if (o) setOpenId(o);
+  }, []);
+
   // localStorage — только фолбэк, когда Supabase не подключён
   useEffect(() => {
     if (SUPABASE_ENABLED) return;

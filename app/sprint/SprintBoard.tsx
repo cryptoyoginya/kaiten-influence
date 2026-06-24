@@ -615,8 +615,21 @@ function Editor({
             </div>
           ) : (
             <div className="rounded-[var(--radius-lg)] bg-[var(--color-green-soft)] p-4 text-[13px] text-[#2e7d32]">
-              Все этапы пройдены. Итоги — на вкладке «Результаты».
+              Все этапы пройдены.
             </div>
+          )}
+
+          {/* переход к аналитике после публикации */}
+          {p.steps?.["Опубликовано"] && p.id && !p.id.startsWith("tmp-") && (
+            <a
+              href={`/results?open=pl-${p.id}`}
+              className="flex items-center justify-center gap-2 h-10 rounded-[var(--radius-lg)] bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white text-[14px] font-medium"
+            >
+              Заполнить аналитику в «Результатах»
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M5 12h14M13 6l6 6-6 6" />
+              </svg>
+            </a>
           )}
 
           {/* что сейчас нужно */}
