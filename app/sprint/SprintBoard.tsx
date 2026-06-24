@@ -90,6 +90,17 @@ function dueInfo(s: string): { label: string; cls: keyof typeof DUE_COLORS } | n
   return { label: `через ${n} дн.`, cls: "green" };
 }
 
+// пустой результат интеграции (для авто-создания в Результатах)
+const EMPTY_RESULT = {
+  post_link: "", format: "",
+  costs: { price: "", marking: "", tax: "", total: "" },
+  reach: { views: "", reach: "", likes: "", reposts: "", comments_count: "", er: "" },
+  conversion: { clicks: "", registrations: "", activations: "", paying: "", revenue: "" },
+  unit: { cpv: "", cpm: "", ctr: "", cpl: "", cac: "", romi: "", payback: "" },
+  screens: { creative: "", stats: "", comments: [] as string[] },
+  lessons: { sentiment: "", worked: "", failed: "", learned: "", verdict: "" },
+};
+
 // ссылка на статистику канала в TGStat из ссылки t.me
 function tgstatUrl(link: string): string {
   const m = String(link ?? "").match(/t\.me\/([a-zA-Z0-9_]{3,})/);
@@ -156,6 +167,7 @@ export default function SprintBoard({ sprints }: { sprints: Sprint[] }) {
     setSaveState("saving");
     timers.current[p.id] = setTimeout(async () => {
       await supabase.from("placements").update(rowOf(p)).eq("id", p.id!);
+      await ensureIntegration(p);
       setSaveState("saved");
     }, 500);
   }
@@ -168,7 +180,36 @@ export default function SprintBoard({ sprints }: { sprints: Sprint[] }) {
     clearTimeout(timers.current[p.id]);
     setSaveState("saving");
     await supabase.from("placements").update(rowOf(p)).eq("id", p.id);
+    await ensureIntegration(p);
     setSaveState("saved");
+  }
+
+  // при публикации заводим карточку в Результатах (если ещё нет)
+  async function ensureIntegration(p: Placement) {
+    if (!supabase || !p.id || p.id.startsWith("tmp-")) return;
+    if (!p.steps?.["Опубликовано"]) return;
+    await supabase.from("integrations").upsert(
+      {
+        id: `pl-${p.id}`,
+        sprint_id: p.sprint_id ?? current.id,
+        name: p.name,
+        niche: "",
+        date: p.post_date,
+        landing: p.landing,
+        published: true,
+        brief: {
+          author_desc: p.author_desc, audience: p.audience, date: p.post_date,
+          post_topic: p.post_topic, offer: p.offer, creative: p.creative,
+          landing: p.landing, utm: p.utm,
+        },
+        plan: {
+          price: p.price_discount || p.price, reach: p.forecast_reach,
+          cpv: p.forecast_cpv, err: p.err, views: p.avg_views,
+        },
+        result: EMPTY_RESULT,
+      },
+      { onConflict: "id", ignoreDuplicates: true }
+    );
   }
 
   function update(id: string, mut: (p: Placement) => void) {
@@ -446,6 +487,13 @@ function Card({ p, onOpen }: { p: Placement; onOpen: () => void }) {
         <div className="mt-1.5">
           <span className="inline-block text-[10px] px-2 py-0.5 rounded-full bg-[var(--color-accent-soft)] text-[var(--color-accent-hover)] font-medium">
             реферал{p.data?.ref_registered ? " · зарегистрирован" : ""}
+          </span>
+        </div>
+      )}
+      {published && !p.data?.ord_report_done && (
+        <div className="mt-1.5">
+          <span className="inline-block text-[10px] px-2 py-0.5 rounded-full bg-[var(--color-red-soft)] text-[#b3261e] font-medium">
+            ⚠️ отчёт в ОРД не сдан
           </span>
         </div>
       )}
