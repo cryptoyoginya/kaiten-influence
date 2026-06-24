@@ -206,7 +206,16 @@ export default function SprintBoard({ sprints }: { sprints: Sprint[] }) {
           price: p.price_discount || p.price, reach: p.forecast_reach,
           cpv: p.forecast_cpv, err: p.err, views: p.avg_views,
         },
-        result: EMPTY_RESULT,
+        result: {
+          ...EMPTY_RESULT,
+          costs: {
+            ...EMPTY_RESULT.costs,
+            price: p.price_discount || p.price || "",
+            total: num(p.price_discount || p.price)
+              ? String(Math.round(num(p.price_discount || p.price)))
+              : "",
+          },
+        },
       },
       { onConflict: "id", ignoreDuplicates: true }
     );
