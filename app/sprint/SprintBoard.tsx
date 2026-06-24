@@ -145,7 +145,7 @@ export default function SprintBoard({ sprints }: { sprints: Sprint[] }) {
   }, [items]);
 
   function scheduleSave(p: Placement) {
-    if (!supabase || !p.id) return;
+    if (!supabase || !p.id || p.id.startsWith("tmp-")) return;
     clearTimeout(timers.current[p.id]);
     setSaveState("saving");
     timers.current[p.id] = setTimeout(async () => {
@@ -155,7 +155,7 @@ export default function SprintBoard({ sprints }: { sprints: Sprint[] }) {
   }
 
   async function saveNow(p: Placement) {
-    if (!supabase || !p.id) {
+    if (!supabase || !p.id || p.id.startsWith("tmp-")) {
       setSaveState("saved");
       return;
     }
@@ -192,7 +192,7 @@ export default function SprintBoard({ sprints }: { sprints: Sprint[] }) {
     const blank: Placement = {
       id: tmpId,
       sprint_id: sprintId,
-      name: "Новое размещение",
+      name: "",
       author_desc: "", audience: "", post_date: "", post_topic: "", offer: "",
       creative: "", landing: "", utm: "", price: "", price_discount: "",
       subscribers: "", avg_views: "", err: "", forecast_reach: "", forecast_cpv: "",
@@ -208,8 +208,15 @@ export default function SprintBoard({ sprints }: { sprints: Sprint[] }) {
         .select("id")
         .single();
       if (!error && data) {
-        setItems((prev) => prev.map((p) => (p.id === tmpId ? { ...p, id: data.id } : p)));
+        // подставляем реальный id и сохраняем то, что уже могли вписать
+        let saved: Placement | undefined;
+        setItems((prev) => {
+          const next = prev.map((p) => (p.id === tmpId ? { ...p, id: data.id } : p));
+          saved = next.find((p) => p.id === data.id);
+          return next;
+        });
         setOpenId((cur) => (cur === tmpId ? data.id : cur));
+        if (saved) await supabase.from("placements").update(rowOf(saved)).eq("id", data.id);
       } else if (error) {
         console.error("create placement:", error.message);
       }
