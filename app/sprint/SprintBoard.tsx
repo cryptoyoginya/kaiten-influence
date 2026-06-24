@@ -712,6 +712,8 @@ function Editor({
               <F label="Цена, ₽" v={p.price} on={(v) => set((x) => (x.price = v))} />
               <F label="Цена со скидкой" v={p.price_discount} on={(v) => set((x) => (x.price_discount = v))} />
               <F label="Прогноз охвата" v={p.forecast_reach} on={(v) => set((x) => (x.forecast_reach = v))} />
+              <F label="Прогноз просмотров" v={p.avg_views} on={(v) => set((x) => (x.avg_views = v))} />
+              <F label="Прогноз ER, %" v={p.err} on={(v) => set((x) => (x.err = v))} />
               <F label="Прогноз CPV" v={p.forecast_cpv} on={(v) => set((x) => (x.forecast_cpv = v))} />
             </div>
             <div>
