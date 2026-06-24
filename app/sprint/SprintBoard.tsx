@@ -389,19 +389,24 @@ function Card({ p, onOpen }: { p: Placement; onOpen: () => void }) {
       ? !!(p.data?.approve_dima && p.data?.approve_dasha && p.data?.approve_lesha)
       : !!p.data?.[field.key]
     : true;
+  const published = !!p.steps?.["Опубликовано"];
   const due = dueInfo(p.post_date);
-  const dueC = due ? DUE_COLORS[due.cls] : null;
+  const borderColor = published
+    ? DUE_COLORS.green.border
+    : due
+      ? DUE_COLORS[due.cls].border
+      : null;
   return (
     <div
       draggable
       onDragStart={(e) => e.dataTransfer.setData("id", p.id ?? p.name)}
       onClick={onOpen}
-      style={dueC ? { borderColor: dueC.border, borderLeftWidth: 3 } : undefined}
+      style={borderColor ? { borderColor, borderLeftWidth: 3 } : undefined}
       className="rounded-[var(--radius-lg)] border border-[var(--color-line)] bg-[var(--color-surface)] p-2.5 cursor-pointer hover:border-[var(--color-accent)]"
     >
       <div className="text-[13px] font-medium leading-snug">{p.name || "—"}</div>
       <div className="mt-1.5">
-        <DatePill s={p.post_date} />
+        <DatePill s={p.post_date} published={published} />
       </div>
       {p.data?.now_needed && (
         <div className="text-[11px] text-[#b26a00] mt-1 line-clamp-2">
@@ -1582,23 +1587,40 @@ function WeekPicker({
   );
 }
 
-// единый сегмент: дата + срочность цветом; без даты — нейтральный сегмент
-function DatePill({ s }: { s: string }) {
+// единый сегмент: дата + статус. Опубликовано → без просрочки.
+function DatePill({ s, published }: { s: string; published?: boolean }) {
   const d = parseDate(s);
-  const due = dueInfo(s);
-  if (!d || !due) {
+  if (!d) {
     return (
       <span className="inline-block text-[11px] px-2 py-0.5 rounded-full bg-[var(--color-surface-2)] text-[var(--color-muted)]">
         Дата согласуется
       </span>
     );
   }
+  const datePill = (
+    <span className="inline-block text-[11px] px-2 py-0.5 rounded-full font-medium bg-[var(--color-surface-2)] text-[var(--color-ink)] tabular-nums">
+      {fmtDate(s)}
+    </span>
+  );
+  if (published) {
+    return (
+      <span className="inline-flex items-center gap-1.5 flex-wrap">
+        {datePill}
+        <span
+          className="inline-block text-[11px] px-2 py-0.5 rounded-full font-medium"
+          style={{ background: DUE_COLORS.green.bg, color: DUE_COLORS.green.fg }}
+        >
+          опубликовано
+        </span>
+      </span>
+    );
+  }
+  const due = dueInfo(s);
+  if (!due) return datePill;
   const c = DUE_COLORS[due.cls];
   return (
     <span className="inline-flex items-center gap-1.5 flex-wrap">
-      <span className="inline-block text-[11px] px-2 py-0.5 rounded-full font-medium bg-[var(--color-surface-2)] text-[var(--color-ink)] tabular-nums">
-        {fmtDate(s)}
-      </span>
+      {datePill}
       <span
         className="inline-block text-[11px] px-2 py-0.5 rounded-full font-medium"
         style={{ background: c.bg, color: c.fg }}
