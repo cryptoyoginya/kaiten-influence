@@ -57,6 +57,7 @@ export default function ResultsClient({ seed }: { seed: Integration[] }) {
   function rowOf(it: Integration) {
     return {
       brief: it.brief,
+      plan: it.plan,
       result: it.result,
       published: it.published,
       updated_at: new Date().toISOString(),
@@ -304,11 +305,27 @@ function Editor({
 
         {/* план → факт (факт считается из введённого) */}
         <Block title="План → факт" accent>
+          <p className="text-[12px] text-[var(--color-faint)] mb-3">
+            План — прогноз из брифа (можно поправить). Факт по охвату и просмотрам
+            вводишь здесь; ER и CPV считаются автоматически.
+          </p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <PlanFact label="Охват" plan={it.plan.reach} fact={r.reach.reach} />
-            <PlanFact label="Просмотры" plan={it.plan.views} fact={r.reach.views} />
-            <PlanFact label="ER, %" plan={it.plan.err} fact={r.reach.er} />
-            <PlanFact label="CPV, ₽" plan={it.plan.cpv} fact={r.unit.cpv} />
+            <PlanFact
+              label="Охват"
+              plan={it.plan.reach}
+              onPlan={(v) => set((d) => (d.plan.reach = v))}
+              fact={r.reach.reach}
+              onFact={(v) => set((d) => (d.result.reach.reach = v))}
+            />
+            <PlanFact
+              label="Просмотры"
+              plan={it.plan.views}
+              onPlan={(v) => set((d) => (d.plan.views = v))}
+              fact={r.reach.views}
+              onFact={(v) => set((d) => (d.result.reach.views = v))}
+            />
+            <PlanFact label="ER, %" plan={it.plan.err} onPlan={(v) => set((d) => (d.plan.err = v))} fact={r.reach.er} computed />
+            <PlanFact label="CPV, ₽" plan={it.plan.cpv} onPlan={(v) => set((d) => (d.plan.cpv = v))} fact={r.unit.cpv} computed />
           </div>
         </Block>
 
@@ -322,14 +339,11 @@ function Editor({
             </Grid>
           </Block>
 
-          <Block title="Охват и вовлечение — вводишь сырые числа">
+          <Block title="Вовлечение (для расчёта ER)">
             <Grid>
-              <F label="Просмотры" v={r.reach.views} on={(v) => set((d) => (d.result.reach.views = v))} />
-              <F label="Охват" v={r.reach.reach} on={(v) => set((d) => (d.result.reach.reach = v))} />
               <F label="Лайки / реакции" v={r.reach.likes} on={(v) => set((d) => (d.result.reach.likes = v))} />
               <F label="Репосты" v={r.reach.reposts} on={(v) => set((d) => (d.result.reach.reposts = v))} />
               <F label="Комментарии" v={r.reach.comments_count} on={(v) => set((d) => (d.result.reach.comments_count = v))} />
-              <ReadF label="ER, %" v={r.reach.er} />
             </Grid>
           </Block>
 
@@ -513,18 +527,44 @@ function ReadF({ label, v, accent }: { label: string; v: string; accent?: boolea
   );
 }
 
-function PlanFact({ label, plan, fact }: { label: string; plan: string; fact: string }) {
+function PlanFact({
+  label,
+  plan,
+  onPlan,
+  fact,
+  onFact,
+  computed,
+}: {
+  label: string;
+  plan: string;
+  onPlan: (v: string) => void;
+  fact: string;
+  onFact?: (v: string) => void;
+  computed?: boolean;
+}) {
+  const inputCls =
+    "w-full bg-transparent border-b border-[var(--color-line)] focus:border-[var(--color-accent)] outline-none tabular-nums text-[13px] placeholder:text-[var(--color-faint)]";
   return (
-    <div className="rounded-[var(--radius-md)] bg-[var(--color-surface)] border border-[var(--color-line)] px-3 py-2">
-      <div className="text-[11px] text-[var(--color-faint)]">{label}</div>
-      <div className="flex items-baseline gap-2 mt-1">
-        <span className="text-[12px] text-[var(--color-muted)] tabular-nums">
-          {plan || "—"}
-        </span>
-        <span className="text-[var(--color-faint)] text-[11px]">→</span>
-        <span className="text-[15px] font-semibold tabular-nums">
-          {fact || <span className="text-[var(--color-faint)] font-normal">факт</span>}
-        </span>
+    <div className="rounded-[var(--radius-md)] bg-[var(--color-surface)] border border-[var(--color-line)] p-2.5">
+      <div className="text-[11px] text-[var(--color-faint)] mb-1.5">{label}</div>
+      <div className="flex items-center gap-2 text-[12px]">
+        <span className="text-[var(--color-muted)] w-8 shrink-0">план</span>
+        <input value={plan} onChange={(e) => onPlan(e.target.value)} placeholder="—" className={inputCls} />
+      </div>
+      <div className="flex items-center gap-2 text-[12px] mt-1.5">
+        <span className="text-[var(--color-muted)] w-8 shrink-0">факт</span>
+        {computed ? (
+          <span className="text-[14px] font-semibold tabular-nums text-[var(--color-accent-hover)]">
+            {fact || "—"}
+          </span>
+        ) : (
+          <input
+            value={fact}
+            onChange={(e) => onFact?.(e.target.value)}
+            placeholder="—"
+            className={inputCls + " font-semibold"}
+          />
+        )}
       </div>
     </div>
   );
