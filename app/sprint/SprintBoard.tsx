@@ -52,8 +52,14 @@ const STAGE_FIELD: { key: FieldKey; label: string; file?: boolean }[] = [
 ];
 
 function num(s: string): number {
-  const m = String(s ?? "").replace(/\s| /g, "").match(/-?\d+[.,]?\d*/);
-  return m ? parseFloat(m[0].replace(",", ".")) : 0;
+  const t = String(s ?? "").replace(/ /g, " ").toLowerCase();
+  const joined = t.replace(/(\d)\s+(?=\d{3}\b)/g, "$1");
+  const m = joined.match(/-?\d+(?:[.,]\d+)?/);
+  if (!m) return 0;
+  let v = parseFloat(m[0].replace(",", "."));
+  if (/млн|млрд/.test(t)) v *= 1000000;
+  else if (/тыс|\bk\b|\dк|\dk/.test(t)) v *= 1000;
+  return v;
 }
 // разбор даты: ДД.ММ.ГГГГ, ISO (2026-06-23…)
 function parseDate(s: string): Date | null {
@@ -321,11 +327,21 @@ export default function SprintBoard({ sprints }: { sprints: Sprint[] }) {
 
   async function uploadFile(file: File): Promise<string> {
     if (!supabase) return URL.createObjectURL(file);
-    const ext = (file.name.split(".").pop() || "bin").toLowerCase();
-    const path = `placements/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-    const { error } = await supabase.storage.from("screens").upload(path, file);
-    if (error) return "";
-    return supabase.storage.from("screens").getPublicUrl(path).data.publicUrl;
+    try {
+      const ext = (file.name.split(".").pop() || "bin").toLowerCase();
+      const path = `placements/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const { error } = await supabase.storage
+        .from("screens")
+        .upload(path, file, { contentType: file.type || undefined, upsert: true });
+      if (error) {
+        alert("Не удалось загрузить файл: " + error.message);
+        return "";
+      }
+      return supabase.storage.from("screens").getPublicUrl(path).data.publicUrl;
+    } catch (e) {
+      alert("Ошибка загрузки: " + (e instanceof Error ? e.message : String(e)));
+      return "";
+    }
   }
 
   const cols = useMemo(() => {
@@ -1496,12 +1512,15 @@ function CreativeImage({
         hidden
         onChange={async (e) => {
           const f = e.target.files?.[0];
-          if (f) {
-            setBusy(true);
-            on(await upload(f));
+          e.target.value = "";
+          if (!f) return;
+          setBusy(true);
+          try {
+            const url = await upload(f);
+            if (url) on(url);
+          } finally {
             setBusy(false);
           }
-          e.target.value = "";
         }}
       />
     </div>
