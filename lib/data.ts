@@ -65,6 +65,7 @@ export type Placement = {
     contract_data?: string;
     contract_file?: string;
     payment?: string;
+    payment_file?: string;
     erid?: string;
     post_link?: string;
     analytics_link?: string;

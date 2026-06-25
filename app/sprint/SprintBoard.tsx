@@ -1069,7 +1069,8 @@ function Editor({
             <div className="grid md:grid-cols-2 gap-x-4 gap-y-3">
               <F label="Данные договора" v={d.contract_data ?? ""} on={(v) => set((x) => ((x.data ??= {}).contract_data = v))} />
               <FF label="Файл договора" v={d.contract_file ?? ""} on={(v) => set((x) => ((x.data ??= {}).contract_file = v))} upload={upload} />
-              <F label="Счёт / оплата" v={d.payment ?? ""} on={(v) => set((x) => ((x.data ??= {}).payment = v))} />
+              <F label="Счёт / оплата (ссылка/заметка)" v={d.payment ?? ""} on={(v) => set((x) => ((x.data ??= {}).payment = v))} />
+              <FF label="Файл счёта" v={d.payment_file ?? ""} on={(v) => set((x) => ((x.data ??= {}).payment_file = v))} upload={upload} />
               <F label="Маркировка (ERID)" v={d.erid ?? ""} on={(v) => set((x) => ((x.data ??= {}).erid = v))} />
               <F label="Ссылка на пост" v={d.post_link ?? ""} on={(v) => set((x) => ((x.data ??= {}).post_link = v))} />
               <F label="Аналитика" v={d.analytics_link ?? ""} on={(v) => set((x) => ((x.data ??= {}).analytics_link = v))} />
@@ -1236,12 +1237,15 @@ function FileField({
             hidden
             onChange={async (e) => {
               const f = e.target.files?.[0];
-              if (f) {
-                setBusy(true);
-                on(await upload(f));
+              e.target.value = "";
+              if (!f || !upload) return;
+              setBusy(true);
+              try {
+                const url = await upload(f);
+                if (url) on(url);
+              } finally {
                 setBusy(false);
               }
-              e.target.value = "";
             }}
           />
         </>
