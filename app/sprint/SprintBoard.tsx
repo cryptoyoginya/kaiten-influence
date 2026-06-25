@@ -1009,10 +1009,35 @@ function Editor({
 
           {/* договор — автосборка по реквизитам блогера */}
           <Section title="Договор">
+            <div className="mb-3">
+              <Label>Форма исполнителя (определяет шаблон договора)</Label>
+              <div className="flex gap-2">
+                {([["smz", "Самозанятый"], ["ip", "ИП / ООО"]] as const).map(([v, label]) => {
+                  const sel = v === "ip" ? c.form === "ip" : c.form !== "ip";
+                  return (
+                    <button
+                      key={v}
+                      onClick={() => cset("form")(v)}
+                      className={[
+                        "h-8 px-3 rounded-[var(--radius-md)] text-[13px] border transition-colors",
+                        sel
+                          ? "bg-[var(--color-accent-soft)] border-[var(--color-accent)] text-[var(--color-accent-hover)]"
+                          : "bg-[var(--color-surface)] border-[var(--color-line)] text-[var(--color-muted)] hover:border-[var(--color-accent)]",
+                      ].join(" ")}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            <p className="text-[12px] text-[var(--color-faint)] mb-2">
+              В договор подставляются: ФИО, канал, дата публикации, сроки, сумма (число и
+              прописью), дата договора, ФИО для подписи.
+            </p>
             <div className="grid md:grid-cols-2 gap-x-4 gap-y-3">
-              <F label="ФИО полностью" v={c.fio ?? ""} on={cset("fio")} />
+              <F label="ФИО полностью (именительный падеж)" v={c.fio ?? ""} on={cset("fio")} />
               <F label="ФИО для подписи (Иванов И.И.)" v={c.fio_short ?? ""} on={cset("fio_short")} />
-              <F label="Статус (самозанятый / ИП)" v={c.status ?? ""} on={cset("status")} />
               <F label="ИНН" v={c.inn ?? ""} on={cset("inn")} />
               <F label="СНИЛС" v={c.snils ?? ""} on={cset("snils")} />
               <F label="Банк" v={c.bank ?? ""} on={cset("bank")} />
