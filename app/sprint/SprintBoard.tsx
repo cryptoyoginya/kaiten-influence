@@ -174,10 +174,19 @@ export default function SprintBoard({ sprints }: { sprints: Sprint[] }) {
   }
 
   const econ = useMemo(() => {
-    const spent = items.reduce((a, p) => a + num(p.price_discount || p.price), 0);
-    const reach = items.reduce((a, p) => a + num(p.forecast_reach), 0);
-    return { spent, reach, count: items.length };
-  }, [items]);
+    const from = parseDate(current.date_from);
+    const to = parseDate(current.date_to);
+    // считаем только размещения этой недели (дата в диапазоне или без даты)
+    const inWeek = (p: Placement) => {
+      const d = parseDate(p.post_date);
+      if (!d || !from || !to) return true;
+      return d >= from && d <= to;
+    };
+    const inw = items.filter(inWeek);
+    const spent = inw.reduce((a, p) => a + num(p.price_discount || p.price), 0);
+    const reach = inw.reduce((a, p) => a + num(p.forecast_reach), 0);
+    return { spent, reach, count: inw.length };
+  }, [items, current.date_from, current.date_to]);
 
   function scheduleSave(p: Placement) {
     if (!supabase || !p.id || p.id.startsWith("tmp-")) return;
