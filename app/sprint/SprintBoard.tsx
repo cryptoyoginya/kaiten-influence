@@ -16,6 +16,7 @@ const NICHES = [
   "Бизнес (вне ниш)",
 ];
 
+// ключи этапов (в БД не меняем). Отображение — STEP_LABELS.
 const STEPS = [
   "Внутреннее согласование",
   "Согласование с инфлом",
@@ -26,6 +27,19 @@ const STEPS = [
   "Маркировка получена",
   "Маркировка в посте",
   "Опубликовано",
+  "Аналитика",
+];
+// названия колонок (этап-действие)
+const STEP_LABELS = [
+  "Внутреннее согласование",
+  "Согласование с инфлом",
+  "Сбор реквизитов",
+  "Подготовка договора",
+  "Подписание договора",
+  "Оплата",
+  "Получение маркировки",
+  "Маркировка в посте",
+  "Публикация",
   "Аналитика",
 ];
 
@@ -127,8 +141,8 @@ function tgstatUrl(link: string): string {
 
 // короткая подпись на карточке по индексу этапа
 const STAGE_BADGE = [
-  "креатив", "креатив", "реквизиты", "договор", "подпись",
-  "оплата", "маркировка", "маркировка", "пост", "аналитика",
+  "креатив", "согласие", "реквизиты", "договор", "подпись",
+  "оплата", "маркировка", "erid в посте", "пост", "аналитика",
 ];
 
 function stageHint(key: string): string {
@@ -441,7 +455,7 @@ export default function SprintBoard({ sprints }: { sprints: Sprint[] }) {
                       {ci + 1}
                     </span>
                   )}
-                  <span className="leading-tight">{done ? "Готово" : STEPS[ci]}</span>
+                  <span className="leading-tight">{done ? "Готово" : STEP_LABELS[ci]}</span>
                   <span className="ml-auto opacity-60">{cards.length}</span>
                 </div>
 
@@ -642,7 +656,7 @@ function Editor({
           />
           <div className="text-[12px] text-[var(--color-muted)] mt-1">
             шаг {Math.min(stage + 1, STEPS.length)}/{STEPS.length} ·{" "}
-            {stage >= STEPS.length ? "готово" : STEPS[stage]}
+            {stage >= STEPS.length ? "готово" : STEP_LABELS[stage]}
           </div>
         </header>
 
@@ -651,7 +665,7 @@ function Editor({
           {field ? (
             <div className="rounded-[var(--radius-lg)] bg-[var(--color-accent-soft)] p-4">
               <div className="text-[12px] font-semibold text-[var(--color-accent-hover)] mb-1">
-                Сейчас на шаге: {STEPS[stage]}
+                Сейчас на шаге: {STEP_LABELS[stage]}
               </div>
               <p className="text-[13px] text-[var(--color-muted)]">{stageHint(field.key)}</p>
               <button
@@ -1116,7 +1130,7 @@ function Editor({
                         : "bg-[var(--color-surface-2)] border-[var(--color-line-soft)] text-[var(--color-faint)]",
                     ].join(" ")}
                   >
-                    {i + 1}. {s}
+                    {i + 1}. {STEP_LABELS[i]}
                   </button>
                 );
               })}

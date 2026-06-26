@@ -1,4 +1,4 @@
-import { PIPELINE_STEPS } from "@/lib/data";
+import { PIPELINE_STEPS, PIPELINE_LABELS } from "@/lib/data";
 import { fetchChannels, fetchSprints } from "@/lib/db";
 import {
   parseSubs,
@@ -194,7 +194,7 @@ export default async function AnalyticsPage() {
             {PIPELINE_STEPS.map((s, i) => (
               <div key={s} className="flex items-center gap-3">
                 <span className="text-[12px] text-[var(--color-muted)] w-[150px] shrink-0">
-                  {i + 1}. {s}
+                  {i + 1}. {PIPELINE_LABELS[i]}
                 </span>
                 <div className="flex-1 h-3 rounded-full bg-[var(--color-line-soft)] overflow-hidden">
                   <div
