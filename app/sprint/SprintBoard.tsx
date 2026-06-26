@@ -125,6 +125,12 @@ function tgstatUrl(link: string): string {
   return m ? `https://tgstat.ru/channel/@${m[1]}` : "";
 }
 
+// короткая подпись на карточке по индексу этапа
+const STAGE_BADGE = [
+  "креатив", "креатив", "реквизиты", "договор", "подпись",
+  "оплата", "маркировка", "маркировка", "пост", "аналитика",
+];
+
 function stageHint(key: string): string {
   switch (key) {
     case "creative":
@@ -520,17 +526,7 @@ function Card({ p, onOpen }: { p: Placement; onOpen: () => void }) {
           ].join(" ")}
         >
           {filled ? "✓ " : "нужно: "}
-          {field.key === "contract_file" || field.key === "contract_data"
-            ? "договор"
-            : field.key === "creative"
-              ? "креатив"
-              : field.key === "payment"
-                ? "оплата"
-                : field.key === "erid"
-                  ? "маркировка"
-                  : field.key === "post_link"
-                    ? "пост"
-                    : "аналитика"}
+          {STAGE_BADGE[stage]}
         </div>
       )}
       {(p.data?.ref_ready || p.data?.ref_registered) && (
