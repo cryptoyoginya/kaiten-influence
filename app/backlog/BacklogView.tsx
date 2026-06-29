@@ -353,6 +353,20 @@ function ChannelEditor({
           </div>
           <FA label="Комментарий" v={c.comments.join("\n")} on={(v) => set((x) => (x.comments = v.split("\n").filter((s) => s.trim().length)))} />
 
+          <div className="pt-2 border-t border-[var(--color-line-soft)]">
+            <div className="text-[12px] font-semibold mb-2">Подготовка размещения</div>
+            <div className="flex flex-col gap-3">
+              <FA label="Тематика поста" v={c.post_topic} on={(v) => set((x) => (x.post_topic = v))} />
+              <FA label="Оффер" v={c.offer} on={(v) => set((x) => (x.offer = v))} />
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-3">
+                <F label="Дата" v={c.post_date} on={(v) => set((x) => (x.post_date = v))} />
+                <F label="Креос" v={c.creative} on={(v) => set((x) => (x.creative = v))} />
+                <F label="Ленд" v={c.landing} on={(v) => set((x) => (x.landing = v))} />
+                <F label="UTM" v={c.utm} on={(v) => set((x) => (x.utm = v))} />
+              </div>
+            </div>
+          </div>
+
           <div className="flex items-center justify-between pt-2">
             <button
               onClick={() => {
