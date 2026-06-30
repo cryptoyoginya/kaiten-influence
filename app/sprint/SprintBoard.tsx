@@ -1607,11 +1607,10 @@ function ScoreUpload({
         <>
           <a
             href={value}
-            target="_blank"
-            rel="noreferrer"
+            download
             className="inline-flex items-center gap-1.5 h-8 px-3 rounded-[var(--radius-md)] border border-[var(--color-line)] text-[13px] text-[var(--color-accent)] hover:border-[var(--color-accent)]"
           >
-            📄 открыть скоринг
+            ⬇ скачать скоринг
           </a>
           <button
             onClick={() => onChange("")}
