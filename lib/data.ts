@@ -54,6 +54,7 @@ export type Placement = {
       image?: string;
       text?: string;
       scoring?: string;
+      score?: number;
       history?: { text: string; at: string }[];
     }[];
     approve_dima?: boolean;

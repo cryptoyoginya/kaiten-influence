@@ -145,6 +145,17 @@ const STAGE_BADGE = [
   "оплата", "маркировка", "erid в посте", "пост", "аналитика",
 ];
 
+function scoreColor(sc: number): string {
+  if (sc >= 80) return "#4caf51";
+  if (sc >= 60) return "#e0b400";
+  if (sc > 0) return "#f44336";
+  return "#e0e0e0";
+}
+function bestScore(p: Placement): number {
+  const cr = p.data?.creatives ?? [];
+  return cr.reduce((m, c) => Math.max(m, Number(c.score) || 0), 0);
+}
+
 function stageHint(key: string): string {
   switch (key) {
     case "creative":
@@ -557,6 +568,16 @@ function Card({ p, onOpen }: { p: Placement; onOpen: () => void }) {
           </span>
         </div>
       )}
+      {bestScore(p) > 0 && (
+        <div className="mt-1.5">
+          <span
+            className="inline-block text-[10px] px-2 py-0.5 rounded-full font-medium"
+            style={{ background: scoreColor(bestScore(p)) + "22", color: scoreColor(bestScore(p)) }}
+          >
+            ★ скоринг {bestScore(p)}
+          </span>
+        </div>
+      )}
       <div className="flex items-center justify-between mt-2 text-[11px]">
         <span>{(p.price_discount || p.price || "—") + (p.price ? " ₽" : "")}</span>
         <span className="text-[var(--color-faint)]">{done}/10</span>
@@ -857,6 +878,37 @@ function Editor({
                 весь экран.
               </p>
             )}
+            {creatives.some((c) => Number(c.score) > 0) && (
+              <div className="rounded-[var(--radius-md)] bg-[var(--color-surface-2)] border border-[var(--color-line-soft)] p-3">
+                <div className="text-[12px] font-semibold mb-2">Скоринг вариантов</div>
+                <div className="flex flex-col gap-1.5">
+                  {creatives.map((c, i) => {
+                    const sc = Number(c.score) || 0;
+                    const best =
+                      sc > 0 && sc === Math.max(...creatives.map((x) => Number(x.score) || 0));
+                    return (
+                      <div key={i} className="flex items-center gap-2">
+                        <span className="text-[12px] w-14 shrink-0 text-[var(--color-muted)]">
+                          Вар. {i + 1}
+                        </span>
+                        <div className="flex-1 h-2 rounded-full bg-[var(--color-line-soft)] overflow-hidden">
+                          <div
+                            className="h-full rounded-full"
+                            style={{ width: `${Math.min(sc, 100)}%`, background: scoreColor(sc) }}
+                          />
+                        </div>
+                        <span className="text-[12px] tabular-nums w-10 text-right font-medium">
+                          {sc > 0 ? sc : "—"}
+                        </span>
+                        <span className="w-4 text-[12px] text-[var(--color-accent-hover)]">
+                          {best ? "★" : ""}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
             {creatives.map((cr, i) => (
               <div
                 key={i}
@@ -931,6 +983,27 @@ function Editor({
                         (x.data.creatives ??= [])[i] = { ...(x.data.creatives![i] ?? {}), scoring: v };
                       })
                     }
+                  />
+                </div>
+                <div className="mt-2">
+                  <Label>Балл скоринга (0–100)</Label>
+                  <input
+                    type="number"
+                    min={0}
+                    max={100}
+                    value={cr.score ?? ""}
+                    onChange={(e) =>
+                      set((x) => {
+                        x.data ??= {};
+                        const v = e.target.value;
+                        (x.data.creatives ??= [])[i] = {
+                          ...(x.data.creatives![i] ?? {}),
+                          score: v === "" ? undefined : Number(v),
+                        };
+                      })
+                    }
+                    placeholder="напр. 82.5"
+                    className="w-32 bg-[var(--color-surface)] text-[13px] px-2.5 py-1.5 rounded-[var(--radius-md)] border border-[var(--color-line)] outline-none focus:border-[var(--color-accent)]"
                   />
                 </div>
               </div>
