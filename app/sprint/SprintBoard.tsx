@@ -497,7 +497,7 @@ export default function SprintBoard({ sprints }: { sprints: Sprint[] }) {
           upload={uploadFile}
           saveState={saveState}
           onSave={() => saveNow(open)}
-          onClose={() => setOpenId(null)}
+          onClose={() => { void saveNow(open); setOpenId(null); }}
           weeks={weeks.map((w) => ({ id: w.id, title: w.title }))}
           currentId={current.id}
           onMoveWeek={moveToWeek}
@@ -660,7 +660,7 @@ function Editor({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/45 flex items-start justify-center p-2 sm:p-4 overflow-y-auto" onClick={onClose}>
-      <div className="relative w-full max-w-2xl my-3 sm:my-6 rounded-[var(--radius-xl)] bg-[var(--color-surface)] shadow-xl" onClick={(e) => e.stopPropagation()}>
+      <div className="relative w-full max-w-2xl my-3 sm:my-6 rounded-[var(--radius-xl)] bg-[var(--color-surface)] shadow-xl" onClick={(e) => e.stopPropagation()} onBlur={() => onSave()}>
         <header className="sticky top-0 z-10 px-4 sm:px-6 py-4 border-b border-[var(--color-line-soft)] bg-[var(--color-surface-2)] rounded-t-[var(--radius-xl)] pr-12">
           <button
             onClick={onClose}
