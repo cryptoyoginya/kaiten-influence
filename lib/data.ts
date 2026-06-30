@@ -49,10 +49,11 @@ export type Placement = {
     creative?: string;
     creative_image?: string;
     creative_text?: string;
-    // несколько вариантов креатива: картинка + текст + история версий текста
+    // несколько вариантов креатива: картинка + текст + история версий + скоринг (HTML)
     creatives?: {
       image?: string;
       text?: string;
+      scoring?: string;
       history?: { text: string; at: string }[];
     }[];
     approve_dima?: boolean;

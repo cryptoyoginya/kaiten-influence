@@ -136,6 +136,54 @@ export default function BacklogView({ channels }: { channels: Channel[] }) {
     setOpenId(null);
   }
 
+  async function moveToSprint(ch: Channel) {
+    if (!supabase) {
+      alert("Нет подключения к базе");
+      return;
+    }
+    const { data: spr } = await supabase
+      .from("sprints")
+      .select("id, title")
+      .order("date_from")
+      .limit(1);
+    const sprint = spr?.[0];
+    if (!sprint) {
+      alert("Нет спринтов");
+      return;
+    }
+    const row = {
+      sprint_id: sprint.id,
+      name: ch.name,
+      author_desc: ch.themes ?? "",
+      audience: ch.audience ?? "",
+      post_date: ch.post_date ?? "",
+      post_topic: ch.post_topic ?? "",
+      offer: ch.offer ?? "",
+      creative: ch.creative ?? "",
+      landing: ch.landing ?? "",
+      utm: ch.utm ?? "",
+      price: ch.price_raw ?? "",
+      price_discount: "",
+      subscribers: ch.subscribers ?? "",
+      avg_views: "",
+      err: ch.err_views ?? "",
+      forecast_reach: "",
+      forecast_cpv: "",
+      steps: {},
+      data: {
+        channel_link: ch.link ?? "",
+        niche: ch.niches?.[0] ?? "",
+        contract: { channel: ch.link ?? "" },
+      },
+    };
+    const { error } = await supabase.from("placements").insert(row);
+    if (error) {
+      alert("Не удалось перенести: " + error.message);
+      return;
+    }
+    alert(`«${ch.name}» перенесён в «${sprint.title}». Открой вкладку «Спринт».`);
+  }
+
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
     return rows.filter((c) => {
@@ -290,6 +338,7 @@ export default function BacklogView({ channels }: { channels: Channel[] }) {
           update={update}
           remove={removeChannel}
           onSave={() => saveNow(open)}
+          onMoveToSprint={() => moveToSprint(open)}
           saving={saving}
           onClose={() => setOpenId(null)}
         />
@@ -305,6 +354,7 @@ function ChannelEditor({
   update,
   remove,
   onSave,
+  onMoveToSprint,
   saving,
   onClose,
 }: {
@@ -313,6 +363,7 @@ function ChannelEditor({
   update: (id: string, mut: (c: Channel) => void) => void;
   remove: (id: string) => void;
   onSave: () => void;
+  onMoveToSprint: () => void;
   saving: boolean;
   onClose: () => void;
 }) {
@@ -377,6 +428,12 @@ function ChannelEditor({
               удалить
             </button>
             <div className="flex items-center gap-3">
+              <button
+                onClick={onMoveToSprint}
+                className="h-9 px-4 rounded-[var(--radius-lg)] border border-[var(--color-accent)] text-[var(--color-accent-hover)] text-[14px] font-medium hover:bg-[var(--color-accent-soft)]"
+              >
+                → Перенести в спринт
+              </button>
               <span className="text-[12px] text-[var(--color-faint)]">
                 {saving ? "сохраняю…" : "✓ сохранено"}
               </span>

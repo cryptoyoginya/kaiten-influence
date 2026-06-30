@@ -920,6 +920,19 @@ function Editor({
                     }
                   />
                 </div>
+                <div className="mt-2">
+                  <Label>Скоринг (HTML)</Label>
+                  <ScoreUpload
+                    value={cr.scoring ?? ""}
+                    upload={upload}
+                    onChange={(v) =>
+                      set((x) => {
+                        x.data ??= {};
+                        (x.data.creatives ??= [])[i] = { ...(x.data.creatives![i] ?? {}), scoring: v };
+                      })
+                    }
+                  />
+                </div>
               </div>
             ))}
             <button
@@ -1500,6 +1513,68 @@ function PillBtn({
     >
       {children}
     </button>
+  );
+}
+
+// загрузка HTML-скоринга креатива: открыть/заменить/удалить
+function ScoreUpload({
+  value,
+  onChange,
+  upload,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  upload: (f: File) => Promise<string>;
+}) {
+  const ref = useRef<HTMLInputElement>(null);
+  const [busy, setBusy] = useState(false);
+  return (
+    <div className="flex items-center gap-2">
+      {value ? (
+        <>
+          <a
+            href={value}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1.5 h-8 px-3 rounded-[var(--radius-md)] border border-[var(--color-line)] text-[13px] text-[var(--color-accent)] hover:border-[var(--color-accent)]"
+          >
+            📄 открыть скоринг
+          </a>
+          <button
+            onClick={() => onChange("")}
+            className="text-[12px] text-[var(--color-faint)] hover:text-[var(--color-red)]"
+          >
+            удалить
+          </button>
+        </>
+      ) : (
+        <button
+          onClick={() => ref.current?.click()}
+          disabled={busy}
+          className="h-8 px-3 rounded-[var(--radius-md)] border border-dashed border-[var(--color-line)] text-[13px] text-[var(--color-muted)] hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] disabled:opacity-50"
+        >
+          {busy ? "загрузка…" : "+ загрузить HTML"}
+        </button>
+      )}
+      <input
+        ref={ref}
+        type="file"
+        accept=".html,.htm,text/html"
+        hidden
+        onChange={async (e) => {
+          const f = e.target.files?.[0];
+          e.target.value = "";
+          if (!f) return;
+          setBusy(true);
+          try {
+            const url = await upload(f);
+            if (url) onChange(url);
+          } finally {
+            setBusy(false);
+          }
+        }}
+      />
+    </div>
   );
 }
 
