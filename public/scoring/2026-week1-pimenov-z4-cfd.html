@@ -1,0 +1,149 @@
+<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kaiten · Скоринг креатива · Накопительная диаграмма: один график вместо часа статус-совещания · «Пименов вещает»</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#111827;background:#F9FAFB;line-height:1.6}
+.container{max-width:1100px;margin:0 auto;padding:0 24px}
+.header{background:linear-gradient(135deg,#4F46E5 0%,#7C3AED 100%);color:#fff;padding:44px 0 38px}
+.header .vlabel{display:inline-block;background:rgba(255,255,255,.18);border-radius:20px;padding:3px 12px;font-size:12px;font-weight:700;margin-bottom:10px}
+.header h1{font-size:25px;font-weight:700;margin-bottom:8px}
+.header .subtitle{font-size:15px;opacity:.9;margin-bottom:18px}
+.header .meta{display:flex;gap:22px;flex-wrap:wrap;font-size:12.5px;opacity:.8}
+.verdict{background:#fff;border:1px solid #E5E7EB;border-radius:14px;padding:26px;margin:-22px auto 26px;max-width:1052px;box-shadow:0 4px 16px rgba(0,0,0,.08);display:grid;grid-template-columns:210px 1fr;gap:26px;align-items:center;position:relative;z-index:2}
+.gauge{text-align:center;border-right:1px solid #E5E7EB;padding-right:22px}
+.gauge .num{font-size:52px;font-weight:800;line-height:1}
+.gauge .den{font-size:17px;color:#D1D5DB;font-weight:700}
+.gauge .zone{display:inline-block;margin-top:9px;padding:4px 12px;border-radius:20px;font-size:12.5px;font-weight:700}
+.zone-green{background:#D1FAE5;color:#065F46}.zone-amber{background:#FEF3C7;color:#B45309}
+.num-green{color:#10B981}.num-amber{color:#F59E0B}
+.vtext h2{font-size:17px;margin-bottom:6px}.vtext p{font-size:13.5px;color:#374151}.vtext .tldr{margin-top:9px;font-size:12.5px;color:#6B7280}
+.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;max-width:1052px;margin:0 auto 30px;padding:0 24px}
+.scard{background:#fff;border:1px solid #E5E7EB;border-radius:10px;padding:16px 18px;text-align:center}
+.scard .big{font-size:28px;font-weight:800}.scard .lab{font-size:11.5px;color:#6B7280;margin-top:4px}
+.cg{color:#10B981}.ca{color:#D97706}.cr{color:#EF4444}.cp{color:#4F46E5}
+.section{margin:32px auto;max-width:1052px;padding:0 24px}
+.sh{display:flex;align-items:center;gap:11px;margin-bottom:8px}
+.snum{background:#4F46E5;color:#fff;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;flex-shrink:0}
+.stitle{font-size:20px;font-weight:700}.sdesc{color:#6B7280;font-size:13.5px;margin-bottom:18px}
+.mbox{background:#EEF2FF;border:1px solid #C7D2FE;border-radius:10px;padding:16px 20px;margin-bottom:20px;font-size:12.5px}
+.mbox h4{color:#4F46E5;margin-bottom:7px;font-size:13.5px}.mbox code{background:#fff;padding:1px 6px;border-radius:4px;font-size:12px}
+.tw{background:#fff;border-radius:12px;border:1px solid #E5E7EB;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.04);margin-bottom:20px}
+table{width:100%;border-collapse:collapse;font-size:13px}thead{background:#F9FAFB}
+th{padding:11px 13px;text-align:left;font-weight:600;font-size:11.5px;color:#6B7280;text-transform:uppercase;letter-spacing:.3px;border-bottom:2px solid #E5E7EB}
+th.c,td.c{text-align:center}td{padding:11px 13px;border-bottom:1px solid #F3F4F6;vertical-align:top}tr:last-child td{border-bottom:none}tbody tr:hover{background:#F9FAFB}
+.scell{display:flex;align-items:center;gap:8px;min-width:140px}
+.sbg{flex:1;height:8px;background:#E5E7EB;border-radius:4px;overflow:hidden;min-width:60px}
+.sbar{height:100%;border-radius:4px}.sval{font-weight:700;font-size:13.5px;min-width:34px;text-align:right}
+.s-hi .sbar{background:#10B981}.s-hi .sval{color:#10B981}.s-md .sbar{background:#F59E0B}.s-md .sval{color:#D97706}.s-lo .sbar{background:#EF4444}.s-lo .sval{color:#EF4444}
+.tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;white-space:nowrap}
+.t-hi{background:#FEE2E2;color:#991B1B}.t-md{background:#FEF3C7;color:#92400E}.t-p1{background:#FEF3C7;color:#92400E}.t-p2{background:#F3F4F6;color:#6B7280}
+.votes{font-weight:700;font-size:12px}.vk{color:#10B981}.vd{color:#6B7280}
+.cell-9{background:#065F46;color:#fff}.cell-8{background:#10B981;color:#fff}.cell-7{background:#34D399;color:#064E3B}.cell-6{background:#FCD34D;color:#78350F}.cell-5{background:#FBBF24;color:#78350F}.cell-4{background:#FB923C;color:#7C2D12}.cell-3{background:#F87171;color:#7F1D1D}
+.cross td.c{font-weight:700}
+.ins{display:flex;gap:11px;padding:15px 18px;border-radius:10px;margin-bottom:11px;font-size:12.5px}
+.ins .ic{font-size:19px;flex-shrink:0}.ins strong{display:block;margin-bottom:2px}
+.ins-win{background:#F0FDF4;border:1px solid #BBF7D0}.ins-risk{background:#FEE2E2;border:1px solid #FECACA}.ins-note{background:#EFF6FF;border:1px solid #BFDBFE}
+.cb{background:#fff;border:1px solid #E5E7EB;border-radius:12px;overflow:hidden;margin-bottom:16px}
+.cb-h{background:#F9FAFB;padding:11px 17px;font-size:11.5px;color:#6B7280;text-transform:uppercase;letter-spacing:.3px;font-weight:700;border-bottom:1px solid #E5E7EB}
+.cb-b{padding:17px;font-size:13.5px;color:#374151}.cb-b p{margin-bottom:9px}.cb-b p:last-child{margin-bottom:0}
+.lbl{font-weight:700;font-size:10.5px;padding:0 5px;border-radius:3px}.l-f{background:#D1FAE5;color:#065F46}.l-i{background:#EEF2FF;color:#4F46E5}.l-r{background:#FEE2E2;color:#991B1B}
+.src{color:#D1D5DB;font-size:11px}
+.footer{background:#111827;color:#D1D5DB;padding:30px;margin-top:44px;font-size:12px;text-align:center}.footer strong{color:#fff}
+@media(max-width:820px){.verdict{grid-template-columns:1fr}.gauge{border-right:none;border-bottom:1px solid #E5E7EB;padding-right:0;padding-bottom:16px}.tw{overflow-x:auto}}
+</style></head><body>
+<div class="header"><div class="container">
+<span class="vlabel">ЗАХОД №4 · победитель · диагностика</span>
+<h1>Накопительная диаграмма: один график вместо часа статус-совещания</h1>
+<div class="subtitle">Скоринг отдельного варианта · рекламная интеграция Kaiten на канале Алексея Пименова (канбан-метод) · оценка против портретов, бренд-платформы и продуктовых фактов KB</div>
+<div class="meta"><span>📅 30 июня 2026</span><span>📡 t.me/pimenov_spoken</span><span>🤖 6 линз + adversarial + integrity-гейт</span></div>
+</div></div>
+
+<div class="verdict">
+<div class="gauge"><div><span class="num num-green">82.5</span><span class="den">/100</span></div>
+<div class="zone zone-green">🟢 Брать в работу</div></div>
+<div class="vtext"><h2>Победитель скоринга. Продукт виден сильнее всех честным способом: герой поста — сам график, который рисует Kaiten.</h2><p>Заход берёт самую визуальную тему: график и есть продукт, поэтому подсветка органична. И он одинаково попадает и в практическое ядро канала, и в грейд руководителя.</p><p class="tldr"><strong>TL;DR:</strong> блокеров нет, P0 закрыт оффером. Самый продуктовый из пяти — на полировке держать авторский тон. Готов к публикации.</p></div>
+</div>
+
+<div class="summary">
+<div class="scard"><div class="big cg">82.5</div><div class="lab">Композит<br>🟢 зелёная зона</div></div>
+<div class="scard"><div class="big cg">86</div><div class="lab">Сильнейшая линза<br>Message–Market Fit</div></div>
+<div class="scard"><div class="big cg">80</div><div class="lab">Слабейшая линза<br>Channel & Funnel / CTA</div></div>
+<div class="scard"><div class="big cg">0</div><div class="lab">P0 осталось<br>оффер закрыл модуль</div></div>
+</div>
+
+<div class="section"><div class="sh"><div class="snum">1</div><div class="stitle">Скоринг по 6 линзам</div></div>
+<div class="sdesc">Composite = взвешенное среднее 6 линз (0–100). Зоны: 🟢 80–100 «брать как есть» · 🟡 60–79 «брать после правок» · 🔴 &lt;60 «не брать без переработки».</div>
+<div class="mbox"><h4>⚙️ Формула</h4><code>Composite = Σ(Линза × Вес) / Σ(Вес) = 82.5</code></div>
+<div class="tw"><table><thead><tr><th>Линза</th><th class="c">Вес</th><th>Балл</th><th>Вердикт линзы</th></tr></thead><tbody><tr><td><strong>Message–Market Fit</strong><br><span class="src">Попадание в боль и язык аудитории</span></td>
+      <td class="c">×2.5</td>
+      <td><div class="scell s-hi"><div class="sbg"><div class="sbar" style="width:86%"></div></div><span class="sval">86</span></div></td>
+      <td>Чтение CFD — центральная компетенция практика и боль того, кто отвечает за сроки. Диагноз раньше срыва релиза попадает в нерв.</td></tr><tr><td><strong>Channel & Funnel / CTA</strong><br><span class="src">Канал, тон, следующий шаг</span></td>
+      <td class="c">×1.5</td>
+      <td><div class="scell s-hi"><div class="sbg"><div class="sbar" style="width:80%"></div></div><span class="sval">80</span></div></td>
+      <td>Канал совпадает идеально, оффер на бесплатный тариф и триал закрывает следующий шаг.</td></tr><tr><td><strong>Persona / ICP Fit</strong><br><span class="src">Кого достаёт канал и говорит ли с ним пост</span></td>
+      <td class="c">×2</td>
+      <td><div class="scell s-hi"><div class="sbg"><div class="sbar" style="width:82%"></div></div><span class="sval">82</span></div></td>
+      <td>Тема универсальна: тимлид читает как инструмент, руководитель как сигнал. Один пост на оба слоя ICP.</td></tr><tr><td><strong>Objections & Positioning</strong><br><span class="src">Баланс «реклама × нативность», канон бренда</span></td>
+      <td class="c">×2</td>
+      <td><div class="scell s-hi"><div class="sbg"><div class="sbar" style="width:80%"></div></div><span class="sval">80</span></div></td>
+      <td>Заход через экспертную тему — ровно то, что предписывает бренд для блога. Продукт виден как естественный носитель темы.</td></tr><tr><td><strong>Creative & Copy Craft</strong><br><span class="src">Голос автора, структура, связка текст↔визуал</span></td>
+      <td class="c">×1</td>
+      <td><div class="scell s-hi"><div class="sbg"><div class="sbar" style="width:84%"></div></div><span class="sval">84</span></div></td>
+      <td>Сильный хук «один график», чистая структура чтения диаграммы, голос Пименова, визуал = сам график.</td></tr><tr><td><strong>Claims Accuracy & Risk</strong><br><span class="src">Фактическая точность и риски доверия</span></td>
+      <td class="c">×2</td>
+      <td><div class="scell s-hi"><div class="sbg"><div class="sbar" style="width:82%"></div></div><span class="sval">82</span></div></td>
+      <td>Фабрикации нет. Продуктовые утверждения корректны, модуль аналитики честно проговорён оффером.</td></tr></tbody></table></div></div>
+
+<div class="section"><div class="sh"><div class="snum">2</div><div class="stitle">Что оценивали — текст и визуал</div></div>
+<div class="sdesc">Самодостаточная копия варианта. Метки <span class="lbl l-f">FACT</span> <span class="lbl l-i">INFERENCE</span> <span class="lbl l-r">RISK</span> по разметке KB.</div>
+<div class="cb"><div class="cb-h">✍️ Текст поста</div><div class="cb-b"><p>Если бы мне разрешили оставить руководителю команды только один график, я бы оставил накопительную диаграмму. Она за десять секунд показывает то, на что обычно уходит час статус-совещания. <span class="lbl l-i">INF</span> сильный хук</p><p>Полосы идут ровными параллелями — поток стабильный. Одна полоса разбухает — там очередь и узкое место. Полосы разъезжаются веером — растёт незавершёнка. <span class="lbl l-f">FACT</span> корректное чтение CFD</p><p>Самое ценное, что диагноз виден раньше симптома. Очередь на ревью пухнет на диаграмме за неделю до того, как сорвётся релиз. У вас есть время вмешаться, пока проблема ещё дешёвая.</p><p>Я показываю студентам на живой доске в Кайтене. Накопительная диаграмма строится сама, рядом считаются время цикла и пропускная способность, WIP-лимит сдувает очередь. <span class="lbl l-r">RISK</span> аналитика — модуль, снято оффером</p><p>Список задач показывает, чем все заняты. Накопительная диаграмма показывает, что с этим делать.</p><p>Оффер: Free бессрочный без лимита по людям, в триале на 14 дней открыты все модули, включая отчёты по канбану. Рядом несколько досок, WIP, Гант, портфель, документы, импорт из Jira/Trello/Asana. <span class="lbl l-f">FACT</span> оффер честный</p></div></div>
+<div class="cb"><div class="cb-h">🖼️ Что на визуале</div><div class="cb-b"><p>Накопительная диаграмма за месяц крупно, на всю ширину. Большинство полос ровные, полоса «На ревью» (оранжевая) к правому краю раздувается клином. Аннотация: «здесь копится очередь, видно за неделю до срыва».</p><p>Рядом мелкие компаньоны: плашки «Время цикла, 85-й процентиль» и «Пропускная способность, задач/нед» — метрики считаются автоматически. Логотип Kaiten, русский интерфейс. Пометка: отчёты по канбану подключаются модулем.</p></div></div></div>
+
+<div class="section"><div class="sh"><div class="snum">3</div><div class="stitle">Персона × пост</div></div>
+<div class="sdesc">«Достаёт» = вероятность, что персона в аудитории канала. «Говорит» = насколько этот заход бьёт в её боль. Шкала 0–10.</div>
+<div class="tw"><table class="cross"><thead><tr><th>Персона</th><th class="c">Достаёт</th><th class="c">Говорит</th><th>Комментарий</th></tr></thead><tbody><tr><td><strong>Тимлид / PM — Champion</strong></td>
+      <td class="c cell-9">9</td><td class="c cell-9">9</td>
+      <td>Накопительная диаграмма — его рабочий инструмент.</td></tr><tr><td><strong>Канбан-практик / Agile-коуч</strong></td>
+      <td class="c cell-9">9</td><td class="c cell-9">9</td>
+      <td>Тема ровно их компетенции, делятся охотно.</td></tr><tr><td><strong>Руководитель разработки / техдир</strong></td>
+      <td class="c cell-6">6</td><td class="c cell-9">9</td>
+      <td>«Диагноз раньше срыва релиза» — его прямая боль.</td></tr><tr><td><strong>PMO / Head of delivery</strong></td>
+      <td class="c cell-5">5</td><td class="c cell-8">8</td>
+      <td>Видимость потока и предсказуемость — его язык.</td></tr><tr><td><strong>Консультант по управлению</strong></td>
+      <td class="c cell-8">8</td><td class="c cell-8">8</td>
+      <td>Оценит корректность чтения CFD и точность.</td></tr><tr><td><strong>Студент курса Пименова</strong></td>
+      <td class="c cell-9">9</td><td class="c cell-8">8</td>
+      <td>Чтение диаграммы учится легко, пост про «показываю студентам».</td></tr><tr><td><strong>Скептик-эксперт (зрелый практик)</strong></td>
+      <td class="c cell-7">7</td><td class="c cell-7">7</td>
+      <td>Придёт проверить, бесплатны ли отчёты — снято оффером.</td></tr></tbody></table></div>
+<div class="ins ins-note"><div class="ic">🎯</div><div><strong>Вывод по таргету</strong>Главное достоинство: заход не делит аудиторию. Одна тема читается тимлидом как инструмент, а руководителем как управленческий сигнал. Чемпион доносит мысль наверх.</div></div></div>
+
+<div class="section"><div class="sh"><div class="snum">4</div><div class="stitle">Риски — после adversarial-верификации</div></div>
+<div class="sdesc">Каждую HIGH-находку проверяли 3 скептика с мандатом «опровергни». Поверх — integrity-гейт: запрет приписывать автору опыт и цифры, которых не было (в этом заходе их нет).</div>
+<h4 style="margin:6px 0 9px;font-size:14px">🟡 Что учесть</h4>
+<div class="tw"><table><thead><tr><th>Риск</th><th class="c">Severity</th><th class="c">Статус</th><th>Суть и привязка к KB</th></tr></thead><tbody><tr><td><strong>Имплицитно «всё это бесплатно в Кайтене»</strong></td>
+    <td class="c"><span class="tag t-md">MED</span></td>
+    <td class="c"><span class="votes vk">снято</span></td><td>Накопительная диаграмма, время цикла, учёт времени это аналитика и отчёты, на тарифах платные модули (Standard = 2, Pro = 6). Оффер прямо говорит, что отчёты открыты в триале и подключаются модулем — риск закрыт в копии. На визуале продублировать пометку. [product-facts §3,§4]</td></tr><tr><td><strong>Самый продуктовый из пяти — риск тона</strong></td>
+    <td class="c"><span class="tag t-md">MED</span></td>
+    <td class="c"><span class="votes vk">учтено</span></td><td>Продукт виден сильнее всех, на финальной вычитке держать голос автора, чтобы заход не сполз в демо. Бренд §7: Kaiten как иллюстрация.</td></tr></tbody></table></div>
+<h4 style="margin:16px 0 9px;font-size:14px">🛡️ Отклонено скептиками</h4>
+<div class="tw"><table><thead><tr><th>Претензия</th><th class="c">Скептики</th><th>Почему снято</th></tr></thead><tbody><tr><td><strong>«Реклама в лоб — подорвёт доверие автора»</strong></td>
+    <td class="c"><span class="votes vd">1/3 ✕</span></td><td>Это оплаченная интеграция, продукт обязан быть виден. Оффер идёт отдельным блоком после пользы, баланс выдержан.</td></tr><tr><td><strong>«WIP, накопительная диаграмма, время цикла — жаргон, отпугнёт»</strong></td>
+    <td class="c"><span class="votes vd">0/3 ✕</span></td><td>Аудитория канала это практики канбан-метода, термины родные. Упрощение било бы по доверию.</td></tr><tr><td><strong>«Канбан назван методом — ошибка»</strong></td>
+    <td class="c"><span class="votes vd">0/3 ✕</span></td><td>Канбан это метод, скрам это фреймворк. В тексте корректно. [product-facts §5 · anglicism-dictionary]</td></tr></tbody></table></div></div>
+
+<div class="section"><div class="sh"><div class="snum">5</div><div class="stitle">План правок</div></div>
+<div class="sdesc">P0 закрыт оффером в копии. Осталось усиление (P1) и полировка (P2).</div>
+<div class="tw"><table><thead><tr><th class="c">Приор.</th><th>Правка</th></tr></thead><tbody><tr><td class="c"><span class="tag t-p2">P2</span></td><td><strong>Пометка на визуале:</strong> на плашке мелким «отчёты по канбану подключаются модулем», чтобы картинка не обещала больше текста.</td></tr><tr><td class="c"><span class="tag t-p1">P1</span></td><td><strong>Один раз подсветить ров продукта:</strong> метрики считаются сами, пока карточки двигаются по доске, без выгрузки в Excel. Отстройка от ручного сведения отчётов.</td></tr><tr><td class="c"><span class="tag t-p2">P2</span></td><td><strong>Держать голос автора</strong> на финальной вычитке: оффер и список возможностей не должны звучать как страница сайта.</td></tr><tr><td class="c"><span class="tag t-p2">P2</span></td><td><strong>Вопрос для вовлечения</strong> в конце — даёт комментарии и обсуждение на канале.</td></tr></tbody></table></div>
+<div class="ins ins-win"><div class="ic">💪</div><div><strong>Сильное ядро</strong>Хук «один график вместо часа статус-совещания», чтение диаграммы как рентгена, «диагноз раньше симптома». Продукт через сам график, без выдуманных историй.</div></div>
+<div class="ins ins-risk"><div class="ic">🚦</div><div><strong>Рекомендация</strong>Брать первым номером. После короткой полировки визуала публиковать. Лучший баланс «продукт × экспертная тема × честность».</div></div></div>
+
+<div class="section"><div class="sh"><div class="snum">6</div><div class="stitle">Методология и источники</div></div>
+<div class="mbox"><h4>Как считали</h4>6 экспертных линз × 4–5 sub-критериев (0–10 × вес) → балл 0–100. Composite = взвешенное среднее (Σ вес = 11). HIGH-находки проверяют 3 скептика, подтверждение при ≥2/3. Integrity-гейт: без фабрикации опыта автора.</div>
+<div class="mbox" style="background:#F9FAFB;border-color:#E5E7EB"><h4 style="color:#374151">Источники KB</h4><span class="src">wiki/audiences/icp-overview.md · wiki/brand/kaiten-brand-platform.md · wiki/references/kaiten-product-facts.md · wiki/references/anglicism-dictionary.md</span></div></div>
+
+<div class="footer"><strong>Kaiten · Скоринг креатива «Накопительная диаграмма: один график вместо часа статус-совещания» · канал «Пименов вещает»</strong><br>
+Заход №4 · Composite 82.5/100 · 🟢 брать в работу · 30 июня 2026 · на базе KB Kaiten<br>
+Integrity-гейт: без фабрикации опыта автора. Находки прошли adversarial-верификацию.</div>
+</body></html>
