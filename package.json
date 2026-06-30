@@ -6,7 +6,8 @@
     "dev": "next dev -p 3007",
     "build": "next build",
     "start": "next start -p 3007",
-    "import": "python3 scripts/import_xlsx.py"
+    "import": "python3 scripts/import_xlsx.py",
+    "deploy": "npx vercel --prod"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.0",

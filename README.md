@@ -31,6 +31,27 @@ pnpm install
 pnpm dev             # http://localhost:3007
 ```
 
+## Деплой (через Vercel CLI)
+
+GitHub-автодеплой у проекта не настроен — публикуем вручную через CLI.
+
+Первый раз на машине:
+
+```bash
+npx vercel login     # вход в аккаунт (один раз)
+npx vercel link      # привязать каталог к проекту kaiten-influence (один раз)
+```
+
+Каждый деплой свежего `main` на прод:
+
+```bash
+git pull
+pnpm deploy          # = npx vercel --prod  → https://kaiten-influence.vercel.app
+```
+
+`public/scoring/*.html` уходят в сборку и отдаются по `/scoring/...`.
+Токены в командах не нужны — `vercel login` хранит сессию локально.
+
 ## Дальше (роадмап)
 
 1. ✅ Скелет + стиль Kaiten + импорт Excel (read-only).
