@@ -1777,7 +1777,49 @@ function CreativeImage({
 }) {
   const ref = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
+  const [saving, setSaving] = useState(false);
   const on = onChange;
+
+  // скачать креатив картинкой: растрируем (в т.ч. SVG) в PNG прямо в браузере
+  async function downloadPng() {
+    if (!v) return;
+    setSaving(true);
+    try {
+      const res = await fetch(v, { mode: "cors" });
+      const blob = await res.blob();
+      const isSvg = blob.type.includes("svg") || v.split("?")[0].toLowerCase().endsWith(".svg");
+      const objUrl = URL.createObjectURL(blob); // same-origin → canvas не «тейнтится»
+      const img = new Image();
+      await new Promise<void>((resolve, reject) => {
+        img.onload = () => resolve();
+        img.onerror = () => reject(new Error("не удалось прочитать картинку"));
+        img.src = objUrl;
+      });
+      const scale = isSvg ? 2 : 1; // SVG отдаём в 2× для чёткости
+      const w = img.naturalWidth || 1080;
+      const h = img.naturalHeight || 1080;
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.round(w * scale);
+      canvas.height = Math.round(h * scale);
+      const ctx = canvas.getContext("2d")!;
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      URL.revokeObjectURL(objUrl);
+      const png: Blob = await new Promise((resolve) => canvas.toBlob((b) => resolve(b!), "image/png"));
+      const base = (v.split("?")[0].split("/").pop() || "creative").replace(/\.\w+$/, "");
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(png);
+      a.download = base + ".png";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    } catch (e) {
+      alert("Не удалось сохранить картинку: " + (e instanceof Error ? e.message : String(e)));
+    } finally {
+      setSaving(false);
+    }
+  }
+
   return (
     <div>
       <Label>Картинка</Label>
@@ -1795,6 +1837,13 @@ function CreativeImage({
             className="absolute bottom-2 left-2 text-[11px] px-2 py-0.5 rounded bg-black/60 text-white"
           >
             ⛶ на весь экран
+          </button>
+          <button
+            onClick={downloadPng}
+            disabled={saving}
+            className="absolute bottom-2 right-2 text-[11px] px-2 py-0.5 rounded bg-[var(--color-accent)] text-white disabled:opacity-60"
+          >
+            {saving ? "…" : "⬇ PNG"}
           </button>
           <button
             onClick={() => on("")}
