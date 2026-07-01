@@ -196,9 +196,14 @@ export default function SprintBoard({ sprints }: { sprints: Sprint[] }) {
   const timers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
   // снимок каждой строки как она лежит в БД — чтобы писать только изменённые поля
   const baseline = useRef<Record<string, ReturnType<typeof rowOf>>>({});
+  // что мы уже видели из БД: id -> updated_at (для дешёвого детекта чужих правок)
+  const seen = useRef<Record<string, string>>({});
 
   const current = weeks[Math.min(wi, weeks.length - 1)];
   const items = current.placements;
+  // зеркало weeks для чтения внутри интервала синхронизации без пере-подписки
+  const weeksRef = useRef(weeks);
+  weeksRef.current = weeks;
   // обновление списка размещений текущей недели
   function setItems(updater: (prev: Placement[]) => Placement[]) {
     setWeeks((prev) =>
@@ -229,51 +234,73 @@ export default function SprintBoard({ sprints }: { sprints: Sprint[] }) {
           baseline.current[p.id] = rowOf(p);
   }, [sprints]);
 
-  // периодически подтягиваем чужие правки — не трогая карточку, которую сейчас
-  // редактируют, и поля с несохранёнными локальными изменениями
+  // лёгкая синхронизация: раз в 12с тянем только id+updated_at (~0.7 КБ), а полные
+  // строки — лишь для реально изменившихся карточек. В фоне вкладки не опрашиваем.
+  // Так укладываемся в бесплатный egress Supabase (idle ≈ 0.7 КБ/опрос).
   useEffect(() => {
     if (!supabase) return;
     let stopped = false;
-    const sync = async () => {
-      const { data, error } = await supabase.from("placements").select("*");
-      if (stopped || error || !data) return;
-      const byId = new Map<string, any>(data.map((r: any) => [r.id, r]));
-      setWeeks((prev) =>
-        prev.map((w) => {
-          const localIds = new Set(w.placements.map((p) => p.id));
-          const placements = w.placements
-            // удалённые другими карточки убираем (если их не правят и они «чистые»)
-            .filter((p) => {
-              if (!p.id || p.id.startsWith("tmp-") || p.id === openId) return true;
-              const base = baseline.current[p.id];
-              if (base && isDirty(rowOf(p), base)) return true;
-              return byId.has(p.id);
-            })
-            // «чистые» существующие обновляем из БД
-            .map((p) => {
-              if (!p.id || p.id.startsWith("tmp-") || p.id === openId) return p;
-              const remote = byId.get(p.id);
-              if (!remote) return p;
-              const base = baseline.current[p.id];
-              if (base && isDirty(rowOf(p), base)) return p; // не затираем несохранённое
-              const merged = remoteToPlacement(remote);
-              const mergedRow = rowOf(merged);
-              baseline.current[p.id] = mergedRow;
-              return isDirty(rowOf(p), mergedRow) ? merged : p; // без лишних ререндеров
-            });
-          // карточки, заведённые другими в этой неделе
-          const added = data
-            .filter((r: any) => r.sprint_id === w.id && !localIds.has(r.id))
-            .map((r: any) => {
-              const pl = remoteToPlacement(r);
-              if (pl.id) baseline.current[pl.id] = rowOf(pl);
-              return pl;
-            });
-          return added.length ? { ...w, placements: [...added, ...placements] } : { ...w, placements };
-        })
-      );
+    let primed = false;
+    // «занятые» карточки не трогаем: открыта в редакторе или есть несохранённое
+    const isBusy = (id: string) => {
+      if (id === openId) return true;
+      const p = weeksRef.current.flatMap((w) => w.placements).find((x) => x.id === id);
+      const base = baseline.current[id];
+      return !!(p && base && isDirty(rowOf(p), base));
     };
-    const iv = setInterval(sync, 12000);
+    const tick = async () => {
+      if (typeof document !== "undefined" && document.hidden) return;
+      const { data, error } = await supabase.from("placements").select("id,updated_at");
+      if (stopped || error || !data) return;
+      const now: Record<string, string> = {};
+      for (const r of data as any[]) now[r.id] = r.updated_at ?? "";
+      if (!primed) {
+        seen.current = now; // первый проход только запоминает состояние
+        primed = true;
+        return;
+      }
+      const changed = Object.keys(now).filter((id) => now[id] !== seen.current[id] && !isBusy(id));
+      const removed = Object.keys(seen.current).filter((id) => !(id in now) && !isBusy(id));
+
+      let rows: any[] = [];
+      if (changed.length) {
+        const res = await supabase.from("placements").select("*").in("id", changed);
+        if (stopped) return;
+        rows = res.data ?? [];
+      }
+      if (changed.length || removed.length) {
+        const byId = new Map<string, any>(rows.map((r) => [r.id, r]));
+        setWeeks((prev) =>
+          prev.map((w) => {
+            const localIds = new Set(w.placements.map((p) => p.id));
+            const upd = w.placements
+              .filter((p) => !(p.id && removed.includes(p.id)))
+              .map((p) => {
+                if (!p.id || !byId.has(p.id)) return p;
+                const merged = remoteToPlacement(byId.get(p.id));
+                baseline.current[p.id] = rowOf(merged);
+                return merged;
+              });
+            const added = rows
+              .filter((r) => r.sprint_id === w.id && !localIds.has(r.id))
+              .map((r) => {
+                const pl = remoteToPlacement(r);
+                if (pl.id) baseline.current[pl.id] = rowOf(pl);
+                return pl;
+              });
+            return added.length ? { ...w, placements: [...added, ...upd] } : { ...w, placements: upd };
+          })
+        );
+        for (const id of removed) delete baseline.current[id];
+      }
+      // «виденным» помечаем только незанятые id — занятые останутся расхождением
+      // и подтянутся, как только карточка освободится (не теряем чужую правку)
+      const nextSeen = { ...seen.current };
+      for (const id of Object.keys(now)) if (!isBusy(id)) nextSeen[id] = now[id];
+      for (const id of Object.keys(nextSeen)) if (!(id in now) && !isBusy(id)) delete nextSeen[id];
+      seen.current = nextSeen;
+    };
+    const iv = setInterval(tick, 12000);
     return () => {
       stopped = true;
       clearInterval(iv);
