@@ -194,6 +194,8 @@ export default function SprintBoard({ sprints }: { sprints: Sprint[] }) {
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
   const supabase = useMemo(() => (SUPABASE_ENABLED ? createClient() : null), []);
   const timers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+  // снимок каждой строки как она лежит в БД — чтобы писать только изменённые поля
+  const baseline = useRef<Record<string, ReturnType<typeof rowOf>>>({});
 
   const current = weeks[Math.min(wi, weeks.length - 1)];
   const items = current.placements;
@@ -219,12 +221,89 @@ export default function SprintBoard({ sprints }: { sprints: Sprint[] }) {
     return { spent, reach, count: inw.length };
   }, [items, current.date_from, current.date_to]);
 
+  // базовый снимок из первичной загрузки (для дифф-сохранения)
+  useEffect(() => {
+    for (const w of sprints)
+      for (const p of w.placements)
+        if (p.id && !p.id.startsWith("tmp-") && !(p.id in baseline.current))
+          baseline.current[p.id] = rowOf(p);
+  }, [sprints]);
+
+  // периодически подтягиваем чужие правки — не трогая карточку, которую сейчас
+  // редактируют, и поля с несохранёнными локальными изменениями
+  useEffect(() => {
+    if (!supabase) return;
+    let stopped = false;
+    const sync = async () => {
+      const { data, error } = await supabase.from("placements").select("*");
+      if (stopped || error || !data) return;
+      const byId = new Map<string, any>(data.map((r: any) => [r.id, r]));
+      setWeeks((prev) =>
+        prev.map((w) => {
+          const localIds = new Set(w.placements.map((p) => p.id));
+          const placements = w.placements
+            // удалённые другими карточки убираем (если их не правят и они «чистые»)
+            .filter((p) => {
+              if (!p.id || p.id.startsWith("tmp-") || p.id === openId) return true;
+              const base = baseline.current[p.id];
+              if (base && isDirty(rowOf(p), base)) return true;
+              return byId.has(p.id);
+            })
+            // «чистые» существующие обновляем из БД
+            .map((p) => {
+              if (!p.id || p.id.startsWith("tmp-") || p.id === openId) return p;
+              const remote = byId.get(p.id);
+              if (!remote) return p;
+              const base = baseline.current[p.id];
+              if (base && isDirty(rowOf(p), base)) return p; // не затираем несохранённое
+              const merged = remoteToPlacement(remote);
+              const mergedRow = rowOf(merged);
+              baseline.current[p.id] = mergedRow;
+              return isDirty(rowOf(p), mergedRow) ? merged : p; // без лишних ререндеров
+            });
+          // карточки, заведённые другими в этой неделе
+          const added = data
+            .filter((r: any) => r.sprint_id === w.id && !localIds.has(r.id))
+            .map((r: any) => {
+              const pl = remoteToPlacement(r);
+              if (pl.id) baseline.current[pl.id] = rowOf(pl);
+              return pl;
+            });
+          return added.length ? { ...w, placements: [...added, ...placements] } : { ...w, placements };
+        })
+      );
+    };
+    const iv = setInterval(sync, 12000);
+    return () => {
+      stopped = true;
+      clearInterval(iv);
+    };
+  }, [supabase, openId]);
+
+  // патч только из изменённых относительно БД полей (чтобы не затирать чужое)
+  function patchOf(p: Placement): Record<string, unknown> | null {
+    const full = rowOf(p) as Record<string, unknown>;
+    const base = baseline.current[p.id!] as Record<string, unknown> | undefined;
+    const patch: Record<string, unknown> = {};
+    for (const k of Object.keys(full)) {
+      if (k === "updated_at") continue;
+      if (!base || JSON.stringify(full[k]) !== JSON.stringify(base[k])) patch[k] = full[k];
+    }
+    if (Object.keys(patch).length === 0) return null;
+    patch.updated_at = full.updated_at;
+    return patch;
+  }
+
   function scheduleSave(p: Placement) {
     if (!supabase || !p.id || p.id.startsWith("tmp-")) return;
     clearTimeout(timers.current[p.id]);
     setSaveState("saving");
     timers.current[p.id] = setTimeout(async () => {
-      await supabase.from("placements").update(rowOf(p)).eq("id", p.id!);
+      const patch = patchOf(p);
+      if (patch) {
+        await supabase.from("placements").update(patch).eq("id", p.id!);
+        baseline.current[p.id!] = rowOf(p);
+      }
       await ensureIntegration(p);
       setSaveState("saved");
     }, 500);
@@ -237,7 +316,11 @@ export default function SprintBoard({ sprints }: { sprints: Sprint[] }) {
     }
     clearTimeout(timers.current[p.id]);
     setSaveState("saving");
-    await supabase.from("placements").update(rowOf(p)).eq("id", p.id);
+    const patch = patchOf(p);
+    if (patch) {
+      await supabase.from("placements").update(patch).eq("id", p.id);
+      baseline.current[p.id] = rowOf(p);
+    }
     await ensureIntegration(p);
     setSaveState("saved");
   }
@@ -334,7 +417,10 @@ export default function SprintBoard({ sprints }: { sprints: Sprint[] }) {
           return next;
         });
         setOpenId((cur) => (cur === tmpId ? data.id : cur));
-        if (saved) await supabase.from("placements").update(rowOf(saved)).eq("id", data.id);
+        if (saved) {
+          await supabase.from("placements").update(rowOf(saved)).eq("id", data.id);
+          baseline.current[data.id] = rowOf(saved);
+        }
       } else if (error) {
         console.error("create placement:", error.message);
       }
@@ -2051,6 +2137,41 @@ function fmtShort(n: number) {
 }
 
 // строка для записи в Supabase
+// сравнение снимков строки: изменилось ли хоть одно поле (updated_at игнорим)
+function isDirty(a: Record<string, unknown>, b: Record<string, unknown>): boolean {
+  for (const k of Object.keys(a)) {
+    if (k === "updated_at") continue;
+    if (JSON.stringify(a[k]) !== JSON.stringify(b[k])) return true;
+  }
+  return false;
+}
+
+// строка из БД → Placement (колонки совпадают 1:1 с редактируемыми полями)
+function remoteToPlacement(r: Record<string, any>): Placement {
+  return {
+    id: r.id,
+    sprint_id: r.sprint_id,
+    name: r.name ?? "",
+    author_desc: r.author_desc ?? "",
+    audience: r.audience ?? "",
+    post_date: r.post_date ?? "",
+    post_topic: r.post_topic ?? "",
+    offer: r.offer ?? "",
+    creative: r.creative ?? "",
+    landing: r.landing ?? "",
+    utm: r.utm ?? "",
+    price: r.price ?? "",
+    price_discount: r.price_discount ?? "",
+    subscribers: r.subscribers ?? "",
+    avg_views: r.avg_views ?? "",
+    err: r.err ?? "",
+    forecast_reach: r.forecast_reach ?? "",
+    forecast_cpv: r.forecast_cpv ?? "",
+    steps: r.steps ?? {},
+    data: r.data ?? {},
+  };
+}
+
 function rowOf(p: Placement) {
   return {
     name: p.name,
