@@ -1,0 +1,640 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Мини-версия Кайтена под вашу цель · воркшоп</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --page: #f5f5f5;
+    --surface: #ffffff;
+    --ink: #2d2d2d;
+    --muted: #616161;
+    --faint: #9e9e9e;
+    --line: #e0e0e0;
+    --line-soft: #eeeeee;
+    --accent: #7d4ccf;
+    --accent-soft: #efe9f9;
+    --green: #4caf51;
+    --green-soft: #e9f5ea;
+    --orange: #ffa100;
+    --orange-soft: #fff0d9;
+    --red: #f44336;
+    --red-soft: #fde8e6;
+    --blue: #2196f3;
+    --blue-soft: #e4f2fd;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
+  body {
+    background: var(--page);
+    color: var(--ink);
+    font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .slide {
+    min-height: 100vh;
+    scroll-snap-align: start;
+    display: flex;
+    align-items: center;
+    align-items: safe center;
+    justify-content: center;
+    padding: 44px 48px;
+  }
+  .wrap { width: 100%; max-width: 1160px; }
+  .kicker {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--accent-soft); color: var(--accent);
+    font-size: 13px; font-weight: 600; letter-spacing: .02em;
+    padding: 6px 14px; border-radius: 999px; margin-bottom: 22px;
+  }
+  .kicker .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+  h1 { font-size: 54px; font-weight: 800; line-height: 1.08; letter-spacing: -0.02em; }
+  h2 { font-size: 33px; font-weight: 800; line-height: 1.12; letter-spacing: -0.015em; margin-bottom: 10px; }
+  .lead { font-size: 19px; color: var(--muted); line-height: 1.55; max-width: 720px; margin-top: 18px; }
+  .sub { font-size: 15px; color: var(--muted); line-height: 1.5; margin-bottom: 22px; max-width: 780px; }
+  .card {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 12px; padding: 18px 20px;
+  }
+  .grid { display: grid; gap: 14px; }
+  .g2 { grid-template-columns: 1fr 1fr; }
+  .g3 { grid-template-columns: 1fr 1fr 1fr; }
+  .g4 { grid-template-columns: repeat(4, 1fr); }
+  .stat .num { font-size: 42px; font-weight: 800; letter-spacing: -0.02em; }
+  .stat .num em { font-style: normal; color: var(--accent); }
+  .stat .cap { font-size: 14px; color: var(--muted); margin-top: 6px; line-height: 1.4; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 13px; font-weight: 600; padding: 5px 11px; border-radius: 999px;
+  }
+  .chip.green { background: var(--green-soft); color: #2e7d32; }
+  .chip.orange { background: var(--orange-soft); color: #a05a00; }
+  .chip.red { background: var(--red-soft); color: #c62828; }
+  .chip.violet { background: var(--accent-soft); color: var(--accent); }
+  .chip.gray { background: var(--line-soft); color: var(--muted); }
+  .shot {
+    width: 100%; border-radius: 12px; border: 1px solid var(--line);
+    box-shadow: 0 12px 40px rgba(45, 45, 45, .10); display: block;
+  }
+  .note { font-size: 13.5px; color: var(--faint); margin-top: 14px; }
+  ul.clean { list-style: none; }
+  ul.clean li { padding-left: 26px; position: relative; margin-bottom: 8px; font-size: 14.5px; line-height: 1.45; color: var(--ink); }
+  ul.clean li::before {
+    content: ""; position: absolute; left: 0; top: 8px;
+    width: 8px; height: 8px; border-radius: 50%; background: var(--accent);
+  }
+  ul.clean.mgreen li::before { background: var(--green); }
+  ul.clean.mred li::before { background: var(--red); }
+  .flow { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .flow .step {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 8px;
+    font-size: 13.5px; font-weight: 500; padding: 8px 12px; white-space: nowrap;
+  }
+  .flow .step b { color: var(--accent); font-weight: 700; margin-right: 6px; }
+  .flow .arr { color: var(--faint); font-size: 14px; }
+  .counter {
+    position: fixed; right: 22px; bottom: 18px; z-index: 10;
+    font-size: 12.5px; font-weight: 600; color: var(--faint);
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 999px; padding: 5px 12px;
+  }
+  /* мини-иллюстрация канбана, мотив из дизайн-системы */
+  .illus-kanban {
+    width: 340px; height: 236px; background: var(--surface);
+    border-radius: 16px; border: 1px solid var(--line);
+    padding: 20px; display: flex; gap: 10px; overflow: hidden;
+  }
+  .ik-col { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+  .ik-title { font-size: 10px; color: #898989; margin-bottom: 3px; }
+  .ik-card { border-radius: 3px; width: 100%; }
+  .ik-red { background: var(--red-soft); }
+  .ik-green { background: var(--green-soft); }
+  .ik-orange { background: var(--orange-soft); }
+  .ik-neutral { background: #f5f5f5; }
+  .ik-fade-g { background: linear-gradient(to bottom, var(--green-soft), transparent); }
+  .ik-fade-o { background: linear-gradient(to bottom, var(--orange-soft), transparent); }
+  /* горизонтальные бары */
+  .hbar { display: grid; grid-template-columns: 220px 1fr 110px; gap: 12px; align-items: center; margin-bottom: 11px; }
+  .hbar .lbl { font-size: 14px; font-weight: 600; }
+  .hbar .lbl small { display: block; font-weight: 400; color: var(--faint); font-size: 12px; }
+  .hbar .track { height: 14px; background: var(--line-soft); border-radius: 4px; overflow: hidden; }
+  .hbar .fill { height: 100%; background: var(--accent); border-radius: 0 4px 4px 0; transition: opacity .15s; }
+  .hbar:hover .fill { opacity: .8; }
+  .hbar .val { font-size: 14px; font-weight: 700; text-align: left; white-space: nowrap; }
+  .hbar .val small { color: var(--faint); font-weight: 500; }
+  /* таймлайн коммитов */
+  .tl { display: flex; align-items: flex-end; gap: 10px; height: 150px; margin-top: 20px; }
+  .tl .day { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; }
+  .tl .bar { width: 100%; max-width: 58px; background: var(--accent); border-radius: 4px 4px 0 0; transition: opacity .15s; }
+  .tl .day:hover .bar { opacity: .8; }
+  .tl .v { font-size: 13px; font-weight: 700; margin-bottom: 6px; }
+  .tl .d { font-size: 12px; color: var(--faint); margin-top: 8px; }
+  .tl .zero { width: 100%; max-width: 58px; height: 2px; background: var(--line); border-radius: 2px; }
+  /* архитектура */
+  .arch { display: flex; align-items: stretch; gap: 0; }
+  .arch .box { flex: 1; }
+  .arch .conn { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0 14px; }
+  .arch .conn .lbl { font-size: 11.5px; font-weight: 600; color: var(--accent); background: var(--accent-soft); padding: 3px 9px; border-radius: 999px; margin-bottom: 5px; white-space: nowrap; }
+  .arch .conn .ln { font-size: 20px; color: var(--faint); }
+  .box h4 { font-size: 15px; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+  .box h4 .sq { width: 10px; height: 10px; border-radius: 3px; background: var(--accent); }
+  .box p, .box li { font-size: 13.5px; color: var(--muted); line-height: 1.5; }
+  .inner { background: var(--page); border: 1px solid var(--line-soft); border-radius: 8px; padding: 10px 12px; margin-top: 8px; font-size: 13px; }
+  .inner b { font-size: 13px; }
+  code {
+    font-family: "SF Mono", ui-monospace, Menlo, monospace;
+    font-size: .92em; background: var(--accent-soft); color: var(--accent);
+    padding: 2px 6px; border-radius: 5px;
+  }
+  .bubble { border-radius: 14px; padding: 13px 16px; font-size: 14.5px; line-height: 1.5; max-width: 88%; }
+  .bubble.me { background: var(--accent); color: #fff; margin-left: auto; border-bottom-right-radius: 4px; }
+  .bubble.bot { background: var(--surface); border: 1px solid var(--line); border-bottom-left-radius: 4px; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: center; }
+  .logo { display: flex; align-items: center; gap: 10px; margin-bottom: 34px; }
+  .logo img { height: 34px; display: block; }
+  @media (max-width: 900px) {
+    h1 { font-size: 36px; } h2 { font-size: 27px; }
+    .g4, .g3, .g2, .two { grid-template-columns: 1fr; }
+    .slide { padding: 40px 20px; }
+    .arch { flex-direction: column; }
+    .arch .conn { padding: 10px 0; }
+    .hbar { grid-template-columns: 130px 1fr 80px; }
+    .illus-kanban { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- 1 · титул -->
+<section class="slide" id="s1">
+  <div class="wrap">
+    <div class="logo"><img src="img/logo.svg" alt="Kaiten"></div>
+    <div class="two">
+      <div>
+        <span class="kicker"><span class="dot"></span>Воркшоп для команды</span>
+        <h1>Мини-версия Кайтена под&nbsp;вашу цель</h1>
+        <p class="lead">Как устроена платформа Kaiten Influence: продуктовые решения, архитектура, работа через агента. Разбор от идеи до продакшена, со всеми граблями.</p>
+      </div>
+      <div style="display:flex; justify-content:flex-end;">
+        <div class="illus-kanban" aria-hidden="true">
+          <div class="ik-col">
+            <div class="ik-title">Очередь</div>
+            <div class="ik-card ik-red" style="height:26px"></div>
+            <div class="ik-card ik-green" style="height:38px"></div>
+            <div class="ik-card ik-neutral" style="height:34px"></div>
+            <div class="ik-card ik-fade-o" style="height:32px"></div>
+          </div>
+          <div class="ik-col">
+            <div class="ik-title">В работе</div>
+            <div class="ik-card ik-orange" style="height:38px"></div>
+            <div class="ik-card ik-red" style="height:40px"></div>
+            <div class="ik-card ik-green" style="height:36px"></div>
+          </div>
+          <div class="ik-col">
+            <div class="ik-title">Готово</div>
+            <div class="ik-card ik-red" style="height:26px"></div>
+            <div class="ik-card ik-green" style="height:38px"></div>
+            <div class="ik-card ik-orange" style="height:34px"></div>
+            <div class="ik-card ik-fade-g" style="height:32px"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 2 · цифры -->
+<section class="slide" id="s2">
+  <div class="wrap">
+    <h2>Платформа в цифрах</h2>
+    <p class="sub">Живой инструмент, команда работает в нём каждый день.</p>
+    <div class="grid g4">
+      <div class="card stat"><div class="num"><em>10</em></div><div class="cap">дней от первого коммита до рабочего продакшена</div></div>
+      <div class="card stat"><div class="num"><em>75</em></div><div class="cap">коммитов, каждый: одна законченная мысль</div></div>
+      <div class="card stat"><div class="num"><em>0 ₽</em></div><div class="cap">в месяц за инфраструктуру: всё на бесплатных тарифах</div></div>
+      <div class="card stat"><div class="num"><em>9</em></div><div class="cap">размещений в текущем спринте, от брифа до аналитики</div></div>
+    </div>
+    <p class="note">Стек целиком на free tier: Vercel, Supabase, GitHub. Единственные расходы: сами размещения.</p>
+  </div>
+</section>
+
+<!-- 3 · проблема -->
+<section class="slide" id="s3">
+  <div class="wrap">
+    <h2>С чего началось: процесс жил в трёх местах</h2>
+    <p class="sub">Инфлюенс-маркетинг это десятки параллельных сделок с блогерами, у каждой свой этап, артефакты и сроки.</p>
+    <div class="grid g3">
+      <div class="card">
+        <span class="chip red">Таблицы</span>
+        <p style="margin-top:12px; font-size:14.5px; color:var(--muted); line-height:1.55;">Статусы устаревают в день создания. Никто не помнит, какая версия актуальная.</p>
+      </div>
+      <div class="card">
+        <span class="chip orange">Чаты</span>
+        <p style="margin-top:12px; font-size:14.5px; color:var(--muted); line-height:1.55;">Креативы, счета и правки тонут в переписке. Поиск договорённости: 20 минут скролла.</p>
+      </div>
+      <div class="card">
+        <span class="chip violet">Голова</span>
+        <p style="margin-top:12px; font-size:14.5px; color:var(--muted); line-height:1.55;">Сроки и устные договорённости держит один человек. Он в отпуске: процесс стоит.</p>
+      </div>
+    </div>
+    <p class="lead" style="margin-top:26px;">Нужен один экран, где виден весь процесс. Кайтен делает это для задач команд, я собрала то же самое для своего процесса: закупки рекламы у блогеров.</p>
+  </div>
+</section>
+
+<!-- 4 · продуктовое ядро -->
+<section class="slide" id="s4">
+  <div class="wrap">
+    <h2>Продуктовое ядро: сущности из реального процесса</h2>
+    <p class="sub">Никакого абстрактного таск-трекера. Доска повторяет воронку сделки с блогером, у каждого этапа свой обязательный артефакт.</p>
+    <div class="flow" style="margin-bottom:26px;">
+      <span class="step"><b>1</b>Бэклог каналов</span><span class="arr">→</span>
+      <span class="step"><b>2</b>Спринт недели</span><span class="arr">→</span>
+      <span class="step"><b>3</b>Размещение</span><span class="arr">→</span>
+      <span class="step"><b>4</b>Этапы воронки</span><span class="arr">→</span>
+      <span class="step"><b>5</b>Результаты</span>
+    </div>
+    <div class="card">
+      <p style="font-size:13px; font-weight:700; color:var(--faint); text-transform:uppercase; letter-spacing:.06em; margin-bottom:14px;">10 этапов воронки, как колонки канбана</p>
+      <div class="flow">
+        <span class="step">Внутреннее согласование</span><span class="arr">→</span>
+        <span class="step">Согласование с инфлом</span><span class="arr">→</span>
+        <span class="step">Сбор реквизитов</span><span class="arr">→</span>
+        <span class="step">Подготовка договора</span><span class="arr">→</span>
+        <span class="step">Подписание</span><span class="arr">→</span>
+        <span class="step">Оплата</span><span class="arr">→</span>
+        <span class="step">Получение маркировки</span><span class="arr">→</span>
+        <span class="step">Маркировка в посте</span><span class="arr">→</span>
+        <span class="step">Публикация</span><span class="arr">→</span>
+        <span class="step">Аналитика</span>
+      </div>
+      <p class="note">Артефакты этапов: креатив, реквизиты, договор, счёт, токен ERID, ссылка на пост, итоги. Пока артефакт не внесён, карточка не движется.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 5 · скрин спринта -->
+<section class="slide" id="s5">
+  <div class="wrap">
+    <h2>Спринт: вся неделя на одном экране</h2>
+    <p class="sub">Счётчики бюджета и охвата, бейдж скоринга креатива, прогресс шагов на каждой карточке.</p>
+    <img class="shot" src="img/sprint.png" alt="Доска спринта Kaiten Influence" style="max-height:70vh; object-fit:cover; object-position:top;">
+  </div>
+</section>
+
+<!-- 6 · скоуп -->
+<section class="slide" id="s6">
+  <div class="wrap">
+    <h2>Скоуп: что вошло, что сознательно выкинула</h2>
+    <p class="sub">Правило одно: фича появляется только после того, как о неё споткнулись руками. Ни одной «на будущее».</p>
+    <div class="grid g2">
+      <div class="card">
+        <span class="chip green">Оставила</span>
+        <ul class="clean mgreen" style="margin-top:16px;">
+          <li>Канбан этапов с артефактами и историей версий</li>
+          <li>Несколько вариантов креатива + скоринг каждого</li>
+          <li>Автосборка договора из реквизитов</li>
+          <li>Обвязка маркировки: ERID, ОРД через Click.ru</li>
+          <li>Голосовые комментарии в карточке</li>
+          <li>Аналитика и сводка по спринту</li>
+        </ul>
+      </div>
+      <div class="card">
+        <span class="chip red">Выкинула</span>
+        <ul class="clean mred" style="margin-top:16px;">
+          <li>Роли и права: команда маленькая, все равны</li>
+          <li>Регистрацию по email: общий пароль команды, один раз на устройстве</li>
+          <li>Мобильную версию: работаем с ноутбуков</li>
+          <li>Уведомления: доска и так открыта у всех</li>
+          <li>Интеграции «про запас»</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 7 · архитектура -->
+<section class="slide" id="s7">
+  <div class="wrap">
+    <h2>Архитектура: своего бэкенда нет</h2>
+    <p class="sub">Главное решение всей платформы. Браузер ходит в базу напрямую, безопасность держат RLS-политики и публичный ключ, который для того и создан.</p>
+    <div class="arch">
+      <div class="card box">
+        <h4><span class="sq"></span>Браузер</h4>
+        <p>Next.js 15, клиентские компоненты. Вся логика интерфейса и сохранения здесь.</p>
+        <div class="inner"><b>Vercel</b>: сборка, хостинг, CDN</div>
+      </div>
+      <div class="conn"><span class="lbl">REST + RLS</span><span class="ln">⟶</span></div>
+      <div class="card box">
+        <h4><span class="sq" style="background:var(--green)"></span>Supabase</h4>
+        <p>PostgREST превращает таблицы в API автоматически. Ни одной строки серверного кода.</p>
+        <div class="inner"><b>Postgres</b>: спринты и размещения</div>
+        <div class="inner"><b>Storage</b>: скрины, счета, визуалы</div>
+      </div>
+      <div class="conn"><span class="lbl">бэкап</span><span class="ln">⟶</span></div>
+      <div class="card box">
+        <h4><span class="sq" style="background:var(--orange)"></span>GitHub</h4>
+        <p>Код, история, снимок данных в <code>sprints.json</code>. Однажды этот бэкап спас все креативы.</p>
+      </div>
+    </div>
+    <div class="grid g2" style="margin-top:16px;">
+      <div class="card"><span class="chip green">Что даёт</span><p style="margin-top:10px; font-size:14px; color:var(--muted); line-height:1.55;">Скорость: фича за часы. Ноль DevOps, ноль серверов, ноль расходов.</p></div>
+      <div class="card"><span class="chip orange">Чем платим</span><p style="margin-top:10px; font-size:14px; color:var(--muted); line-height:1.55;">Логика живёт в клиенте, серверной валидации нет. Для внутреннего инструмента команды: честная цена.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 8 · сервисы -->
+<section class="slide" id="s8">
+  <div class="wrap">
+    <h2>Все сервисы, из которых собрана платформа</h2>
+    <p class="sub">Восемь инструментов, у всех бесплатный тариф закрывает нашу нагрузку.</p>
+    <div class="grid g4">
+      <div class="card"><h4 style="font-size:15px; margin-bottom:8px;">Next.js 15</h4><p style="font-size:13.5px; color:var(--muted); line-height:1.5;">Интерфейс, App Router, клиентские компоненты</p></div>
+      <div class="card"><h4 style="font-size:15px; margin-bottom:8px;">Tailwind</h4><p style="font-size:13.5px; color:var(--muted); line-height:1.5;">Стили на дизайн-токенах Кайтена</p></div>
+      <div class="card"><h4 style="font-size:15px; margin-bottom:8px;">Supabase</h4><p style="font-size:13.5px; color:var(--muted); line-height:1.5;">Postgres, REST API, файловое хранилище</p></div>
+      <div class="card"><h4 style="font-size:15px; margin-bottom:8px;">Vercel</h4><p style="font-size:13.5px; color:var(--muted); line-height:1.5;">Хостинг, сборки, деплой из CLI</p></div>
+      <div class="card"><h4 style="font-size:15px; margin-bottom:8px;">GitHub</h4><p style="font-size:13.5px; color:var(--muted); line-height:1.5;">Код, история изменений, бэкап данных</p></div>
+      <div class="card"><h4 style="font-size:15px; margin-bottom:8px;">Claude Code</h4><p style="font-size:13.5px; color:var(--muted); line-height:1.5;">Агент: код, креативы, скоринг, операции с базой</p></div>
+      <div class="card"><h4 style="font-size:15px; margin-bottom:8px;">Click.ru</h4><p style="font-size:13.5px; color:var(--muted); line-height:1.5;">Маркировка рекламы, ERID, отчёты в ОРД</p></div>
+      <div class="card"><h4 style="font-size:15px; margin-bottom:8px;">TGStat</h4><p style="font-size:13.5px; color:var(--muted); line-height:1.5;">Проверка каналов перед закупкой: охваты, ER, накрутки</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 9 · модель данных -->
+<section class="slide" id="s9">
+  <div class="wrap">
+    <h2>Модель данных: жёсткий каркас + гибкий центр</h2>
+    <p class="sub">Фактически две таблицы. Всё, что фильтруется и считается: типизированные колонки. Всё живое: одно jsonb-поле.</p>
+    <div class="grid g2">
+      <div class="card">
+        <h4 style="font-size:15px; margin-bottom:12px;">Таблица <code>placements</code>, колонки</h4>
+        <div class="flow">
+          <span class="step">name</span><span class="step">price</span><span class="step">subs</span><span class="step">er</span>
+          <span class="step">stage</span><span class="step">date</span><span class="step">audience</span><span class="step">utm</span>
+        </div>
+        <p class="note">Считаем бюджеты, охваты, CPV. Сортируем и фильтруем силами базы.</p>
+      </div>
+      <div class="card">
+        <h4 style="font-size:15px; margin-bottom:12px;">Поле <code>data</code> jsonb, внутри</h4>
+        <div class="flow">
+          <span class="step">creatives[]</span><span class="step">scoring</span><span class="step">comments</span>
+          <span class="step">voice</span><span class="step">history</span><span class="step">payment_file</span>
+        </div>
+        <p class="note">Креативы, скоринг и голосовые комменты появились без единого ALTER TABLE.</p>
+      </div>
+    </div>
+    <div class="grid g2" style="margin-top:16px;">
+      <div class="card"><span class="chip green">Плюс</span><p style="margin-top:10px; font-size:14px; color:var(--muted); line-height:1.55;">Новая фича не требует миграции. Скорость эволюции продукта: максимальная.</p></div>
+      <div class="card"><span class="chip orange">Минус</span><p style="margin-top:10px; font-size:14px; color:var(--muted); line-height:1.55;">Схему jsonb никто не проверяет, и его легко затереть целиком. Это выстрелило, разберём дальше.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 10 · совместная работа -->
+<section class="slide" id="s10">
+  <div class="wrap">
+    <h2>Совместные правки без затирания и без websocket</h2>
+    <p class="sub">Несколько человек редактируют одну карточку. Наивное «сохранить всю строку» перезаписывало чужие правки, и однажды так стёрлись все креативы.</p>
+    <div class="grid g2">
+      <div class="card">
+        <h4 style="font-size:15px; margin-bottom:12px;">Запись: diff-патчи</h4>
+        <ul class="clean">
+          <li>Для каждой карточки держим baseline: снимок последнего сохранённого состояния</li>
+          <li>При сохранении сравниваем и шлём только изменённые поля</li>
+          <li>Правки двух людей в разных полях больше не конфликтуют</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h4 style="font-size:15px; margin-bottom:12px;">Чтение: лёгкий опрос</h4>
+        <ul class="clean">
+          <li>Раз в 12 секунд запрашиваем только <code>id + updated_at</code> всех карточек</li>
+          <li>Полную строку тянем только для тех, что изменились</li>
+          <li>Открытая на редактирование карточка не перетирается, скрытая вкладка не опрашивает</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card" style="margin-top:16px;">
+      <h4 style="font-size:15px; margin-bottom:16px;">Трафик одного цикла синхронизации</h4>
+      <div class="hbar">
+        <div class="lbl">Наивно: все строки целиком<small>каждый опрос</small></div>
+        <div class="track"><div class="fill" style="width:100%; background:var(--faint);"></div></div>
+        <div class="val">~60 КБ</div>
+      </div>
+      <div class="hbar">
+        <div class="lbl">Стало: id + updated_at<small>каждый опрос</small></div>
+        <div class="track"><div class="fill" style="width:1.2%; min-width:6px;"></div></div>
+        <div class="val">~0,7 КБ <small>в 85 раз меньше</small></div>
+      </div>
+      <p class="note">Итог: команда видит правки друг друга почти сразу, а трафик укладывается в бесплатные 5 ГБ Supabase с огромным запасом.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 11 · деплой -->
+<section class="slide" id="s11">
+  <div class="wrap">
+    <h2>Деплой: пайплайн, который пережил четыре грабли</h2>
+    <p class="sub">Однажды прод перестал сохранять данные. Симптом один, причин оказалось четыре, и все независимые.</p>
+    <div class="flow" style="margin-bottom:22px;">
+      <span class="step"><b>1</b><code>vercel build --prod</code> сборка локально</span><span class="arr">→</span>
+      <span class="step"><b>2</b><code>deploy --prebuilt</code> загрузка готового</span><span class="arr">→</span>
+      <span class="step"><b>3</b><code>promote</code> переключение прода</span><span class="arr">→</span>
+      <span class="step"><b>4</b>проверка: ключ в бандле + тестовая запись</span>
+    </div>
+    <div class="grid g2">
+      <div class="card"><span class="chip red">Грабля 1</span><p style="margin-top:10px; font-size:14px; color:var(--muted); line-height:1.55;">Переменные с пометкой Sensitive не видны на этапе сборки, а NEXT_PUBLIC вшиваются именно тогда. Клиент уехал в прод без конфига.</p></div>
+      <div class="card"><span class="chip red">Грабля 2</span><p style="margin-top:10px; font-size:14px; color:var(--muted); line-height:1.55;">Turborepo-кэш отдавал старую сборку, даже когда код изменился. Выглядит как «фикс не работает».</p></div>
+      <div class="card"><span class="chip red">Грабля 3</span><p style="margin-top:10px; font-size:14px; color:var(--muted); line-height:1.55;">Облачная сборка идёт из GitHub, а четыре коммита с фиксами лежали только локально. Деплоился код без фиксов.</p></div>
+      <div class="card"><span class="chip red">Грабля 4</span><p style="margin-top:10px; font-size:14px; color:var(--muted); line-height:1.55;">Продакшен-домен не переключился на свежий деплой сам. Новая версия жила, но по другому адресу.</p></div>
+    </div>
+    <p class="lead" style="margin-top:22px; font-size:17px;">Вывод, который стоил вечера: прод проверяем после каждого деплоя, а не верим зелёным логам сборки.</p>
+  </div>
+</section>
+
+<!-- 12 · работа через агента -->
+<section class="slide" id="s12">
+  <div class="wrap">
+    <h2>Как я работаю с платформой: через агента</h2>
+    <p class="sub">Руками через интерфейс можно всё: открыть карточку, заполнить поля, приложить файл, правки сохранятся у всей команды. Но через агента быстрее: одна фраза вместо десяти кликов.</p>
+    <div class="two">
+      <div style="display:flex; flex-direction:column; gap:12px;">
+        <div class="bubble me">Добавь размещение: канал «Света редачит», цена 15 000, счёт из PDF в загрузках, скоринг под аудиторию редакций</div>
+        <div class="bubble bot">Готово: карточка в спринте недели, счёт прикреплён, скоринг посчитан: 79.5, бейдж на карточке. Одна правка P0 в отчёте.</div>
+        <div class="bubble me">И цена у Пименова слетела, верни 9 000</div>
+        <div class="bubble bot">Вернул, проверил в базе: 9 000 на месте.</div>
+      </div>
+      <div>
+        <ul class="clean">
+          <li>Агент пишет в ту же базу через тот же REST API, что и интерфейс</li>
+          <li>Он же чинит баги, деплоит и проверяет прод после деплоя</li>
+          <li>Он же генерит креативы, скоринги и визуалы, дальше про это</li>
+          <li>Интерфейс остаётся источником правды для команды: всё видно на доске</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 13 · креативы -->
+<section class="slide" id="s13">
+  <div class="wrap">
+    <h2>Креативы: 5 вариантов, скоринг, потом картинка</h2>
+    <p class="sub">Конвейер на каждое размещение. Порядок важен: сначала отбор текста по баллам, визуал получает только победитель.</p>
+    <div class="two">
+      <div>
+        <div class="flow" style="flex-direction:column; align-items:stretch; gap:10px;">
+          <span class="step" style="white-space:normal;"><b>1</b>Агент пишет 5 вариантов поста под канал, его тон и аудиторию</span>
+          <span class="step" style="white-space:normal;"><b>2</b>Каждый вариант проходит скоринг, баллы видны прямо в карточке</span>
+          <span class="step" style="white-space:normal;"><b>3</b>Лучший вариант получает визуал в стиле бренда Кайтена</span>
+          <span class="step" style="white-space:normal;"><b>4</b>Картинку можно скачать в PNG кнопкой с карточки</span>
+        </div>
+        <p class="note">На скрине: реальные баллы пяти вариантов для канала «Деплой». Побеждает вариант 1 с 83.3.</p>
+      </div>
+      <img class="shot" src="img/creative.png" alt="Скоринг пяти вариантов креатива в карточке" style="max-height:74vh; object-fit:cover; object-position:top; max-width:440px; justify-self:center;">
+    </div>
+  </div>
+</section>
+
+<!-- 14 · методология скоринга -->
+<section class="slide" id="s14">
+  <div class="wrap">
+    <h2>Скоринг: 6 линз вместо «нравится или нет»</h2>
+    <p class="sub">Спор о вкусе превращается в список правок с приоритетами. Каждый балл привязан к портрету аудитории и цитате из поста.</p>
+    <div class="card">
+      <div class="hbar"><div class="lbl">Message-Market Fit<small>попадание в боль аудитории</small></div><div class="track"><div class="fill" style="width:82%"></div></div><div class="val">82 <small>вес ×2.5</small></div></div>
+      <div class="hbar"><div class="lbl">Creative &amp; Copy Craft<small>голос автора, структура</small></div><div class="track"><div class="fill" style="width:81%"></div></div><div class="val">81 <small>вес ×1</small></div></div>
+      <div class="hbar"><div class="lbl">Channel &amp; Funnel / CTA<small>канал, тон, следующий шаг</small></div><div class="track"><div class="fill" style="width:80%"></div></div><div class="val">80 <small>вес ×1.5</small></div></div>
+      <div class="hbar"><div class="lbl">Objections &amp; Positioning<small>реклама × нативность</small></div><div class="track"><div class="fill" style="width:80%"></div></div><div class="val">80 <small>вес ×2</small></div></div>
+      <div class="hbar"><div class="lbl">Persona / ICP Fit<small>кого реально достаёт канал</small></div><div class="track"><div class="fill" style="width:78%"></div></div><div class="val">78 <small>вес ×2</small></div></div>
+      <div class="hbar" style="margin-bottom:4px;"><div class="lbl">Claims Accuracy &amp; Risk<small>точность утверждений, ОРД</small></div><div class="track"><div class="fill" style="width:76%"></div></div><div class="val">76 <small>вес ×2</small></div></div>
+      <p class="note">Баллы реального поста для канала «Света редачит». Composite = взвешенное среднее = 79.5</p>
+    </div>
+    <div class="flow" style="margin-top:18px;">
+      <span class="chip green">80–100 · брать как есть</span>
+      <span class="chip orange">60–79 · брать после правок</span>
+      <span class="chip red">до 60 · не брать</span>
+    </div>
+  </div>
+</section>
+
+<!-- 15 · отчёт -->
+<section class="slide" id="s15">
+  <div class="wrap">
+    <h2>Скоринг-отчёт: самодостаточная страница</h2>
+    <p class="sub">TL;DR и вердикт, таблица линз, матрица «персона × пост», риски с severity, план правок P0 и P1, методология. Открывается по ссылке из карточки.</p>
+    <img class="shot" src="img/scoring.png" alt="Скоринг-отчёт креатива" style="max-height:66vh; object-fit:cover; object-position:top;">
+  </div>
+</section>
+
+<!-- 16 · кейс -->
+<section class="slide" id="s16">
+  <div class="wrap">
+    <h2>Кейс: что скоринг поймал на живом посте</h2>
+    <div class="grid g3" style="margin-top:24px;">
+      <div class="card stat"><div class="num" style="color:var(--orange)">79.5</div><div class="cap">композит поста для канала «Света редачит», жёлтая зона</div></div>
+      <div class="card stat"><div class="num"><em>1</em></div><div class="cap">правка уровня P0, блокеров нет</div></div>
+      <div class="card stat"><div class="num" style="color:var(--green)">→ 80+</div><div class="cap">зона после правки одной оговоркой</div></div>
+    </div>
+    <div class="card" style="margin-top:16px;">
+      <h4 style="font-size:15px; margin-bottom:10px;">Сама находка</h4>
+      <p style="font-size:15px; color:var(--muted); line-height:1.6;">Пост говорит «можно анализировать процессы» так, будто аналитика входит в базовый тариф. На деле отчёты в Кайтене: подключаемый платный модуль. Это риск по линзе Claims Accuracy: читатель приходит за фичей, которой нет в бесплатной версии, и уходит разочарованным. Лечится одной честной оговоркой в тексте.</p>
+    </div>
+    <p class="lead" style="margin-top:22px; font-size:17px;">Глазами такое не ловится: текст звучит отлично. Ловится проверкой каждого утверждения против фактов о продукте.</p>
+  </div>
+</section>
+
+<!-- 17 · вайбкодинг × кодинг -->
+<section class="slide" id="s17">
+  <div class="wrap">
+    <h2>Вайбкодинг закрывает 90%. Оставшиеся 10%: инженерия</h2>
+    <p class="sub">Моя роль: продуктовые решения, постановка словами, приёмка глазами. Роль агента: код, контент, деплой. Но два раза за проект этого оказалось мало.</p>
+    <div class="grid g2">
+      <div class="card">
+        <span class="chip orange">Фейл 1 · данные затёрлись</span>
+        <p style="margin-top:12px; font-size:14.5px; color:var(--muted); line-height:1.6;">Сохранение всей строки перезаписывало параллельные правки, креативы двух карточек обнулились. Восстановила из бэкапа в git, сохранение переписали на diff-патчи.</p>
+        <p class="note">Урок: снимок данных в репозитории это не паранойя, а страховка.</p>
+      </div>
+      <div class="card">
+        <span class="chip red">Фейл 2 · прод перестал сохранять</span>
+        <p style="margin-top:12px; font-size:14.5px; color:var(--muted); line-height:1.6;">Четыре независимые причины одновременно: env-переменные, кэш сборки, незапушенные коммиты, домен. «Сделай чтобы работало» тут бессильно, помог только разбор слой за слоем.</p>
+        <p class="note">Урок: у сложного бага редко одна причина. Проверяй каждый слой отдельно.</p>
+      </div>
+    </div>
+    <p class="lead" style="margin-top:24px; font-size:17px;">Компетентность в такой работе: понимать, в каком из двух режимов ты сейчас, и вовремя переключаться из «попроси» в «разберись».</p>
+  </div>
+</section>
+
+<!-- 18 · таймлайн + чек-лист -->
+<section class="slide" id="s18">
+  <div class="wrap">
+    <h2>10 дней по коммитам, и что из этого переносимо</h2>
+    <div class="card">
+      <h4 style="font-size:15px;">Коммитов в день</h4>
+      <div class="tl">
+        <div class="day"><span class="v">19</span><div class="bar" style="height:69px"></div><span class="d">22.06</span></div>
+        <div class="day"><span class="v">22</span><div class="bar" style="height:80px"></div><span class="d">23.06</span></div>
+        <div class="day"><span class="v">11</span><div class="bar" style="height:40px"></div><span class="d">24.06</span></div>
+        <div class="day"><span class="v">4</span><div class="bar" style="height:15px"></div><span class="d">25.06</span></div>
+        <div class="day"><span class="v">2</span><div class="bar" style="height:8px"></div><span class="d">26.06</span></div>
+        <div class="day"><span class="v" style="color:var(--faint)">0</span><div class="zero"></div><span class="d">27.06</span></div>
+        <div class="day"><span class="v" style="color:var(--faint)">0</span><div class="zero"></div><span class="d">28.06</span></div>
+        <div class="day"><span class="v">1</span><div class="bar" style="height:4px"></div><span class="d">29.06</span></div>
+        <div class="day"><span class="v">11</span><div class="bar" style="height:40px"></div><span class="d">30.06</span></div>
+        <div class="day"><span class="v">5</span><div class="bar" style="height:18px"></div><span class="d">01.07</span></div>
+      </div>
+      <p class="note">Первые два дня: скелет и канбан. Дальше: фичи по живым запросам команды, выходные честно пустые.</p>
+    </div>
+    <div class="card" style="margin-top:16px;">
+      <h4 style="font-size:15px; margin-bottom:14px;">Чек-лист: соберите свою мини-версию</h4>
+      <div class="grid g3">
+        <ul class="clean" style="margin-bottom:0;">
+          <li>Возьмите процесс, который болит именно у вас</li>
+          <li>Сущности берите из процесса, названия колонок: ваши реальные этапы</li>
+        </ul>
+        <ul class="clean" style="margin-bottom:0;">
+          <li>Стек: Vercel + Supabase, бесплатных тарифов хватит надолго</li>
+          <li>Рутину отдайте агенту, руками вносить тоже можно</li>
+        </ul>
+        <ul class="clean" style="margin-bottom:0;">
+          <li>Бэкап данных в git с первого дня</li>
+          <li>После каждого деплоя: проверка живого прода</li>
+        </ul>
+      </div>
+    </div>
+    <p class="note" style="text-align:center; margin-top:22px;">kaiten-influence.vercel.app · вопросы: прямо сейчас</p>
+  </div>
+</section>
+
+<div class="counter" id="counter">1 / 18</div>
+
+<script>
+  const slides = [...document.querySelectorAll(".slide")];
+  const counter = document.getElementById("counter");
+  let current = 0;
+
+  const io = new IntersectionObserver((entries) => {
+    for (const e of entries) {
+      if (e.isIntersecting) {
+        current = slides.indexOf(e.target);
+        counter.textContent = (current + 1) + " / " + slides.length;
+      }
+    }
+  }, { threshold: 0.6 });
+  slides.forEach((s) => io.observe(s));
+
+  document.addEventListener("keydown", (e) => {
+    let next = null;
+    if (["ArrowRight", "ArrowDown", "PageDown", " "].includes(e.key)) next = Math.min(current + 1, slides.length - 1);
+    if (["ArrowLeft", "ArrowUp", "PageUp"].includes(e.key)) next = Math.max(current - 1, 0);
+    if (e.key === "Home") next = 0;
+    if (e.key === "End") next = slides.length - 1;
+    if (next !== null) { e.preventDefault(); slides[next].scrollIntoView({ behavior: "smooth" }); }
+  });
+</script>
+</body>
+</html>
