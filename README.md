@@ -57,6 +57,8 @@ adversarial-проверка тремя «скептиками», integrity-ге
 - [docs/SCORING.md](docs/SCORING.md) — алгоритм целиком: формула, линзы, веса, гейты и процесс калибровки
 - [docs/creative-diversity.md](docs/creative-diversity.md) — правило разнообразия сетов: 4 оси (угол, жанр, стиль под автора, фокус), пунктуационная гигиена, diversity-гейт до скоринга
 - [docs/PIPELINE.md](docs/PIPELINE.md) — обвязка конвейера: какие данные на входе каждого шага, петля «предсказание → факт → калибровка», правила нивелирования ошибок
+- [docs/SCORING-PIPELINE.md](docs/SCORING-PIPELINE.md) — скоринг-пайплайн v2: матрица входных данных, 12 этапов с гейтами (diversity, claims, integrity, voice-match ≥70), сегментные панели ЦА с прогнозом действий, спека отчёта
+- [content/segments/](content/segments/) — сегментные панели ЦА: [редакции](content/segments/editorial/panel.md) (на реальных данных канала) и [IT](content/segments/it-dev/panel.md)
 - [content/](content/) — данные конвейера: реестр рыночных хуков ([insights.md](content/insights.md)) и папки каналов (паспорт, голос-профиль, сеты с текстами и ab-планом)
 - [docs/personas.md](docs/personas.md) — синтетическая панель ЦА: 8 портретов, которые «читают» каждый креатив и думают от первого лица; цели — убрать когнитивные искажения и сделать A/B-тесты дата-driven
 - [docs/scoring-dataset.md](docs/scoring-dataset.md) — калибровочный датасет: реальные офферы Битрикс24, YouGile, Яндекс Трекера и Shtab (дословно с сайтов, с источниками), размеченные и оценённые, с уроками для рубрики
