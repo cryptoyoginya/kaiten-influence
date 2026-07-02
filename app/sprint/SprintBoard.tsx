@@ -1047,6 +1047,33 @@ function Editor({
                   }
                   onZoom={() => cr.image && setLightbox(cr.image)}
                 />
+                {(cr.images?.length ?? 0) > 0 && (
+                  <div className="mt-2">
+                    <Label>Варианты визуала (клик — сделать главным)</Label>
+                    <div className="flex flex-wrap gap-2">
+                      {cr.images!.map((img, k) => (
+                        <button
+                          key={k}
+                          onClick={() =>
+                            set((x) => {
+                              x.data ??= {};
+                              (x.data.creatives ??= [])[i] = { ...(x.data.creatives![i] ?? {}), image: img };
+                            })
+                          }
+                          title="Сделать главным"
+                          className={`relative rounded-[var(--radius-md)] border overflow-hidden ${
+                            cr.image === img
+                              ? "border-[var(--color-accent)] ring-2 ring-[var(--color-accent)]"
+                              : "border-[var(--color-line)] hover:border-[var(--color-accent)]"
+                          }`}
+                        >
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={img} alt={`вариант ${k + 1}`} className="h-20 w-20 object-cover" />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 <div className="mt-2">
                   <RichText
                     value={cr.text ?? ""}

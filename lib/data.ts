@@ -52,6 +52,7 @@ export type Placement = {
     // несколько вариантов креатива: картинка + текст + история версий + скоринг (HTML)
     creatives?: {
       image?: string;
+      images?: string[]; // варианты визуала: миниатюры, клик делает главным
       text?: string;
       scoring?: string;
       score?: number;
