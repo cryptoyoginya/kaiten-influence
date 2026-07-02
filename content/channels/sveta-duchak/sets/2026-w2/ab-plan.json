@@ -1,0 +1,46 @@
+{
+  "meta": {
+    "channel": "sveta-duchak",
+    "set": "2026-w2",
+    "created_at": "2026-07-03",
+    "rule": "Предсказания записаны ДО публикации и задним числом не правятся. Расхождение факта с прогнозом правит портреты персон или голос-профиль, не объяснение.",
+    "landing": "kaiten.ru/teams/kaiten-for-edit"
+  },
+  "predictions": {
+    "ranking_by_clicks": ["z1-notion", "z5-faq", "z3-test", "z2-chat", "z4-opinion"],
+    "ranking_by_engagement": ["z2-chat", "z4-opinion", "z3-test", "z1-notion", "z5-faq"],
+    "hypotheses": [
+      { "id": "H1", "statement": "Notion-заходы (z1, z2, z5) дадут CTR выше не-Notion (z3, z4): датированный хук сильнее вечной боли", "checks": "сравнение CTR по UTM" },
+      { "id": "H2", "statement": "z4 (мнение) соберёт больше пересылок и реакций при худшем CTR — жанр доверия, не конверсии", "checks": "пересылки/реакции против переходов" },
+      { "id": "H3", "statement": "z2 (переписка) удержит дочитывание лучше всех — диалоговое открытие", "checks": "если канал отдаёт статистику дочитываний" },
+      { "id": "H4", "statement": "Основной ЛПР-отклик придёт от главреда и контент-лида (персоны П-главред, П-контентлид) на z1", "checks": "качественно, по заявкам/вопросам после поста" }
+    ],
+    "expected_best_personas": {
+      "z1-notion": ["главред", "контент-лид"],
+      "z2-chat": ["автор", "редактор проекта"],
+      "z3-test": ["выпускающий", "скептик-таблица"],
+      "z4-opinion": ["скептик-таблица", "главред"],
+      "z5-faq": ["контент-лид", "главред"]
+    }
+  },
+  "facts": {
+    "published_variant": null,
+    "published_at": null,
+    "erid": null,
+    "utm": null,
+    "post_reach": null,
+    "clicks": null,
+    "ctr": null,
+    "reactions": null,
+    "forwards": null,
+    "signups_attributed": null,
+    "cost": null,
+    "cpv": null
+  },
+  "calibration": {
+    "verdict": null,
+    "matched_hypotheses": [],
+    "failed_hypotheses": [],
+    "model_updates": []
+  }
+}
