@@ -55,6 +55,7 @@ adversarial-проверка тремя «скептиками», integrity-ге
 
 **Подробно:**
 - [docs/SCORING.md](docs/SCORING.md) — алгоритм целиком: формула, линзы, веса, гейты и процесс калибровки
+- [docs/personas.md](docs/personas.md) — синтетическая панель ЦА: 8 портретов, которые «читают» каждый креатив и думают от первого лица; цели — убрать когнитивные искажения и сделать A/B-тесты дата-driven
 - [docs/scoring-dataset.md](docs/scoring-dataset.md) — обучающий датасет: размеченные посты Битрикс24, YouGile, Weeek, Яндекс Трекера, Shtab и уроки, которые сформировали рубрику
 - [docs/scoring-dataset.json](docs/scoring-dataset.json) — тот же корпус машиночитаемо (few-shot для прогонов)
 
