@@ -3,12 +3,14 @@
     "channel": "sveta-duchak",
     "set": "2026-w2",
     "created_at": "2026-07-03",
+    "revised_at": "2026-07-03",
+    "revision": "Тексты правлены по эталону Светы до публикации, скоринг пересчитан (86.4 / 82.0 / 82.4 / 80.7 / 82.7). Ранжирование по вовлечению обновлено: у z3 появился интерактив-финал с вопросом в комменты.",
     "rule": "Предсказания записаны ДО публикации и задним числом не правятся. Расхождение факта с прогнозом правит портреты персон или голос-профиль, не объяснение.",
     "landing": "kaiten.ru/teams/kaiten-for-edit"
   },
   "predictions": {
     "ranking_by_clicks": ["z1-notion", "z5-faq", "z3-test", "z2-chat", "z4-opinion"],
-    "ranking_by_engagement": ["z2-chat", "z4-opinion", "z3-test", "z1-notion", "z5-faq"],
+    "ranking_by_engagement": ["z2-chat", "z3-test", "z4-opinion", "z1-notion", "z5-faq"],
     "hypotheses": [
       { "id": "H1", "statement": "Notion-заходы (z1, z2, z5) дадут CTR выше не-Notion (z3, z4): датированный хук сильнее вечной боли", "checks": "сравнение CTR по UTM" },
       { "id": "H2", "statement": "z4 (мнение) соберёт больше пересылок и реакций при худшем CTR — жанр доверия, не конверсии", "checks": "пересылки/реакции против переходов" },
