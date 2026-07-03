@@ -4,9 +4,7 @@
 ИИ-агента. Не прототип — команда работает в нём каждый день: 9 размещений в текущем
 спринте проходят весь путь от брифа до аналитики внутри платформы.
 
-**Прод:** [kaiten-influence.vercel.app](https://kaiten-influence.vercel.app) ·
-**Презентация-воркшоп:** [/workshop](https://kaiten-influence.vercel.app/workshop/) ·
-**Как устроен скоринг:** [docs/SCORING.md](docs/SCORING.md)
+🌐 **Прод:** [kaiten-influence.vercel.app](https://kaiten-influence.vercel.app)
 
 Принцип: **один блогер — одна строка**. Бэклог и спринт — два вида одной таблицы,
 а не копипаст между листами. Процесс, который раньше жил в таблицах, чатах
