@@ -115,6 +115,27 @@ flowchart TD
 персон + цель размещения», а не одна цифра. Жанры вариантов не
 повторяются — это требование [правила разнообразия](creative-diversity.md).
 
+### Больше примеров отчётов (все на проде)
+
+Сет «Деплой ботанов» (YouTube, разработка):
+[честный обзор 80/20](https://kaiten-influence.vercel.app/scoring/2026-week1-deploy-z1-review-80-20.html) ·
+[зоопарк инструментов](https://kaiten-influence.vercel.app/scoring/2026-week1-deploy-z2-zoo.html) ·
+[трекер, который дружит с кодом](https://kaiten-influence.vercel.app/scoring/2026-week1-deploy-z3-code.html) ·
+[метрики потока](https://kaiten-influence.vercel.app/scoring/2026-week1-deploy-z4-flow-metrics.html) ·
+[настройка без программистов](https://kaiten-influence.vercel.app/scoring/2026-week1-deploy-z5-no-code-setup.html)
+
+Сет «Пименов вещает» (TG, менеджмент разработки):
+[эффективность потока](https://kaiten-influence.vercel.app/scoring/2026-week1-pimenov-z1-flow-efficiency.html) ·
+[процентили вместо обещаний](https://kaiten-influence.vercel.app/scoring/2026-week1-pimenov-z2-percentiles.html) ·
+[закон Литтла](https://kaiten-influence.vercel.app/scoring/2026-week1-pimenov-z3-littles-law.html) ·
+[накопительная диаграмма](https://kaiten-influence.vercel.app/scoring/2026-week1-pimenov-z4-cfd.html) ·
+[экономика завершения](https://kaiten-influence.vercel.app/scoring/2026-week1-pimenov-z5-cost-of-delay.html) ·
+плюс [скоринг всей интеграции «важность метрик»](https://kaiten-influence.vercel.app/scoring/2026-week1-pimenov-metrics.html)
+
+Исторический: [первый скоринг Светы](https://kaiten-influence.vercel.app/scoring/2026-week1-sveta-editorial.html) —
+тот самый отчёт 79.5 с пойманным риском про платный модуль (разбор в разделе 7).
+Формат отчёта там ещё v1 — по разнице с сетом выше видно, как система выросла.
+
 ---
 
 ## 4. Надстройки над формулой
