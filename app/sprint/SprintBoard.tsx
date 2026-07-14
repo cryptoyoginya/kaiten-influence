@@ -176,6 +176,32 @@ function stageHint(key: string): string {
   }
 }
 
+// бриф для карточки в «Результатах» из полей размещения
+function briefOf(p: Placement): Record<string, string> {
+  return {
+    author_desc: p.author_desc ?? "", audience: p.audience ?? "", date: p.post_date ?? "",
+    post_topic: p.post_topic ?? "", offer: p.offer ?? "", creative: p.creative ?? "",
+    landing: p.landing ?? "", utm: p.utm ?? "",
+  };
+}
+
+// дозаполнить пустые поля брифа значениями из карточки; null — менять нечего
+function filledBrief(
+  cur: Record<string, string> | null | undefined,
+  p: Placement
+): Record<string, string> | null {
+  const from = briefOf(p);
+  const next = { ...(cur ?? {}) };
+  let changed = false;
+  for (const k of Object.keys(from)) {
+    if (!String(next[k] ?? "").trim() && String(from[k]).trim()) {
+      next[k] = from[k];
+      changed = true;
+    }
+  }
+  return changed ? next : null;
+}
+
 function stageOf(p: Placement): number {
   for (let i = 0; i < STEPS.length; i++) if (!p.steps?.[STEPS[i]]) return i;
   return STEPS.length;
@@ -233,6 +259,28 @@ export default function SprintBoard({ sprints }: { sprints: Sprint[] }) {
         if (p.id && !p.id.startsWith("tmp-") && !(p.id in baseline.current))
           baseline.current[p.id] = rowOf(p);
   }, [sprints]);
+
+  // разовый бэкфилл: пустые поля брифа в «Результатах» дозаполняем из карточек доски
+  // (по id pl-…, для засевных карточек — по совпадению имени); правки там не трогаем
+  useEffect(() => {
+    if (!supabase) return;
+    (async () => {
+      const pls = sprints
+        .flatMap((w) => w.placements)
+        .filter((p): p is Placement & { id: string } => !!p.id && !p.id.startsWith("tmp-"));
+      if (!pls.length) return;
+      const { data } = await supabase.from("integrations").select("id,name,brief");
+      if (!data) return;
+      const byId = new Map(pls.map((p) => [`pl-${p.id}`, p]));
+      const byName = new Map(pls.map((p) => [p.name, p]));
+      for (const row of data as { id: string; name: string; brief: Record<string, string> | null }[]) {
+        const p = byId.get(row.id) ?? byName.get(row.name);
+        if (!p) continue;
+        const brief = filledBrief(row.brief, p);
+        if (brief) await supabase.from("integrations").update({ brief }).eq("id", row.id);
+      }
+    })();
+  }, [supabase, sprints]);
 
   // лёгкая синхронизация: раз в 12с тянем только id+updated_at (~0.7 КБ), а полные
   // строки — лишь для реально изменившихся карточек. В фоне вкладки не опрашиваем.
@@ -366,11 +414,7 @@ export default function SprintBoard({ sprints }: { sprints: Sprint[] }) {
           date: p.post_date,
           landing: p.landing,
           published: true,
-          brief: {
-            author_desc: p.author_desc, audience: p.audience, date: p.post_date,
-            post_topic: p.post_topic, offer: p.offer, creative: p.creative,
-            landing: p.landing, utm: p.utm,
-          },
+          brief: briefOf(p),
           plan: {
             price: p.price_discount || p.price, reach: p.forecast_reach,
             cpv: p.forecast_cpv, err: p.err, views: p.avg_views,
@@ -389,8 +433,18 @@ export default function SprintBoard({ sprints }: { sprints: Sprint[] }) {
         { onConflict: "id", ignoreDuplicates: true }
       );
     }
-    // синхронизируем сегмент и имя, если карточка в Результатах уже есть
-    await supabase.from("integrations").update({ niche, name: p.name }).eq("id", `pl-${p.id}`);
+    // синхронизируем сегмент/имя и дозаполняем пустые поля брифа из карточки
+    const { data: row } = await supabase
+      .from("integrations")
+      .select("brief")
+      .eq("id", `pl-${p.id}`)
+      .maybeSingle();
+    if (!row) return;
+    const brief = filledBrief(row.brief as Record<string, string> | null, p);
+    await supabase
+      .from("integrations")
+      .update({ niche, name: p.name, ...(brief ? { brief } : {}) })
+      .eq("id", `pl-${p.id}`);
   }
 
   function update(id: string, mut: (p: Placement) => void) {
