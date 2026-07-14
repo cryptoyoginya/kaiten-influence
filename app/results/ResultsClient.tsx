@@ -428,7 +428,6 @@ function Editor({
             <Grid>
               <F label="Переходы по ссылке" v={r.conversion.clicks} on={(v) => set((d) => (d.result.conversion.clicks = v))} />
               <F label="Лиды / регистрации" v={r.conversion.registrations} on={(v) => set((d) => (d.result.conversion.registrations = v))} />
-              <F label="Активации" v={r.conversion.activations} on={(v) => set((d) => (d.result.conversion.activations = v))} />
               <F label="Платящие" v={r.conversion.paying} on={(v) => set((d) => (d.result.conversion.paying = v))} />
               <F label="Выручка, ₽" v={r.conversion.revenue} on={(v) => set((d) => (d.result.conversion.revenue = v))} />
             </Grid>
@@ -898,7 +897,10 @@ function fillPercent(it: Integration): number {
     r.post_link,
     ...Object.values(r.costs),
     ...Object.values(r.reach),
-    ...Object.values(r.conversion),
+    r.conversion.clicks,
+    r.conversion.registrations,
+    r.conversion.paying,
+    r.conversion.revenue,
     ...Object.values(r.unit),
     r.screens.creative,
     r.screens.stats,

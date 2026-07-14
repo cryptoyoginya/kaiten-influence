@@ -148,7 +148,7 @@ export type Integration = {
     conversion: {
       clicks: string;
       registrations: string;
-      activations: string;
+      activations?: string;
       paying: string;
       revenue: string;
     };
