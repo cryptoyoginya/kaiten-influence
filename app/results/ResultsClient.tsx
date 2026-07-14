@@ -506,7 +506,6 @@ function Editor({
           <div className="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-3 mt-3">
             <F label="Дата" v={it.brief.date} on={(v) => set((d) => (d.brief.date = v))} />
             <F label="Оффер" v={it.brief.offer} on={(v) => set((d) => (d.brief.offer = v))} />
-            <F label="Креос" v={it.brief.creative} on={(v) => set((d) => (d.brief.creative = v))} />
             <F label="Ленд" v={it.brief.landing} on={(v) => set((d) => (d.brief.landing = v))} />
             <F label="UTM" v={it.brief.utm} on={(v) => set((d) => (d.brief.utm = v))} />
           </div>
