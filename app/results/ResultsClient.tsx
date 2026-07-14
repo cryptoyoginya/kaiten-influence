@@ -226,8 +226,8 @@ export default function ResultsClient({ seed }: { seed: Integration[] }) {
             <div className="grid grid-cols-4 gap-2 mt-3">
               <Mini label="Клики" v={it.result.conversion.clicks} />
               <Mini label="CPC, ₽" v={it.result.unit.cpc ?? ""} />
-              <Mini label="ROMI, %" v={it.result.unit.romi} accent />
-              <Mini label="Выручка, ₽" v={it.result.conversion.revenue} />
+              <Mini label="Просмотры" v={it.result.reach.views} />
+              <Mini label="CPV, ₽" v={it.result.unit.cpv ?? ""} />
             </div>
 
             <div className="mt-3 flex items-center justify-between">
