@@ -1,0 +1,37 @@
+{
+  "meta": {
+    "channel": "media-researches",
+    "set": "2026-w4",
+    "created_at": "2026-07-07",
+    "rule": "Предсказания записаны ДО публикации и задним числом не правятся. Особенность сета: A/B углов KB — каждый вариант тестирует свой оффер/модуль.",
+    "voice_status": "provisional — голос-профиль по гипотезе, постов канала нет",
+    "landing": "kaiten.ru",
+    "utm": { "campaign": "media-researches", "content_pattern": "2026w4-z<N>" }
+  },
+  "predictions": {
+    "ranking_by_clicks": ["z1-flow", "z2-marketing", "z4-margin", "z3-servicedesk", "z5-content"],
+    "ranking_by_engagement": ["z4-margin", "z1-flow", "z5-content", "z2-marketing", "z3-servicedesk"],
+    "per100": {
+      "z1-flow": { "пролистают": 55, "дочитают": 30, "отреагируют": 8, "перешлют": 5, "кликнут": 2 }
+    },
+    "hypotheses": [
+      { "id": "H1", "statement": "Аудитория дайджеста данных кликает на данные-угол (z1) лучше, чем на продуктовые боли (z2, z3): нативность формата сильнее точности ICP-боли", "checks": "CTR z1 против z2/z3 по utm_content" },
+      { "id": "H2", "statement": "z4 (маржа клиентов) соберёт максимум реакций и комментариев при среднем CTR — провокация для агентств", "checks": "реакции/комменты против кликов" },
+      { "id": "H3", "statement": "Углы KB ранжируются для этой аудитории: аналитика > канбан-порядок > экономика > service desk > контент — проверка приоритета офферов сегмента", "checks": "CTR по всем пяти utm_content" },
+      { "id": "H4", "statement": "Основной ЛПР-отклик (заявки/вопросы) придёт от M1/M5 на z2 и z4, не на победителя z1", "checks": "качественно по обращениям" }
+    ],
+    "expected_best_personas": {
+      "z1-flow": ["M2-аналитик", "M1-директор-маркетинга"],
+      "z2-marketing": ["M1-директор-маркетинга"],
+      "z4-margin": ["M5-рук-агентства"],
+      "z3-servicedesk": ["M4-PR"],
+      "z5-content": ["M3-SMM-контент-лид"]
+    }
+  },
+  "facts": {
+    "published_variant": null, "published_at": null, "erid": null, "utm": null,
+    "post_reach": null, "clicks": null, "ctr": null, "reactions": null, "forwards": null,
+    "signups_attributed": null, "cost": null, "cpv": null
+  },
+  "calibration": { "verdict": null, "matched_hypotheses": [], "failed_hypotheses": [], "model_updates": [] }
+}

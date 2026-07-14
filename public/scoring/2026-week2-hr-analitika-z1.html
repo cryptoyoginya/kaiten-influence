@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ru"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kaiten · Скоринг креатива · HR как чёрный ящик · «HR аналитика»</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#111827;background:#F9FAFB;line-height:1.6}
+.container{max-width:1100px;margin:0 auto;padding:0 24px}
+.header{background:linear-gradient(135deg,#4F46E5 0%,#7C3AED 100%);color:#fff;padding:44px 0 38px}
+.header .vlabel{display:inline-block;background:rgba(255,255,255,.18);border-radius:20px;padding:3px 12px;font-size:12px;font-weight:700;margin-bottom:10px}
+.header h1{font-size:25px;font-weight:700;margin-bottom:8px}
+.header .subtitle{font-size:15px;opacity:.9;margin-bottom:18px}
+.header .meta{display:flex;gap:22px;flex-wrap:wrap;font-size:12.5px;opacity:.8}
+.verdict{background:#fff;border:1px solid #E5E7EB;border-radius:14px;padding:26px;margin:-22px auto 26px;max-width:1052px;box-shadow:0 4px 16px rgba(0,0,0,.08);display:grid;grid-template-columns:210px 1fr;gap:26px;align-items:center;position:relative;z-index:2}
+.gauge{text-align:center;border-right:1px solid #E5E7EB;padding-right:22px}
+.gauge .num{font-size:52px;font-weight:800;line-height:1}
+.gauge .den{font-size:17px;color:#D1D5DB;font-weight:700}
+.gauge .zone{display:inline-block;margin-top:9px;padding:4px 12px;border-radius:20px;font-size:12.5px;font-weight:700}
+.zone-green{background:#D1FAE5;color:#065F46}
+.num-green{color:#10B981}
+.vtext h2{font-size:17px;margin-bottom:6px}.vtext p{font-size:13.5px;color:#374151}.vtext .tldr{margin-top:9px;font-size:12.5px;color:#6B7280}
+.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;max-width:1052px;margin:0 auto 30px;padding:0 24px}
+.scard{background:#fff;border:1px solid #E5E7EB;border-radius:10px;padding:16px 18px;text-align:center}
+.scard .big{font-size:28px;font-weight:800}.scard .lab{font-size:11.5px;color:#6B7280;margin-top:4px}
+.cg{color:#10B981}.ca{color:#D97706}.cp{color:#4F46E5}
+.section{margin:32px auto;max-width:1052px;padding:0 24px}
+.sh{display:flex;align-items:center;gap:11px;margin-bottom:8px}
+.snum{background:#4F46E5;color:#fff;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;flex-shrink:0}
+.stitle{font-size:20px;font-weight:700}.sdesc{color:#6B7280;font-size:13.5px;margin-bottom:18px}
+.mbox{background:#EEF2FF;border:1px solid #C7D2FE;border-radius:10px;padding:16px 20px;margin-bottom:20px;font-size:12.5px}
+.mbox h4{color:#4F46E5;margin-bottom:7px;font-size:13.5px}
+.warn{background:#FEF3C7;border:1px solid #FDE68A}.warn h4{color:#B45309}
+.tw{background:#fff;border-radius:12px;border:1px solid #E5E7EB;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.04);margin-bottom:20px}
+table{width:100%;border-collapse:collapse;font-size:13px}thead{background:#F9FAFB}
+th{padding:11px 13px;text-align:left;font-weight:600;font-size:11.5px;color:#6B7280;text-transform:uppercase;letter-spacing:.3px;border-bottom:2px solid #E5E7EB}
+td{padding:11px 13px;border-bottom:1px solid #F3F4F6;vertical-align:top}tr:last-child td{border-bottom:none}
+.strip{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.strip figure{margin:0}.strip img{width:100%;border-radius:9px;border:1px solid #E5E7EB;display:block}
+.strip figcaption{font-size:11px;color:#6B7280;text-align:center;margin-top:6px;font-weight:600}
+.strip .win img{border-color:#7d4ccf;box-shadow:0 0 0 2px rgba(125,76,207,.25)}
+.cover{text-align:center;background:#F9FAFB}
+.cover img{max-width:540px;width:100%;border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.14)}
+.footer{background:#111827;color:#D1D5DB;padding:30px;margin-top:44px;font-size:12px;text-align:center}.footer strong{color:#fff}
+.persona{background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:16px 18px}
+.persona .nm{font-weight:700;font-size:14px}.persona .ctx{font-size:11.5px;color:#6B7280}
+.persona .say{margin:11px 0;padding:10px 13px;background:#F9FAFB;border-left:3px solid #7d4ccf;border-radius:0 8px 8px 0;font-size:12.5px;font-style:italic;color:#374151}
+.tags{display:flex;gap:8px;flex-wrap:wrap;font-size:11.5px}
+.tag{background:#EEF2FF;color:#4F46E5;border-radius:20px;padding:3px 10px;font-weight:700}
+.tag.act{background:#efe9f9;color:#7d4ccf}
+.bar-row{display:flex;align-items:center;gap:12px;padding:8px 0}
+.bar-row .bn{width:230px;flex-shrink:0;font-size:12.5px;font-weight:600;color:#424242}
+.bar-row.us .bn{color:#7d4ccf;font-weight:800}
+.bar-track{flex:1;background:#f0f0f3;border-radius:6px;height:14px}
+.bar-fill{height:14px;border-radius:6px;background:#bdbdbd}
+.bar-row.us .bar-fill{background:#7d4ccf}
+.bar-val{width:44px;text-align:right;font-weight:800;font-size:13px;color:#757575}
+.bar-row.us .bar-val{color:#7d4ccf}
+@media(max-width:820px){.verdict{grid-template-columns:1fr}.gauge{border-right:none;border-bottom:1px solid #E5E7EB;padding-right:0;padding-bottom:16px}.tw{overflow-x:auto}.strip{grid-template-columns:repeat(2,1fr)}}
+</style></head><body>
+<div class="header"><div class="container">
+<span class="vlabel">ЗАХОД №1 · победитель сета · воронка «Служба поддержки» для HR</span>
+<h1>HR как чёрный ящик → единое окно заявок</h1>
+<div class="subtitle">Скоринг варианта · реклама модуля «Служба поддержки» Kaiten в Telegram-канале «HR аналитика» · аудитория HR-руководителей, кадровиков и HR-аналитиков · сет 2026-w2</div>
+<div class="meta"><span>📅 6 июля 2026</span><span>✍️ «HR аналитика» · HRD, кадровики, HR-аналитики</span><span>🤖 6 линз + voice-match + панель HR + бенчмарк</span></div>
+</div></div>
+<div class="container">
+<div class="verdict"><div class="gauge"><div class="num num-green">86.0</div><div class="den">/100</div><span class="zone zone-green">🟢 Брать в работу</span></div>
+<div class="vtext"><h2>Брать в работу — победитель сета</h2><p>Боль конкретна и управленческая («HR как чёрный ящик»), продукт отвечает дословно: единое окно заявок + передача между отделами + аналитика и SLA. Тон совпадает с аналитическим регистром канала.</p><p class="tldr"><b>TL;DR:</b> Сильнейший заход сета (86.0). Живая боль ЛПР, все факты сверены с продуктом, безлимитный Free бьёт порог конкурентов. Блокеров нет. ⚠️ Голос-профиль — гипотеза по 1 посту.</p></div></div>
+<div class="summary">
+<div class="scard"><div class="big cp">86.0</div><div class="lab">Композит</div></div>
+<div class="scard"><div class="big cg">88</div><div class="lab">Сильнейшая линза</div></div>
+<div class="scard"><div class="big ca">84</div><div class="lab">Слабейшая линза</div></div>
+<div class="scard"><div class="big cp">0</div><div class="lab">P0 осталось</div></div>
+</div>
+
+<div class="section"><div class="sh"><div class="snum" style="background:#7d4ccf">🖼</div><div class="stitle">Обложка · 5 визуалов победителя</div></div>
+<div class="sdesc">Формат рабочего креатива: заголовок бьёт в боль ЦА, одна визуализация, один призыв, одно лого. Пять разных метафор для A/B обложки — по правилу «разнообразие на выборке». Текст поста ниже — тот, что скорит композит.</div>
+<div class="tw" style="padding:18px"><div class="strip">
+<figure class="win"><img src="../workshop/img/hr-z1-c1-board.png" alt="заявки на доске"><figcaption>c1 · заявки на доске</figcaption></figure>
+<figure><img src="../workshop/img/hr-z1-c2-window.png" alt="единое окно"><figcaption>c2 · единое окно</figcaption></figure>
+<figure><img src="../workshop/img/hr-z1-c3-analytics.png" alt="аналитика"><figcaption>c3 · аналитика</figcaption></figure>
+<figure><img src="../workshop/img/hr-z1-c4-free.png" alt="бесплатно"><figcaption>c4 · бесплатно</figcaption></figure>
+<figure><img src="../workshop/img/hr-z1-c5-form.png" alt="заявка в карточку"><figcaption>c5 · заявка → карточка</figcaption></figure>
+</div></div></div>
+
+<div class="section"><div class="sh"><div class="snum">1</div><div class="stitle">Скоринг по 6 линзам</div></div>
+<div class="sdesc">Composite = Σ(Линза × Вес) / 11. Зоны: 🟢 80–100 · 🟡 60–79 · 🔴 &lt;60. Факты сверены с product-facts и лендингом модуля «Служба поддержки».</div>
+<div class="tw"><table><thead><tr><th>Линза</th><th>Вес</th><th>Балл</th><th>Вердикт линзы</th></tr></thead><tbody>
+<tr><td><b>Message–Market Fit</b></td><td style="text-align:center">×2.5</td><td style="text-align:center;font-weight:800;font-size:16px">88</td><td>«HR как чёрный ящик» — живая управленческая боль. Потерянные заявки в почте/чатах узнаёт каждый HRD; вопрос «сколько просрочено» бьёт в отсутствие цифр</td></tr>
+<tr><td><b>Persona / ICP Fit</b></td><td style="text-align:center">×2</td><td style="text-align:center;font-weight:800;font-size:16px">86</td><td>Ядро канала (H1 HRD, H4 аналитик) решает про инструмент и любит данные. «Аналитика без ручных таблиц» — прямое попадание в аналитика</td></tr>
+<tr><td><b>Objections & Positioning</b></td><td style="text-align:center">×2</td><td style="text-align:center;font-weight:800;font-size:16px">84</td><td>Без грязи в адрес конкурентов, «мы собираем это в один модуль» — изнутри. Канон единой рабочей среды соблюдён</td></tr>
+<tr><td><b>Claims Accuracy & Risk</b></td><td style="text-align:center">×2</td><td style="text-align:center;font-weight:800;font-size:16px">88</td><td>Модуль Service Desk, портал/почта/бот, передача между отделами, аналитика/SLA, безлимитный Free, настройка 30 мин — всё сверено с product-facts и лендингом</td></tr>
+<tr><td><b>Channel & Funnel / CTA</b></td><td style="text-align:center">×1.5</td><td style="text-align:center;font-weight:800;font-size:16px">84</td><td>Прямая ссылка на отраслевой лендинг, низкий порог («настроить 30 минут»). Оффер-пост — закрывающий, первым касанием</td></tr>
+<tr><td><b>Creative & Copy Craft</b></td><td style="text-align:center">×1</td><td style="text-align:center;font-weight:800;font-size:16px">84</td><td>Аналитический регистр канала, маркер 📌, «факт → вывод для роли». Свобода от шаблонного скелета: один оффер-пост на сет</td></tr>
+</tbody></table></div></div>
+
+<div class="section"><div class="sh"><div class="snum">1½</div><div class="stitle">Voice-match: 82/100 ✅ гейт пройден <span style="font-size:13px;color:#B45309">(⚠ по 1 посту)</span></div></div>
+<div class="sdesc">Сопоставление с тоном канала. ⚠️ Голос-профиль — <b>гипотеза по 1 реальному посту</b> (про ИИ-навыки). Балл ориентировочный; для надёжности занести 5–7 постов.</div>
+<div class="tw" style="max-width:560px"><table><thead><tr><th>Чек-пункт</th><th>Балл</th></tr></thead><tbody>
+<tr><td>Регистр (деловой аналитический)</td><td style="text-align:center;font-weight:700">17/20</td></tr>
+<tr><td>Ритм (короткие абзацы, вывод в финале)</td><td style="text-align:center;font-weight:700">17/20</td></tr>
+<tr><td>Приёмы канала (📌, факт→вывод для роли)</td><td style="text-align:center;font-weight:700">16/20</td></tr>
+<tr><td>Табу (нет сниженной лексики/эмоций/лозунгов)</td><td style="text-align:center;font-weight:700">18/20</td></tr>
+<tr><td>Оформление (маркеры, цифры)</td><td style="text-align:center;font-weight:700">14/20</td></tr>
+</tbody></table></div>
+<div class="mbox warn"><h4>⚠ Оговорка гейта</h4>Профиль построен на одном посте — voice-match не откалиброван. Пост в аналитическом регистре с 📌-выводом и цифрами не выпадает из ленты, но точный балл подтвердится только на корпусе.</div></div>
+
+<div class="section"><div class="sh"><div class="snum">2</div><div class="stitle">Текст креатива с разметкой</div></div>
+<div class="sdesc">Пост пишет рекламодатель, публикуется по оферте. Метки: FACT — сверено с продуктом/лендингом · INF — обоснованный вывод · RISK — требует правки.</div>
+<div class="tw" style="padding:20px 24px;font-size:13.5px">
+<p style="margin-bottom:12px">Сколько заявок сейчас в работе у вашего HR — и сколько из них просрочено? Если ответа в цифрах нет, для руководства HR остаётся чёрным ящиком. <span style="background:#E0E7FF;color:#3730A3;border-radius:4px;padding:1px 7px;font-size:10.5px;font-weight:700">INF</span><br><span style="color:#6B7280;font-size:11.5px">вопрос-заход в боль ЛПР; «чёрный ящик» — управленческая рамка канала</span></p>
+<p style="margin-bottom:12px">Отпуска, справки, оформление новичков, согласования приходят в почту, личку и чаты. Часть теряется, часть всплывает, когда сотрудник приходит спросить лично. Нагрузку между кадровиками не видно, пока кто-то не выгорит. <span style="background:#E0E7FF;color:#3730A3;border-radius:4px;padding:1px 7px;font-size:10.5px;font-weight:700">INF</span><br><span style="color:#6B7280;font-size:11.5px">бытовая боль сегмента (панель H3/H2); без цифр — мягкий INF</span></p>
+<p style="margin-bottom:12px">Мы собираем это в один модуль — «Служба поддержки» Кайтена. Сотрудник оставляет заявку через портал, почту или Telegram-бота, регистрация не нужна. Обращение падает карточкой на канбан-доску HR: ответственный, приоритет, срок. Из HR карточку можно передать в бухгалтерию или юристам — контекст едет вместе с ней. <span style="background:#D1FAE5;color:#065F46;border-radius:4px;padding:1px 7px;font-size:10.5px;font-weight:700">FACT</span><br><span style="color:#6B7280;font-size:11.5px">модуль Service Desk (product-facts §46); каналы, канбан, передача между отделами — лендинг</span></p>
+<p style="margin-bottom:12px">Сверху — аналитика без ручных таблиц: сколько заявок и на каком этапе, кто перегружен, укладываемся ли в SLA. <span style="background:#D1FAE5;color:#065F46;border-radius:4px;padding:1px 7px;font-size:10.5px;font-weight:700">FACT</span><br><span style="color:#6B7280;font-size:11.5px">отчёты по этапам/нагрузке/SLA — лендинг раздел аналитики</span></p>
+<p style="margin-bottom:12px">📌 Free не ограничен по числу заявителей — платите только за тех, кто работает в системе. Обращения от всей компании — бесплатно. <span style="background:#D1FAE5;color:#065F46;border-radius:4px;padding:1px 7px;font-size:10.5px;font-weight:700">FACT</span><br><span style="color:#6B7280;font-size:11.5px">Free без ограничений по участникам (§54); «платите за работающих» — лендинг</span></p>
+<p style="margin-bottom:0">Настроить первый сервис — около 30 минут: kaiten.ru/teams/kaiten-for-hr <span style="background:#D1FAE5;color:#065F46;border-radius:4px;padding:1px 7px;font-size:10.5px;font-weight:700">FACT</span><br><span style="color:#6B7280;font-size:11.5px">настройка ~30 мин — лендинг; UTM/erid добавить при публикации</span></p>
+</div></div>
+
+<div class="section"><div class="sh"><div class="snum">3</div><div class="stitle">Панель HR-сегмента: кто читает и что делает</div></div>
+<div class="sdesc">7 персон сегмента (content/segments/hr/panel.md). ⚠️ Портреты — гипотеза до занесения корпуса канала и комментариев подписчиков.</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px;margin-bottom:18px">
+<div class="persona"><div class="nm">👩‍💼 H1 · HR-директор (ЛПР)</div><div class="ctx">Решение об инструменте — его. HR для руководства — чёрный ящик</div><div class="say">💭 «Про нас. Сколько заявок просрочено — не отвечу. Если это видно в цифрах и бесплатно для заявителей — беру на пилот»</div><div class="tags"><span class="tag">достаёт 9/10</span><span class="tag">говорит 9/10</span><span class="tag act">🎯 кликнет</span></div></div>
+<div class="persona"><div class="nm">📊 H4 · HR-аналитик (ядро канала)</div><div class="ctx">Считает нагрузку, сроки, узкие места. Любит данные, не таблицы вручную</div><div class="say">💭 «Отчёты по SLA и нагрузке из коробки — то, что я собираю руками. Потыкаю демо аналитики»</div><div class="tags"><span class="tag">достаёт 9/10</span><span class="tag">говорит 9/10</span><span class="tag act">🎯 кликнет, потыкает</span></div></div>
+<div class="persona"><div class="nm">🧭 H2 · Руководитель HR / HRBP</div><div class="ctx">Держит поток заявок и людей. Не видит, кто из кадровиков тонет</div><div class="say">💭 «Две девочки на 300 заявок. Отчёт по нагрузке — покажу директору как аргумент за пилот»</div><div class="tags"><span class="tag">достаёт 8/10</span><span class="tag">говорит 8/10</span><span class="tag act">🎯 сохранит</span></div></div>
+<div class="persona"><div class="nm">🗂 H3 · Кадровик-исполнитель</div><div class="ctx">Обрабатывает отпуск/справки руками, тонет в почте и чатах</div><div class="say">💭 «Пятый раз объясняю про отпуск. Единое окно — да. Перешлю руководителю»</div><div class="tags"><span class="tag">достаёт 8/10</span><span class="tag">говорит 8/10</span><span class="tag act">🎯 перешлёт</span></div></div>
+<div class="persona"><div class="nm">🧮 H7 · Скептик «у нас 1С/Excel/почта» (гейт)</div><div class="ctx">Реестр в Excel, «проверено годами»</div><div class="say">💭 «У меня Excel. Правда, кто в нём сегодня писал — уже не помню… сохраню»</div><div class="tags"><span class="tag">достаёт 7/10</span><span class="tag">говорит 8/10</span><span class="tag act">🎯 сохранит</span></div></div>
+</div>
+<div class="mbox" style="background:#efe9f9;border-color:rgba(125,76,207,.35)"><h4>🎯 Поведенческий профиль: «Конверсионный»</h4>Действия панели: <b>2×</b> клик (H1, H4) · <b>2×</b> сохранение (H2, H7) · <b>1×</b> пересылка (H3). Клики ЛПР и аналитика + сохранение скептика. Ставить первым касанием. Метрика — CTR и заявки на демо.</div></div>
+
+<div class="section"><div class="sh"><div class="snum">3½</div><div class="stitle">Конкурентный бенчмарк HR-сегмента</div></div>
+<div class="sdesc">Дословные офферы сняты 6 июля 2026 (content/segments/hr/competitors.json), та же рубрика и веса. Usedesk/1С/VK HR Tek не сняты (сайты недоступны) — добить при доступе.</div>
+<div class="tw" style="padding:14px 20px">
+<div class="bar-row us"><div class="bn">НАШ ВАРИАНТ · HR как чёрный ящик</div><div class="bar-track"><div class="bar-fill" style="width:86%"></div></div><div class="bar-val">86.0</div></div>
+<div class="bar-row"><div class="bn">HRlink</div><div class="bar-track"><div class="bar-fill" style="width:72%"></div></div><div class="bar-val">72.0</div></div>
+<div style="margin:-2px 0 4px 242px;font-size:11px;color:#9e9e9e">«Люди важнее бумаги» · КЭДО-подписание, не поток заявок с SLA</div>
+<div class="bar-row"><div class="bn">Okdesk</div><div class="bar-track"><div class="bar-fill" style="width:67%"></div></div><div class="bar-val">67.1</div></div>
+<div style="margin:-2px 0 4px 242px;font-size:11px;color:#9e9e9e">«Заявки в одном окне» · но field service/ТОиР, Free нет — от 8000 ₽/мес</div>
+<div class="bar-row"><div class="bn">Битрикс24</div><div class="bar-track"><div class="bar-fill" style="width:60%"></div></div><div class="bar-val">60.3</div></div>
+<div style="margin:-2px 0 0 242px;font-size:11px;color:#9e9e9e">комбайн «помогает бизнесу работать» · Free урезан, аналитика ограничена</div>
+</div>
+<div class="mbox"><h4>Урок конкурентов → ниша свободна</h4>HRlink подписывает документы, Okdesk дорогой и «про технику», Битрикс размазан. Никто не закрывает связку «единое окно именно HR-заявок + аналитика/SLA из коробки + безлимитный Free». Наш вариант выигрывает конкретикой и порогом входа.</div></div>
+
+<div class="section"><div class="sh"><div class="snum">4</div><div class="stitle">Риски и план правок</div></div>
+<div class="tw"><table><thead><tr><th>Риск / правка</th><th>Приор.</th><th>Суть</th></tr></thead><tbody>
+<tr><td>Голос-профиль на 1 посте</td><td style="text-align:center"><b>P1</b></td><td>Занести 5–7 постов канала до публикации — voice-match откалибруется, риск «выпадает из ленты» снимется по фактуре</td></tr>
+<tr><td>«часть теряется», «пока кто-то не выгорит» — обобщения</td><td style="text-align:center"><b>P2</b></td><td>Допустимо как INF: мягко, без цифр. Усилить можно одним реальным примером нагрузки, если есть</td></tr>
+<tr><td>Оферта / публикация</td><td style="text-align:center"><b>P1</b></td><td>От чьего лица пост, цена, дата, erid, UTM. Сверить на дату: лимиты Free и актуальность кейса Академии Йоги</td></tr>
+</tbody></table></div></div>
+
+<div class="section"><div class="sh"><div class="snum">5</div><div class="stitle">Методология и источники</div></div>
+<div class="mbox"><h4>Оси разнообразия варианта (creative-diversity.md)</h4>Жанр: <b>сцена-оффер</b> · Угол: <b>боль роли (потерянные заявки)</b> · Фокус: <b>продукт целиком</b> · Открытие: <b>вопрос-факт</b> · CTA: <b>прямая ссылка</b>. В сете оси не пересекаются больше чем по одной. Полный сет (5 вариантов) — set.md.</div>
+<div class="mbox warn"><h4>⚠ Данные интейка (пробелы)</h4>Голос ⚠️ 1 пост (нужно 5–7) · Панель сегмента ✅ hr (7 персон, гипотеза) · Продукт-KB ✅ · Бенчмарк ✅ 3 из 6 (Usedesk/1С/VK HR Tek не сняты) · Комментарии подписчиков ❌ · TGStat ❌ · Прошлые интеграции ❌ · Оферта ❌</div>
+<div class="mbox"><h4>Как считали</h4>6 линз × sub-критерии (0–10 × вес) → 0–100. Composite = Σ(вес=11). Voice-match (гейт ≥70) вне composite. Панель HR-сегмента — 7 ролей с прогнозом действий. Integrity-гейт: пост по оферте, цитаты кейсов — с лендинга, без фабрикации опыта автора канала.<br><br><b>Источники:</b> content_zavod/wiki/references/kaiten-product-facts.md (§46 Service Desk, §54 Free) · лендинг модуля «Служба поддержки» / kaiten.ru/teams/kaiten-for-hr · content/segments/hr/ · content/channels/hr-analitika/</div></div>
+
+<div style="text-align:center;color:#9CA3AF;font-size:11.5px;padding:10px 0 36px">
+Kaiten · Скоринг креатива «HR как чёрный ящик» · канал «HR аналитика»<br>
+Заход №1 · Composite 86.0/100 · 🟢 Брать в работу · 6 июля 2026 · сет 2026-w2 для HR-сегмента<br>
+Integrity-гейт: пост по оферте. ⚠️ Голос-профиль — гипотеза по 1 посту.</div>
+</div></body></html>

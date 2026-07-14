@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import PasscodeGate from "./PasscodeGate";
 import Nav from "./Nav";
+import { Toaster } from "./toast";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -31,6 +32,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </div>
           </header>
           <main className="mx-auto max-w-[1216px] px-4 sm:px-6 py-6 sm:py-8">{children}</main>
+          <Toaster />
         </PasscodeGate>
       </body>
     </html>

@@ -1,23 +1,31 @@
 // Точечно заливает data.creatives одного размещения в Supabase через REST
-// (PostgREST), без пароля БД. Нужны только Project URL + service_role ключ.
-// service_role обходит RLS, поэтому update проходит.
+// (PostgREST), без пароля БД. Ключи подхватывает из .env.local сам.
 //
 // Берёт creatives из data/sprints.json, читает текущую data строки, мёржит
 // только ключ creatives и пишет обратно. Идемпотентно, остальные поля целы.
+// ⚠ Работает только по карточкам, которые есть в data/sprints.json (сид отстаёт
+// от базы). Добавить картинки карточке, которой нет в сиде, —
+// scripts/append-creative-images.mjs (пишет в базу напрямую по имени/id).
 //
 // Запуск:
-//   SUPABASE_URL='https://xxxxx.supabase.co' \
-//   SUPABASE_SERVICE_ROLE='eyJ...' \
 //   node scripts/upsert-creatives-rest.mjs "Пименов вещает" week-1
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
+try {
+  process.loadEnvFile(join(ROOT, ".env.local"));
+} catch {}
+
+// anon-ключа достаточно: RLS открыт на запись, им же пишет платформа из браузера
 const URL_BASE = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
-const KEY = process.env.SUPABASE_SERVICE_ROLE || process.env.SUPABASE_SERVICE_ROLE_KEY;
+const KEY =
+  process.env.SUPABASE_SERVICE_ROLE ||
+  process.env.SUPABASE_SERVICE_ROLE_KEY ||
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 if (!URL_BASE || !KEY) {
-  console.error("✗ Нужны SUPABASE_URL и SUPABASE_SERVICE_ROLE в окружении.");
+  console.error("✗ Нет SUPABASE_URL/ключа ни в окружении, ни в .env.local");
   process.exit(1);
 }
 

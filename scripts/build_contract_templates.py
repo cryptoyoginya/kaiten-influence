@@ -30,6 +30,38 @@ def esc(s):
     return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
 
+def _para(text):
+    """Абзац реквизитов Исполнителя (Times New Roman 10.5pt); {tags} остаются как есть."""
+    rpr = ('<w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" '
+           'w:hAnsi="Times New Roman"/><w:color w:val="111111"/>'
+           '<w:sz w:val="21"/><w:szCs w:val="21"/>')
+    return (f'<w:p><w:pPr><w:spacing w:after="0" w:line="240" w:lineRule="auto"/>'
+            f'<w:ind w:left="0" w:right="96" w:firstLine="0"/><w:jc w:val="left"/>'
+            f'<w:rPr>{rpr}</w:rPr></w:pPr>'
+            f'<w:r><w:rPr>{rpr}</w:rPr>'
+            f'<w:t xml:space="preserve">{esc(text)}</w:t></w:r></w:p>')
+
+
+def inject_ispolnitel(xml, key):
+    """Вставляет реквизиты Исполнителя (второй стороны) под заголовок «Исполнитель»
+    в разделе реквизитов. Без этого в конце договора прописан только Заказчик."""
+    status = ("Плательщик налога на профессиональный доход (самозанятый)"
+              if key == "smz" else "Индивидуальный предприниматель")
+    lines = ["{fio}", status, "ИНН: {inn}", "Телефон: {phone}", "Email: {email}"]
+    block = "".join(_para(t) for t in lines)
+
+    # находим абзац-заголовок, текст которого ровно «Исполнитель» (не тело договора)
+    paras = list(re.finditer(r"<w:p\b[^>]*>.*?</w:p>", xml, re.S))
+    target = None
+    for m in paras:
+        if joined(m.group(0)).strip() == "Исполнитель":
+            target = m  # берём последний такой (в разделе реквизитов)
+    if not target:
+        raise RuntimeError(f"[{key}] заголовок «Исполнитель» не найден")
+    pos = target.end()
+    return xml[:pos] + block + xml[pos:]
+
+
 def transform(text):
     """Возвращает (new_text, changed) для одного параграфа."""
     t = text
@@ -69,7 +101,7 @@ def transform(text):
     return new, (new != t)
 
 
-def build(src):
+def build(src, src_key):
     zin = zipfile.ZipFile(src)
     xml = zin.read("word/document.xml").decode("utf-8")
 
@@ -85,6 +117,7 @@ def build(src):
         return f'{open_tag}{ppr}<w:r><w:t xml:space="preserve">{esc(new_text)}</w:t></w:r></w:p>'
 
     new_xml = re.sub(r"<w:p\b[^>]*>.*?</w:p>", repl, xml, flags=re.S)
+    new_xml = inject_ispolnitel(new_xml, src_key)
 
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zout:
@@ -104,7 +137,7 @@ def build(src):
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
     for key, src in SRC.items():
-        b64, tags = build(src)
+        b64, tags = build(src, key)
         path = OUT / f"template-{key}-b64.ts"
         var = "CONTRACT_TEMPLATE_SMZ_B64" if key == "smz" else "CONTRACT_TEMPLATE_IP_B64"
         path.write_text(

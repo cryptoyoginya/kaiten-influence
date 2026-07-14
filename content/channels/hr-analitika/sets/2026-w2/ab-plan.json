@@ -1,0 +1,17 @@
+{
+  "channel": "hr-analitika",
+  "set": "2026-w2",
+  "funnel": "Служба поддержки для HR-заявок",
+  "predicted_at": "2026-07-06",
+  "note": "Прогноз зафиксирован ДО публикации. Задним числом не переписывается — расхождение с фактом правит портреты панели и голос-профиль. ⚠️ Голос-профиль — гипотеза по 1 посту; voice-баллы ориентировочны.",
+  "ranking_by_ctr": ["З1", "З3", "З2", "З4", "З5"],
+  "variants": {
+    "З1": { "genre": "сцена-оффер", "composite": 86.0, "profile": "конверсионный", "target_personas": ["H1 HR-директор", "H4 HR-аналитик"], "expected_actions": { "click": 2, "save": 1, "forward": 1 }, "hypothesis": "Боль «HR как чёрный ящик» + оффер единого окна с аналитикой даёт максимальный CTR у ЛПР и аналитика" },
+    "З2": { "genre": "до/после", "composite": 82.5, "profile": "конверсионный/виральный", "target_personas": ["H2 руководитель HR", "H4 HR-аналитик"], "expected_actions": { "click": 1, "save": 1, "forward": 1 }, "hypothesis": "Нагрузка в цифрах и SLA цепляют операционного руководителя; сохранят как аргумент" },
+    "З3": { "genre": "мнение-аналитика", "composite": 83.1, "profile": "виральный/прогрев", "target_personas": ["H1 HR-директор", "H4 HR-аналитик"], "expected_actions": { "click": 1, "save": 1, "forward": 2 }, "hypothesis": "Родной жанр канала (макс. voice-match) → пересылки и споры при умеренном клике" },
+    "З4": { "genre": "кейс-разбор", "composite": 82.3, "profile": "конверсионный", "target_personas": ["H2 руководитель HR", "H3 кадровик"], "expected_actions": { "click": 1, "save": 1, "forward": 1 }, "hypothesis": "Кейс Академии Йоги снимает риск «а получится ли у нас»" },
+    "З5": { "genre": "FAQ", "composite": 82.2, "profile": "конверсионный", "target_personas": ["H1 HR-директор", "H2 руководитель HR"], "expected_actions": { "click": 1, "save": 1, "forward": 0 }, "hypothesis": "FAQ снимает последние возражения (регистрация, цена, передача отделам) перед кликом" }
+  },
+  "benchmark": { "our_winner": 86.0, "HRlink": 72.0, "Okdesk": 67.1, "Bitrix24": 60.3 },
+  "fact": { "captured_at": null, "ctr": null, "clicks": null, "forwards": null, "subscribers_delta": null, "cpv": null, "note": "Заполнить после публикации → калибровка портретов и voice-профиля" }
+}

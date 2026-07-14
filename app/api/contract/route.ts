@@ -10,6 +10,8 @@ export const runtime = "nodejs";
 const FIELDS = [
   "fio", "fio_short", "channel", "pub_date", "duration",
   "price_num", "price_words", "contract_date",
+  // реквизиты второй стороны (Исполнитель) — собираются формой, шли в шаблон
+  "inn", "phone", "email",
 ];
 
 export async function POST(req: Request) {

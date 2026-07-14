@@ -1,0 +1,17 @@
+{
+  "channel": "import-it",
+  "set": "2026-w2",
+  "funnel": "Kaiten как российская замена Jira/Confluence (импортозамещение)",
+  "predicted_at": "2026-07-06",
+  "note": "Прогноз зафиксирован ДО публикации. ⚠️ Голос-профиль — гипотеза, реальных постов нет; voice-баллы ориентировочны. Хук ухода Atlassian сверить на дату.",
+  "ranking_by_ctr": ["З1", "З5", "З2", "З3", "З4"],
+  "variants": {
+    "З1": { "genre": "сцена-оффер", "composite": 85.6, "profile": "конверсионный", "target_personas": ["И1 тимлид с наследием Jira", "И3 CTO/суверенитет"], "expected_actions": { "click": 2, "save": 1, "forward": 1 }, "hypothesis": "Уход Atlassian + встроенный импорт из Jira + реестр = максимальный CTR у тимлида и CTO" },
+    "З2": { "genre": "до/после", "composite": 82.9, "profile": "конверсионный", "target_personas": ["И1 тимлид", "И5 скептик самописки/Jira"], "expected_actions": { "click": 1, "save": 1, "forward": 1 }, "hypothesis": "«Jira без обновлений» бьёт в накопленный риск; миграция без потери снимает главный страх" },
+    "З3": { "genre": "кейс", "composite": 82.6, "profile": "конверсионный", "target_personas": ["И3 CTO"], "expected_actions": { "click": 1, "save": 1, "forward": 1 }, "hypothesis": "Доверие Сбер/S7/X5 снимает вопрос «потянет ли на масштабе»" },
+    "З4": { "genre": "мнение-провокация", "composite": 81.9, "profile": "виральный/прогрев", "target_personas": ["И2 разработчик-скептик", "И4 практик канбана"], "expected_actions": { "click": 1, "save": 1, "forward": 2 }, "hypothesis": "Родной регистр канала + провокация «≠ галочка» → пересылки и споры при умеренном клике" },
+    "З5": { "genre": "FAQ", "composite": 82.5, "profile": "конверсионный", "target_personas": ["И1 тимлид", "И5 скептик"], "expected_actions": { "click": 1, "save": 1, "forward": 0 }, "hypothesis": "FAQ снимает последние возражения миграции (история, база, данные, цена) перед кликом" }
+  },
+  "benchmark": { "our_winner": 85.6, "Shtab": 77.5, "YouGile": 75.7, "EvaTeam": 67.2, "YandexTracker": 65.0 },
+  "fact": { "captured_at": null, "ctr": null, "clicks": null, "forwards": null, "subscribers_delta": null, "cpv": null, "note": "Заполнить после публикации → калибровка портретов и voice-профиля" }
+}

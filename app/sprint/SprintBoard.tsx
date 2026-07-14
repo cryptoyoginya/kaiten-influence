@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Sprint, Placement } from "@/lib/data";
+import { toast, confirmToast } from "../toast";
 import { createClient, SUPABASE_ENABLED } from "@/lib/supabase/client";
 
 const NICHES = [
@@ -100,6 +101,34 @@ function weekRange(from: string, to: string): string {
   const dm = (d: Date) => `${String(d.getDate()).padStart(2, "0")}.${String(d.getMonth() + 1).padStart(2, "0")}`;
   return `${dm(a)}–${dm(b)}`;
 }
+// индекс текущей недели: где сегодня в [from,to]; иначе — последняя уже начавшаяся
+function currentWeekIndex(ws: { date_from: string; date_to: string }[]): number {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  let last = 0;
+  for (let i = 0; i < ws.length; i++) {
+    const a = parseDate(ws[i].date_from), b = parseDate(ws[i].date_to);
+    if (!a || !b) continue;
+    a.setHours(0, 0, 0, 0); b.setHours(0, 0, 0, 0);
+    if (today >= a && today <= b) return i;
+    if (today >= a) last = i;
+  }
+  return last;
+}
+// индекс недели, в которую попадает дата (from..from+6 = Пн..Вс); -1 если раньше всех
+function weekIdxForDate(dt: Date | null, ws: { date_from: string }[]): number {
+  if (!dt) return -1;
+  const t = new Date(dt); t.setHours(0, 0, 0, 0);
+  let last = -1;
+  for (let i = 0; i < ws.length; i++) {
+    const a = parseDate(ws[i].date_from); if (!a) continue;
+    a.setHours(0, 0, 0, 0);
+    const b = new Date(a); b.setDate(b.getDate() + 6);
+    if (t >= a && t <= b) return i;
+    if (t >= a) last = i;
+  }
+  return last;
+}
 const DUE_COLORS: Record<string, { bg: string; fg: string; border: string }> = {
   red: { bg: "#fde8e6", fg: "#b3261e", border: "#f44336" },
   orange: { bg: "#fff3e0", fg: "#b26a00", border: "#ffa100" },
@@ -128,7 +157,7 @@ const EMPTY_RESULT = {
   costs: { price: "", marking: "", tax: "", total: "" },
   reach: { views: "", reach: "", likes: "", reposts: "", comments_count: "", er: "" },
   conversion: { clicks: "", registrations: "", activations: "", paying: "", revenue: "" },
-  unit: { cpv: "", cpm: "", ctr: "", cpl: "", cac: "", romi: "", payback: "" },
+  unit: { cpv: "", cpm: "", ctr: "", cpc: "", cpl: "", cac: "", romi: "", payback: "" },
   screens: { creative: "", stats: "", comments: [] as string[] },
   lessons: { sentiment: "", worked: "", failed: "", learned: "", verdict: "" },
 };
@@ -214,7 +243,7 @@ export default function SprintBoard({ sprints }: { sprints: Sprint[] }) {
   const [weeks, setWeeks] = useState<Sprint[]>(
     sprints.length ? sprints : [{ id: "week-1", title: "Неделя 1", date_from: "", date_to: "", status: "active", placements: [] }]
   );
-  const [wi, setWi] = useState(0);
+  const [wi, setWi] = useState(() => currentWeekIndex(weeks));
   const [openId, setOpenId] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState<number | null>(null);
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
@@ -238,19 +267,13 @@ export default function SprintBoard({ sprints }: { sprints: Sprint[] }) {
   }
 
   const econ = useMemo(() => {
-    const from = parseDate(current.date_from);
-    const to = parseDate(current.date_to);
-    // считаем только размещения этой недели (дата в диапазоне или без даты)
-    const inWeek = (p: Placement) => {
-      const d = parseDate(p.post_date);
-      if (!d || !from || !to) return true;
-      return d >= from && d <= to;
-    };
-    const inw = items.filter(inWeek);
-    const spent = inw.reduce((a, p) => a + num(p.price_discount || p.price), 0);
-    const reach = inw.reduce((a, p) => a + num(p.forecast_reach), 0);
-    return { spent, reach, count: inw.length };
-  }, [items, current.date_from, current.date_to]);
+    // сумма и охват по всем размещениям, которые лежат на доске этой недели
+    // (принадлежность к неделе определяется доской/sprint_id, не датой поста —
+    // иначе карточки с датой вне диапазона Пн–Пт выпадали из суммы)
+    const spent = items.reduce((a, p) => a + num(p.price_discount || p.price), 0);
+    const reach = items.reduce((a, p) => a + num(p.forecast_reach), 0);
+    return { spent, reach, count: items.length };
+  }, [items]);
 
   // базовый снимок из первичной загрузки (для дифф-сохранения)
   useEffect(() => {
@@ -516,6 +539,33 @@ export default function SprintBoard({ sprints }: { sprints: Sprint[] }) {
     setOpenId(null);
   }
 
+  // авто-перенос карточки в неделю по её дате поста — срабатывает в любой момент,
+  // когда дата появилась или изменилась (правка, драг, синхронизация)
+  useEffect(() => {
+    for (const w of weeks) {
+      for (const p of w.placements) {
+        const ti = weekIdxForDate(parseDate(p.post_date), weeks);
+        if (ti >= 0 && weeks[ti].id !== w.id) {
+          const key = p.id ?? p.name;
+          const targetId = weeks[ti].id;
+          if (supabase && p.id)
+            supabase.from("placements").update({ sprint_id: targetId }).eq("id", p.id);
+          setWeeks((prev) =>
+            prev.map((x) => {
+              if (x.id === w.id)
+                return { ...x, placements: x.placements.filter((y) => (y.id ?? y.name) !== key) };
+              if (x.id === targetId)
+                return { ...x, placements: [{ ...p, sprint_id: targetId }, ...x.placements] };
+              return x;
+            })
+          );
+          if (openId === key) setWi(ti); // если карточка открыта — следуем за ней
+          return; // по одной за проход, эффект перезапустится
+        }
+      }
+    }
+  }, [weeks, supabase, openId]);
+
   async function moveToWeek(targetId: string) {
     if (!open || targetId === current.id) return;
     const p = open;
@@ -542,12 +592,12 @@ export default function SprintBoard({ sprints }: { sprints: Sprint[] }) {
         .from("screens")
         .upload(path, file, { contentType: file.type || undefined, upsert: true });
       if (error) {
-        alert("Не удалось загрузить файл: " + error.message);
+        toast("Не удалось загрузить файл: " + error.message, "error");
         return "";
       }
       return supabase.storage.from("screens").getPublicUrl(path).data.publicUrl;
     } catch (e) {
-      alert("Ошибка загрузки: " + (e instanceof Error ? e.message : String(e)));
+      toast("Ошибка загрузки: " + (e instanceof Error ? e.message : String(e)), "error");
       return "";
     }
   }
@@ -809,7 +859,7 @@ function Editor({
         body: JSON.stringify(p.data?.contract ?? {}),
       });
       if (!res.ok) {
-        alert("Не удалось сформировать договор");
+        toast("Не удалось сформировать договор", "error");
         return;
       }
       const blob = await res.blob();
@@ -1436,8 +1486,8 @@ function Editor({
           )}
           <div className="flex items-center justify-between pt-2">
             <button
-              onClick={() => {
-                if (confirm(`Удалить размещение «${p.name}»?`)) remove(id);
+              onClick={async () => {
+                if (await confirmToast(`Удалить размещение «${p.name}»?`, { okLabel: "Удалить", danger: true })) remove(id);
               }}
               className="text-[13px] text-[var(--color-red)] hover:underline"
             >
@@ -1896,7 +1946,7 @@ function CreativeImage({
       a.remove();
       setTimeout(() => URL.revokeObjectURL(a.href), 1000);
     } catch (e) {
-      alert("Не удалось сохранить картинку: " + (e instanceof Error ? e.message : String(e)));
+      toast("Не удалось сохранить картинку: " + (e instanceof Error ? e.message : String(e)), "error");
     } finally {
       setSaving(false);
     }
@@ -2049,7 +2099,7 @@ function VoiceRecorder({
       m.start();
       setRec(true);
     } catch {
-      alert("Не удалось включить микрофон — разреши доступ в браузере.");
+      toast("Не удалось включить микрофон, разреши доступ в браузере", "error");
     }
   }
   function stop() {

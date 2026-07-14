@@ -2,6 +2,7 @@
 
 import { useMemo, useRef, useState } from "react";
 import type { Channel } from "@/lib/data";
+import { toast, confirmToast } from "../toast";
 import { createClient, SUPABASE_ENABLED } from "@/lib/supabase/client";
 
 const WORK_COLS: { key: keyof Channel; label: string }[] = [
@@ -62,9 +63,38 @@ function chanRow(c: Channel) {
   };
 }
 
+type Wk = { id: string; title: string; date_from: string; date_to: string };
+function pdDate(s?: string | null): Date | null {
+  if (!s) return null;
+  let m = s.trim().match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})/);
+  if (m) return new Date(+m[3], +m[2] - 1, +m[1]);
+  m = s.trim().match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (m) return new Date(+m[1], +m[2] - 1, +m[3]);
+  return null;
+}
+function fmtDM(s: string): string {
+  const d = pdDate(s);
+  return d ? `${String(d.getDate()).padStart(2, "0")}.${String(d.getMonth() + 1).padStart(2, "0")}` : "?";
+}
+// индекс недели, в которую попадает дата (from..from+6); -1 если раньше всех
+function weekIdxForDate(dt: Date | null, ws: Wk[]): number {
+  if (!dt) return -1;
+  const t = new Date(dt); t.setHours(0, 0, 0, 0);
+  let last = -1;
+  for (let i = 0; i < ws.length; i++) {
+    const a = pdDate(ws[i].date_from); if (!a) continue;
+    a.setHours(0, 0, 0, 0);
+    const b = new Date(a); b.setDate(b.getDate() + 6);
+    if (t >= a && t <= b) return i;
+    if (t >= a) last = i;
+  }
+  return last;
+}
+
 export default function BacklogView({ channels }: { channels: Channel[] }) {
   const [rows, setRows] = useState<Channel[]>(channels);
   const [openId, setOpenId] = useState<string | null>(null);
+  const [moveState, setMoveState] = useState<{ ch: Channel; weeks: Wk[]; suggested: number } | null>(null);
   const [saving, setSaving] = useState(false);
   const supabase = useMemo(() => (SUPABASE_ENABLED ? createClient() : null), []);
   const timers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
@@ -136,27 +166,35 @@ export default function BacklogView({ channels }: { channels: Channel[] }) {
     setOpenId(null);
   }
 
+  // открыть модалку выбора недели
   async function moveToSprint(ch: Channel) {
     if (!supabase) {
-      alert("Нет подключения к базе");
+      toast("Нет подключения к базе", "error");
       return;
     }
     const { data: spr } = await supabase
       .from("sprints")
-      .select("id, title")
-      .order("date_from")
-      .limit(1);
-    const sprint = spr?.[0];
-    if (!sprint) {
-      alert("Нет спринтов");
+      .select("id, title, date_from, date_to")
+      .order("date_from");
+    if (!spr?.length) {
+      toast("Нет спринтов", "error");
       return;
     }
+    const byDate = weekIdxForDate(pdDate(ch.post_date), spr);
+    const suggested = byDate >= 0 ? byDate : Math.max(0, weekIdxForDate(new Date(), spr));
+    setMoveState({ ch, weeks: spr, suggested });
+  }
+
+  // выполнить перенос после выбора недели/даты в модалке
+  async function confirmMove(sprintId: string, postDate: string, title: string) {
+    if (!supabase || !moveState) return;
+    const ch = moveState.ch;
     const row = {
-      sprint_id: sprint.id,
+      sprint_id: sprintId,
       name: ch.name,
       author_desc: ch.themes ?? "",
       audience: ch.audience ?? "",
-      post_date: ch.post_date ?? "",
+      post_date: postDate ?? "",
       post_topic: ch.post_topic ?? "",
       offer: ch.offer ?? "",
       creative: ch.creative ?? "",
@@ -178,10 +216,12 @@ export default function BacklogView({ channels }: { channels: Channel[] }) {
     };
     const { error } = await supabase.from("placements").insert(row);
     if (error) {
-      alert("Не удалось перенести: " + error.message);
+      toast("Не удалось перенести: " + error.message, "error");
       return;
     }
-    alert(`«${ch.name}» перенесён в «${sprint.title}». Открой вкладку «Спринт».`);
+    setMoveState(null);
+    setOpenId(null);
+    toast(`«${ch.name}» уехал в «${title}». Загляни во вкладку «Спринт»`, "success");
   }
 
   const filtered = useMemo(() => {
@@ -343,6 +383,110 @@ export default function BacklogView({ channels }: { channels: Channel[] }) {
           onClose={() => setOpenId(null)}
         />
       )}
+
+      {moveState && (
+        <WeekPickerModal
+          ch={moveState.ch}
+          weeks={moveState.weeks}
+          suggested={moveState.suggested}
+          onCancel={() => setMoveState(null)}
+          onConfirm={confirmMove}
+        />
+      )}
+    </div>
+  );
+}
+
+/* ───────── выбор недели при переносе в спринт ───────── */
+function WeekPickerModal({
+  ch,
+  weeks,
+  suggested,
+  onCancel,
+  onConfirm,
+}: {
+  ch: Channel;
+  weeks: Wk[];
+  suggested: number;
+  onCancel: () => void;
+  onConfirm: (sprintId: string, postDate: string, title: string) => void;
+}) {
+  const [date, setDate] = useState(ch.post_date ?? "");
+  const [sel, setSel] = useState(suggested);
+  const dateWeek = weekIdxForDate(pdDate(date), weeks);
+
+  return (
+    <div
+      className="fixed inset-0 z-[60] bg-black/45 flex items-start justify-center p-3 sm:p-4 overflow-y-auto"
+      onClick={onCancel}
+    >
+      <div
+        className="mt-[8vh] w-full max-w-lg rounded-2xl bg-white shadow-xl p-5"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="text-[15px] font-bold mb-1">Перенести в спринт</div>
+        <div className="text-[13px] text-neutral-500 mb-4">«{ch.name}»</div>
+
+        <label className="block text-[12px] font-semibold text-neutral-600 mb-1">
+          Дата поста (если известна)
+        </label>
+        <input
+          value={date}
+          onChange={(e) => {
+            const v = e.target.value;
+            setDate(v);
+            const i = weekIdxForDate(pdDate(v), weeks);
+            if (i >= 0) setSel(i);
+          }}
+          placeholder="дд.мм.гггг — или выбери неделю ниже"
+          className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-[14px] mb-2 outline-none focus:border-violet-500"
+        />
+        {date.trim() && dateWeek >= 0 && (
+          <div className="text-[12px] text-violet-600 mb-3">
+            → ляжет в «{weeks[dateWeek].title}» по дате
+          </div>
+        )}
+
+        <div className="text-[12px] font-semibold text-neutral-600 mb-2 mt-1">
+          Неделя
+        </div>
+        <div className="grid grid-cols-2 gap-2 max-h-[46vh] overflow-y-auto p-1">
+          {weeks.map((w, i) => {
+            const active = i === sel;
+            return (
+              <button
+                key={w.id}
+                onClick={() => setSel(i)}
+                className={`text-left rounded-lg border px-3 py-2 transition ${
+                  active
+                    ? "border-violet-500 bg-violet-50 ring-1 ring-violet-400"
+                    : "border-neutral-200 hover:border-neutral-400"
+                }`}
+              >
+                <div className="text-[13px] font-bold text-neutral-800">{w.title}</div>
+                <div className="text-[11.5px] text-neutral-500">
+                  {fmtDM(w.date_from)}–{fmtDM(w.date_to)}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="flex items-center justify-end gap-2 mt-5">
+          <button
+            onClick={onCancel}
+            className="rounded-lg px-4 py-2 text-[14px] font-semibold text-neutral-500 hover:bg-neutral-100"
+          >
+            Отмена
+          </button>
+          <button
+            onClick={() => onConfirm(weeks[sel].id, date.trim(), weeks[sel].title)}
+            className="rounded-lg bg-violet-600 px-4 py-2 text-[14px] font-bold text-white hover:bg-violet-700"
+          >
+            Перенести в «{weeks[sel].title}»
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -420,8 +564,8 @@ function ChannelEditor({
 
           <div className="flex items-center justify-between pt-2">
             <button
-              onClick={() => {
-                if (confirm(`Удалить «${c.name}»?`)) remove(id);
+              onClick={async () => {
+                if (await confirmToast(`Удалить «${c.name}»?`, { okLabel: "Удалить", danger: true })) remove(id);
               }}
               className="text-[13px] text-[var(--color-red)] hover:underline"
             >
