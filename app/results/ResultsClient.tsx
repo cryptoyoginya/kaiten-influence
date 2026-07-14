@@ -8,8 +8,17 @@ const LS_KEY = "kaiten-integrations-v1";
 
 type Override = { published: boolean; result: Integration["result"] };
 
+// пересчитать производные метрики (CPC, ROMI и т.д.) поверх сохранённых в БД значений
+function withDerived(list: Integration[]): Integration[] {
+  return list.map((it) => {
+    const copy = structuredClone(it);
+    applyDerived(copy);
+    return copy;
+  });
+}
+
 export default function ResultsClient({ seed }: { seed: Integration[] }) {
-  const [items, setItems] = useState<Integration[]>(seed);
+  const [items, setItems] = useState<Integration[]>(() => withDerived(seed));
   const [openId, setOpenId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [q, setQ] = useState("");
@@ -32,14 +41,16 @@ export default function ResultsClient({ seed }: { seed: Integration[] }) {
       if (!raw) return;
       const ov = JSON.parse(raw) as Record<string, Override>;
       setItems(
-        seed.map((it) =>
-          ov[it.id]
-            ? {
-                ...it,
-                published: ov[it.id].published ?? it.published,
-                result: { ...it.result, ...ov[it.id].result },
-              }
-            : it
+        withDerived(
+          seed.map((it) =>
+            ov[it.id]
+              ? {
+                  ...it,
+                  published: ov[it.id].published ?? it.published,
+                  result: { ...it.result, ...ov[it.id].result },
+                }
+              : it
+          )
         )
       );
     } catch {
@@ -212,10 +223,11 @@ export default function ResultsClient({ seed }: { seed: Integration[] }) {
               )}
             </div>
 
-            <div className="grid grid-cols-3 gap-2 mt-3">
-              <Mini label="CPV план" v={it.plan.cpv} />
-              <Mini label="ROMI" v={it.result.unit.romi} accent />
-              <Mini label="Выручка" v={it.result.conversion.revenue} />
+            <div className="grid grid-cols-4 gap-2 mt-3">
+              <Mini label="Клики" v={it.result.conversion.clicks} />
+              <Mini label="CPC, ₽" v={it.result.unit.cpc ?? ""} />
+              <Mini label="ROMI, %" v={it.result.unit.romi} accent />
+              <Mini label="Выручка, ₽" v={it.result.conversion.revenue} />
             </div>
 
             <div className="mt-3 flex items-center justify-between">
@@ -427,6 +439,7 @@ function Editor({
               <ReadF label="CPV, ₽" v={r.unit.cpv} />
               <ReadF label="CPM, ₽" v={r.unit.cpm} />
               <ReadF label="CTR, %" v={r.unit.ctr} />
+              <ReadF label="CPC (за клик), ₽" v={r.unit.cpc ?? ""} />
               <ReadF label="CPL (за лид), ₽" v={r.unit.cpl} />
               <ReadF label="CAC (за платящего), ₽" v={r.unit.cac} />
               <ReadF label="ROMI, %" v={r.unit.romi} accent />
@@ -852,15 +865,18 @@ function derive(r: Integration["result"]) {
   const regs = n(r.conversion.registrations);
   const paying = n(r.conversion.paying);
   const revenue = n(r.conversion.revenue);
+  // ROMI считаем только когда выручка реально введена (пустое поле ≠ 0)
+  const hasRevenue = String(r.conversion.revenue ?? "").trim() !== "";
   return {
     total: cost ? String(Math.round(cost)) : "",
     er: views ? dec((engaged / views) * 100, 1) : "",
     cpv: views && cost ? dec(cost / views, 2) : "",
     cpm: views && cost ? dec((cost / views) * 1000, 0) : "",
     ctr: views && clicks ? dec((clicks / views) * 100, 2) : "",
+    cpc: clicks && cost ? dec(cost / clicks, 0) : "",
     cpl: regs && cost ? dec(cost / regs, 0) : "",
     cac: paying && cost ? dec(cost / paying, 0) : "",
-    romi: cost ? dec(((revenue - cost) / cost) * 100, 0) : "",
+    romi: cost && hasRevenue ? String(Math.round(((revenue - cost) / cost) * 100)) : "",
   };
 }
 function applyDerived(it: Integration) {
@@ -870,6 +886,7 @@ function applyDerived(it: Integration) {
   it.result.unit.cpv = d.cpv;
   it.result.unit.cpm = d.cpm;
   it.result.unit.ctr = d.ctr;
+  it.result.unit.cpc = d.cpc;
   it.result.unit.cpl = d.cpl;
   it.result.unit.cac = d.cac;
   it.result.unit.romi = d.romi;

@@ -156,6 +156,7 @@ export type Integration = {
       cpv: string;
       cpm: string;
       ctr: string;
+      cpc?: string;
       cpl: string;
       cac: string;
       romi: string;
