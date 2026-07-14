@@ -443,7 +443,8 @@ export default function SprintBoard({ sprints }: { sprints: Sprint[] }) {
     const brief = filledBrief(row.brief as Record<string, string> | null, p);
     await supabase
       .from("integrations")
-      .update({ niche, name: p.name, ...(brief ? { brief } : {}) })
+      // нишу шлём только заполненную — пустая затёрла бы выбранную в «Результатах»
+      .update({ ...(niche ? { niche } : {}), name: p.name, ...(brief ? { brief } : {}) })
       .eq("id", `pl-${p.id}`);
   }
 

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Integration } from "@/lib/data";
+import { NICHES } from "@/lib/niches";
 import { createClient, SUPABASE_ENABLED } from "@/lib/supabase/client";
 
 const LS_KEY = "kaiten-integrations-v1";
@@ -138,6 +139,7 @@ export default function ResultsClient({ seed }: { seed: Integration[] }) {
 
   function rowOf(it: Integration) {
     return {
+      niche: it.niche,
       brief: it.brief,
       plan: it.plan,
       result: it.result,
@@ -162,6 +164,14 @@ export default function ResultsClient({ seed }: { seed: Integration[] }) {
     setSaving(true);
     await supabase.from("integrations").update(rowOf(it)).eq("id", it.id);
     setSaving(false);
+  }
+
+  // удалить карточку целиком — из БД и с экрана
+  async function removeIntegration(id: string) {
+    clearTimeout(timers.current[id]);
+    if (supabase) await supabase.from("integrations").delete().eq("id", id);
+    setItems((prev) => prev.filter((x) => x.id !== id));
+    setOpenId(null);
   }
 
   // загрузка картинки: в Supabase Storage (вернёт URL) либо base64-фолбэк
@@ -332,6 +342,7 @@ export default function ResultsClient({ seed }: { seed: Integration[] }) {
             upload={(f) => uploadImage(open.id, f)}
             saving={saving}
             onSave={() => saveNow(open)}
+            onRemove={() => removeIntegration(open.id)}
           />
         </Modal>
       )}
@@ -409,16 +420,19 @@ function Editor({
   upload,
   saving,
   onSave,
+  onRemove,
 }: {
   it: Integration;
   update: (id: string, mut: (it: Integration) => void) => void;
   upload: (file: File) => Promise<string>;
   saving: boolean;
   onSave: () => void;
+  onRemove: () => void;
 }) {
   const r = it.result;
   const gt = goalType(it);
   const g = r.goal ?? {};
+  const [nicheOpen, setNicheOpen] = useState(false);
   const set = (mut: (it: Integration) => void) => update(it.id, mut);
 
   return (
@@ -435,8 +449,39 @@ function Editor({
             <Status published={it.published} />
           </button>
         </div>
-        <div className="text-[12px] text-[var(--color-muted)] mt-1 flex flex-wrap gap-x-3">
-          {it.niche && <span>{it.niche}</span>}
+        <div className="text-[12px] text-[var(--color-muted)] mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
+          {nicheOpen ? (
+            <span className="flex flex-wrap gap-1.5">
+              {[...NICHES, ...(it.niche && !NICHES.includes(it.niche) ? [it.niche] : [])].map((n) => {
+                const sel = it.niche === n;
+                return (
+                  <button
+                    key={n}
+                    onClick={() => {
+                      set((d) => (d.niche = sel ? "" : n));
+                      setNicheOpen(false);
+                    }}
+                    className={[
+                      "px-2 py-0.5 rounded-full text-[12px] border transition-colors",
+                      sel
+                        ? "bg-[var(--color-accent)] border-[var(--color-accent)] text-white"
+                        : "bg-[var(--color-surface)] border-[var(--color-line)] text-[var(--color-muted)] hover:border-[var(--color-accent)]",
+                    ].join(" ")}
+                  >
+                    {n}
+                  </button>
+                );
+              })}
+            </span>
+          ) : (
+            <button
+              onClick={() => setNicheOpen(true)}
+              title="изменить нишу"
+              className="px-2 py-0.5 rounded-full border border-dashed border-[var(--color-line)] hover:border-[var(--color-accent)] text-[12px]"
+            >
+              {it.niche || "+ ниша"}
+            </button>
+          )}
           <span>дата: {fmtDate(it.date) || "без даты"}</span>
           {it.landing && (
             <a href={it.landing} target="_blank" rel="noreferrer" className="text-[var(--color-accent)] hover:underline">
@@ -646,8 +691,16 @@ function Editor({
           </div>
         </Block>
 
-        <div className="flex items-center justify-end gap-3 pt-1">
-          <span className="text-[12px] text-[var(--color-faint)]">
+        <div className="flex items-center justify-between gap-3 pt-1">
+          <button
+            onClick={() => {
+              if (confirm(`Удалить карточку «${it.name}» из результатов? Это действие необратимо.`)) onRemove();
+            }}
+            className="text-[13px] text-[var(--color-red)] hover:underline"
+          >
+            Удалить карточку
+          </button>
+          <span className="ml-auto text-[12px] text-[var(--color-faint)]">
             {saving ? "сохраняю…" : "✓ сохранено"}
           </span>
           <button
