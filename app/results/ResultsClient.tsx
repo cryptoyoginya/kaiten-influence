@@ -58,7 +58,7 @@ function previewMetrics(it: Integration): { label: string; v: string }[] {
         cpv,
       ];
     case "reach":
-      return [views, cpv, { label: "Охват", v: r.reach.reach }, { label: "ER, %", v: r.reach.er }];
+      return [views, cpv, { label: "ER, %", v: r.reach.er }, { label: "CPM, ₽", v: r.unit.cpm }];
     case "custom":
       return [
         { label: g.label?.trim() || "Целевое действие", v: g.count ?? "" },
@@ -470,22 +470,15 @@ function Editor({
         {/* план → факт (факт считается из введённого) */}
         <Block title="План → факт" accent>
           <p className="text-[12px] text-[var(--color-faint)] mb-3">
-            План — прогноз из брифа (можно поправить). Факт по охвату и просмотрам
+            План — прогноз из брифа (можно поправить). Факт по просмотрам
             вводишь здесь; ER и CPV считаются автоматически.
           </p>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <PlanFact
-              label="Охват"
-              plan={it.plan.reach}
-              onPlan={(v) => set((d) => (d.plan.reach = v))}
-              fact={r.reach.reach}
-              onFact={(v) => set((d) => (d.result.reach.reach = v))}
-            />
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             <PlanFact
               label="Просмотры"
-              plan={it.plan.views}
+              plan={it.plan.views || it.plan.reach}
               onPlan={(v) => set((d) => (d.plan.views = v))}
-              fact={r.reach.views}
+              fact={r.reach.views || r.reach.reach}
               onFact={(v) => set((d) => (d.result.reach.views = v))}
             />
             <PlanFact label="ER, %" plan={it.plan.err} onPlan={(v) => set((d) => (d.plan.err = v))} fact={r.reach.er} computed />
@@ -1036,6 +1029,10 @@ function derive(r: Integration["result"]) {
   };
 }
 function applyDerived(it: Integration) {
+  // охват и просмотры для нас одно и то же: старый заполненный охват
+  // переносим в просмотры, чтобы CPV/ER продолжали считаться
+  const rr = it.result.reach;
+  if (!String(rr.views ?? "").trim() && String(rr.reach ?? "").trim()) rr.views = rr.reach;
   const d = derive(it.result);
   it.result.costs.total = d.total;
   it.result.reach.er = d.er;
@@ -1056,7 +1053,12 @@ function fillPercent(it: Integration): number {
   const leaves: string[] = [
     r.post_link,
     ...Object.values(r.costs),
-    ...Object.values(r.reach),
+    // охват (r.reach.reach) не считаем — в интерфейсе остались только просмотры
+    r.reach.views,
+    r.reach.likes,
+    r.reach.reposts,
+    r.reach.comments_count,
+    r.reach.er,
     r.conversion.clicks,
     r.conversion.registrations,
     r.conversion.paying,
