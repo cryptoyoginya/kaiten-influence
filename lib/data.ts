@@ -152,6 +152,15 @@ export type Integration = {
       paying: string;
       revenue: string;
     };
+    // сценарий воронки: что считаем целевым действием размещения
+    goal?: {
+      type?: string; // landing | bot | channel | reach | custom
+      label?: string; // название метрики для «своего» сценария
+      count?: string; // факт целевого действия
+      subs_channel?: string; // бот-сценарий: заодно подписчики канала
+      cpa?: string; // цена целевого действия (считается)
+      cpa_channel?: string; // цена подписчика канала (считается)
+    };
     unit: {
       cpv: string;
       cpm: string;

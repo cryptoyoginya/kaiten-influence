@@ -8,6 +8,74 @@ const LS_KEY = "kaiten-integrations-v1";
 
 type Override = { published: boolean; result: Integration["result"] };
 
+// сценарии воронки: что считаем целевым действием размещения
+type GoalType = "landing" | "bot" | "channel" | "reach" | "custom";
+const GOAL_TABS: { key: GoalType; tab: string }[] = [
+  { key: "landing", tab: "Лендинг" },
+  { key: "bot", tab: "Бот" },
+  { key: "channel", tab: "Канал" },
+  { key: "reach", tab: "Охват" },
+  { key: "custom", tab: "Своё" },
+];
+
+function goalType(it: Integration): GoalType {
+  const t = it.result.goal?.type as GoalType | undefined;
+  return t && GOAL_TABS.some((g) => g.key === t) ? t : "landing";
+}
+
+// подпись цены целевого действия для юнит-экономики
+function goalPriceLabel(gt: GoalType): string {
+  switch (gt) {
+    case "bot": return "Цена подписчика бота, ₽";
+    case "channel": return "Цена подписчика, ₽";
+    default: return "Цена за единицу, ₽";
+  }
+}
+
+// четыре метрики превью карточки — зависят от сценария
+function previewMetrics(it: Integration): { label: string; v: string }[] {
+  const r = it.result;
+  const g = r.goal ?? {};
+  const views = { label: "Просмотры", v: r.reach.views };
+  const cpv = { label: "CPV, ₽", v: r.unit.cpv ?? "" };
+  switch (goalType(it)) {
+    case "bot":
+      return [
+        { label: "Подп. бота", v: g.count ?? "" },
+        { label: "Цена подп., ₽", v: g.cpa ?? "" },
+        ...(String(g.subs_channel ?? "").trim()
+          ? [
+              { label: "Подп. канала", v: g.subs_channel ?? "" },
+              { label: "Цена подп., ₽", v: g.cpa_channel ?? "" },
+            ]
+          : [views, cpv]),
+      ];
+    case "channel":
+      return [
+        { label: "Подписчики", v: g.count ?? "" },
+        { label: "Цена подп., ₽", v: g.cpa ?? "" },
+        views,
+        cpv,
+      ];
+    case "reach":
+      return [views, cpv, { label: "Охват", v: r.reach.reach }, { label: "ER, %", v: r.reach.er }];
+    case "custom":
+      return [
+        { label: g.label?.trim() || "Целевое действие", v: g.count ?? "" },
+        { label: "Цена за ед., ₽", v: g.cpa ?? "" },
+        views,
+        cpv,
+      ];
+    default:
+      return [
+        { label: "Клики", v: r.conversion.clicks },
+        { label: "CPC, ₽", v: r.unit.cpc ?? "" },
+        views,
+        cpv,
+      ];
+  }
+}
+
 // пересчитать производные метрики (CPC, ROMI и т.д.) поверх сохранённых в БД значений
 function withDerived(list: Integration[]): Integration[] {
   return list.map((it) => {
@@ -224,10 +292,9 @@ export default function ResultsClient({ seed }: { seed: Integration[] }) {
             </div>
 
             <div className="grid grid-cols-4 gap-2 mt-3">
-              <Mini label="Клики" v={it.result.conversion.clicks} />
-              <Mini label="CPC, ₽" v={it.result.unit.cpc ?? ""} />
-              <Mini label="Просмотры" v={it.result.reach.views} />
-              <Mini label="CPV, ₽" v={it.result.unit.cpv ?? ""} />
+              {previewMetrics(it).map((m, i) => (
+                <Mini key={i} label={m.label} v={m.v} />
+              ))}
             </div>
 
             <div className="mt-3 flex items-center justify-between">
@@ -332,6 +399,8 @@ function Editor({
   onSave: () => void;
 }) {
   const r = it.result;
+  const gt = goalType(it);
+  const g = r.goal ?? {};
   const set = (mut: (it: Integration) => void) => update(it.id, mut);
 
   return (
@@ -424,24 +493,90 @@ function Editor({
             </Grid>
           </Block>
 
-          <Block title="Переходы и конверсия">
+          <Block title="Целевое действие">
+            <div className="flex items-center gap-2 flex-wrap mb-3">
+              {GOAL_TABS.map((o) => {
+                const active = gt === o.key;
+                return (
+                  <button
+                    key={o.key}
+                    onClick={() => set((d) => ((d.result.goal ??= {}).type = o.key))}
+                    className={[
+                      "px-3 py-1 rounded-full text-[13px] border transition-colors",
+                      active
+                        ? "bg-[var(--color-accent)] border-[var(--color-accent)] text-white"
+                        : "bg-[var(--color-surface)] border-[var(--color-line)] text-[var(--color-muted)] hover:border-[var(--color-accent)]",
+                    ].join(" ")}
+                  >
+                    {o.tab}
+                  </button>
+                );
+              })}
+            </div>
+            {gt === "reach" && (
+              <p className="text-[12px] text-[var(--color-faint)]">
+                Охватное размещение: цели нет, смотрим просмотры, CPV и ER — они в блоках выше.
+              </p>
+            )}
             <Grid>
-              <F label="Переходы по ссылке" v={r.conversion.clicks} on={(v) => set((d) => (d.result.conversion.clicks = v))} />
-              <F label="Лиды / регистрации" v={r.conversion.registrations} on={(v) => set((d) => (d.result.conversion.registrations = v))} />
-              <F label="Платящие" v={r.conversion.paying} on={(v) => set((d) => (d.result.conversion.paying = v))} />
-              <F label="Выручка, ₽" v={r.conversion.revenue} on={(v) => set((d) => (d.result.conversion.revenue = v))} />
+              {gt === "custom" && (
+                <F label="Название метрики" v={g.label ?? ""} on={(v) => set((d) => ((d.result.goal ??= {}).label = v))} />
+              )}
+              {gt === "bot" && (
+                <>
+                  <F label="Подписчики бота" v={g.count ?? ""} on={(v) => set((d) => ((d.result.goal ??= {}).count = v))} />
+                  <F label="Подписчики канала (если считаем)" v={g.subs_channel ?? ""} on={(v) => set((d) => ((d.result.goal ??= {}).subs_channel = v))} />
+                </>
+              )}
+              {gt === "channel" && (
+                <F label="Подписчики канала" v={g.count ?? ""} on={(v) => set((d) => ((d.result.goal ??= {}).count = v))} />
+              )}
+              {gt === "custom" && (
+                <F label={g.label?.trim() || "Сколько получили"} v={g.count ?? ""} on={(v) => set((d) => ((d.result.goal ??= {}).count = v))} />
+              )}
+              {gt !== "reach" && (
+                <F label="Переходы по ссылке" v={r.conversion.clicks} on={(v) => set((d) => (d.result.conversion.clicks = v))} />
+              )}
+              {gt === "landing" && (
+                <>
+                  <F label="Лиды / регистрации" v={r.conversion.registrations} on={(v) => set((d) => (d.result.conversion.registrations = v))} />
+                  <F label="Платящие" v={r.conversion.paying} on={(v) => set((d) => (d.result.conversion.paying = v))} />
+                </>
+              )}
+              {gt !== "reach" && (
+                <F label="Выручка, ₽" v={r.conversion.revenue} on={(v) => set((d) => (d.result.conversion.revenue = v))} />
+              )}
             </Grid>
+            {(gt === "bot" || gt === "channel") && (
+              <p className="text-[11px] text-[var(--color-faint)] mt-2">
+                Подписчиков снимаем на T+72 — после волны отписок, иначе цена будет приукрашенной.
+              </p>
+            )}
           </Block>
 
           <Block title="Юнит-экономика — считается автоматически">
             <Grid>
               <ReadF label="CPV, ₽" v={r.unit.cpv} />
               <ReadF label="CPM, ₽" v={r.unit.cpm} />
-              <ReadF label="CTR, %" v={r.unit.ctr} />
-              <ReadF label="CPC (за клик), ₽" v={r.unit.cpc ?? ""} />
-              <ReadF label="CPL (за лид), ₽" v={r.unit.cpl} />
-              <ReadF label="CAC (за платящего), ₽" v={r.unit.cac} />
-              <ReadF label="ROMI, %" v={r.unit.romi} accent />
+              {gt !== "reach" && (
+                <>
+                  <ReadF label="CTR, %" v={r.unit.ctr} />
+                  <ReadF label="CPC (за клик), ₽" v={r.unit.cpc ?? ""} />
+                </>
+              )}
+              {gt === "landing" && (
+                <>
+                  <ReadF label="CPL (за лид), ₽" v={r.unit.cpl} />
+                  <ReadF label="CAC (за платящего), ₽" v={r.unit.cac} />
+                </>
+              )}
+              {(gt === "bot" || gt === "channel" || gt === "custom") && (
+                <ReadF label={goalPriceLabel(gt)} v={g.cpa ?? ""} accent />
+              )}
+              {gt === "bot" && String(g.subs_channel ?? "").trim() !== "" && (
+                <ReadF label="Цена подписчика канала, ₽" v={g.cpa_channel ?? ""} />
+              )}
+              {gt !== "reach" && <ReadF label="ROMI, %" v={r.unit.romi} accent />}
             </Grid>
             <div className="mt-3">
               <Label>Окупаемость (вывод словами)</Label>
@@ -866,7 +1001,11 @@ function derive(r: Integration["result"]) {
   const revenue = n(r.conversion.revenue);
   // ROMI считаем только когда выручка реально введена (пустое поле ≠ 0)
   const hasRevenue = String(r.conversion.revenue ?? "").trim() !== "";
+  const goalCount = n(r.goal?.count ?? "");
+  const goalSubs = n(r.goal?.subs_channel ?? "");
   return {
+    cpa: goalCount && cost ? dec(cost / goalCount, 0) : "",
+    cpa_channel: goalSubs && cost ? dec(cost / goalSubs, 0) : "",
     total: cost ? String(Math.round(cost)) : "",
     er: views ? dec((engaged / views) * 100, 1) : "",
     cpv: views && cost ? dec(cost / views, 2) : "",
@@ -889,6 +1028,9 @@ function applyDerived(it: Integration) {
   it.result.unit.cpl = d.cpl;
   it.result.unit.cac = d.cac;
   it.result.unit.romi = d.romi;
+  const g = (it.result.goal ??= {});
+  g.cpa = d.cpa;
+  g.cpa_channel = d.cpa_channel;
 }
 
 function fillPercent(it: Integration): number {
