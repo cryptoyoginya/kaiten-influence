@@ -197,6 +197,16 @@ export default function ResultsClient({ seed }: { seed: Integration[] }) {
   const open = useMemo(() => items.find((i) => i.id === openId) ?? null, [items, openId]);
   const live = items.filter((i) => i.published).length;
 
+  // суммарные траты, просмотры и клики по всем карточкам — видно без захода внутрь
+  const totals = useMemo(() => {
+    const sum = (pick: (i: Integration) => string) => items.reduce((a, i) => a + n(pick(i)), 0);
+    return {
+      spent: sum((i) => i.result.costs.total),
+      views: sum((i) => i.result.reach.views),
+      clicks: sum((i) => i.result.conversion.clicks),
+    };
+  }, [items]);
+
   const niches = useMemo(() => {
     const m = new Map<string, number>();
     items.forEach((i) => i.niche && m.set(i.niche, (m.get(i.niche) ?? 0) + 1));
@@ -231,10 +241,13 @@ export default function ResultsClient({ seed }: { seed: Integration[] }) {
         <h1 className="text-[26px] font-semibold leading-tight mb-3">
           Результаты интеграций
         </h1>
-        <div className="grid grid-cols-3 gap-3 max-w-lg">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           <RStat label="Интеграций" value={items.length} />
           <RStat label="Вышло" value={live} accent />
           <RStat label="В работе" value={items.length - live} />
+          <RStat label="Потрачено, ₽" value={fmtNum(totals.spent)} />
+          <RStat label="Просмотры" value={fmtNum(totals.views)} />
+          <RStat label="Клики" value={fmtNum(totals.clicks)} />
         </div>
       </div>
 
@@ -335,7 +348,12 @@ function rchip(active: boolean) {
   ].join(" ");
 }
 
-function RStat({ label, value, accent }: { label: string; value: number; accent?: boolean }) {
+// число с разбивкой на разряды для плиток статистики
+function fmtNum(x: number): string {
+  return Math.round(x).toLocaleString("ru-RU");
+}
+
+function RStat({ label, value, accent }: { label: string; value: number | string; accent?: boolean }) {
   return (
     <div
       className={[
