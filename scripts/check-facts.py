@@ -10,12 +10,12 @@
 Usage: python3 scripts/check-facts.py
 Exit 1, если есть долги (удобно для cron/CI).
 """
-import os, re, json, glob, urllib.request, datetime
+import os, re, sys, json, glob, urllib.request, datetime
 
-URL = os.environ.get("NEXT_PUBLIC_SUPABASE_URL", "https://zfgdnbhmyjjbxiviexiw.supabase.co")
-KEY = os.environ.get("SUPABASE_SERVICE_KEY")
-if not KEY:
-    raise SystemExit("SUPABASE_SERVICE_KEY не задан — положи ключ в окружение или .env.local")
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from _env import supabase
+
+URL, KEY = supabase()
 H = {"apikey": KEY, "Authorization": f"Bearer {KEY}"}
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 

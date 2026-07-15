@@ -15,10 +15,10 @@ Usage: python3 scripts/validate-creo.py "<имя или id карточки>" [-
 """
 import sys, os, re, json, urllib.request
 
-URL = os.environ.get("NEXT_PUBLIC_SUPABASE_URL", "https://zfgdnbhmyjjbxiviexiw.supabase.co")
-KEY = os.environ.get("SUPABASE_SERVICE_KEY")
-if not KEY:
-    raise SystemExit("SUPABASE_SERVICE_KEY не задан — положи ключ в окружение или .env.local")
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from _env import supabase
+
+URL, KEY = supabase()
 H = {"apikey": KEY, "Authorization": f"Bearer {KEY}"}
 
 PRODUCT_KW = ["kaiten","доск","wip","гант","портфел","спринт","метрик","накопительн",
