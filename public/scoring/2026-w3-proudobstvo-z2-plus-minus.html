@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ru"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kaiten · Скоринг креатива · «Пустая страница врёт» · «Про удобство» (Греков)</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#111827;background:#F9FAFB;line-height:1.6}
+.container{max-width:1100px;margin:0 auto;padding:0 24px}
+.header{background:linear-gradient(135deg,#4F46E5 0%,#7C3AED 100%);color:#fff;padding:44px 0 38px}
+.header .vlabel{display:inline-block;background:rgba(255,255,255,.18);border-radius:20px;padding:3px 12px;font-size:12px;font-weight:700;margin-bottom:10px}
+.header h1{font-size:25px;font-weight:700;margin-bottom:8px}
+.header .subtitle{font-size:15px;opacity:.9;margin-bottom:18px}
+.header .meta{display:flex;gap:22px;flex-wrap:wrap;font-size:12.5px;opacity:.8}
+.verdict{background:#fff;border:1px solid #E5E7EB;border-radius:14px;padding:26px;margin:-22px auto 26px;max-width:1052px;box-shadow:0 4px 16px rgba(0,0,0,.08);display:grid;grid-template-columns:210px 1fr;gap:26px;align-items:center;position:relative;z-index:2}
+.gauge{text-align:center;border-right:1px solid #E5E7EB;padding-right:22px}
+.gauge .num{font-size:52px;font-weight:800;line-height:1}
+.gauge .den{font-size:17px;color:#D1D5DB;font-weight:700}
+.gauge .zone{display:inline-block;margin-top:9px;padding:4px 12px;border-radius:20px;font-size:12.5px;font-weight:700}
+.zone-green{background:#D1FAE5;color:#065F46}.zone-amber{background:#FEF3C7;color:#B45309}
+.num-green{color:#10B981}.num-amber{color:#F59E0B}
+.vtext h2{font-size:17px;margin-bottom:6px}.vtext p{font-size:13.5px;color:#374151}.vtext .tldr{margin-top:9px;font-size:12.5px;color:#6B7280}
+.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;max-width:1052px;margin:0 auto 30px;padding:0 24px}
+.scard{background:#fff;border:1px solid #E5E7EB;border-radius:10px;padding:16px 18px;text-align:center}
+.scard .big{font-size:28px;font-weight:800}.scard .lab{font-size:11.5px;color:#6B7280;margin-top:4px}
+.cg{color:#10B981}.ca{color:#D97706}.cr{color:#EF4444}.cp{color:#4F46E5}
+.section{margin:32px auto;max-width:1052px;padding:0 24px}
+.sh{display:flex;align-items:center;gap:11px;margin-bottom:8px}
+.snum{background:#4F46E5;color:#fff;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;flex-shrink:0}
+.stitle{font-size:20px;font-weight:700}.sdesc{color:#6B7280;font-size:13.5px;margin-bottom:18px}
+.mbox{background:#EEF2FF;border:1px solid #C7D2FE;border-radius:10px;padding:16px 20px;margin-bottom:20px;font-size:12.5px}
+.mbox h4{color:#4F46E5;margin-bottom:7px;font-size:13.5px}.mbox code{background:#fff;padding:1px 6px;border-radius:4px;font-size:12px}
+.tw{background:#fff;border-radius:12px;border:1px solid #E5E7EB;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.04);margin-bottom:20px}
+table{width:100%;border-collapse:collapse;font-size:13px}thead{background:#F9FAFB}
+th{padding:11px 13px;text-align:left;font-weight:600;font-size:11.5px;color:#6B7280;text-transform:uppercase;letter-spacing:.3px;border-bottom:2px solid #E5E7EB}
+th.c,td.c{text-align:center}td{padding:11px 13px;border-bottom:1px solid #F3F4F6;vertical-align:top}tr:last-child td{border-bottom:none}tbody tr:hover{background:#F9FAFB}
+.tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;white-space:nowrap}
+.t-hi{background:#FEE2E2;color:#991B1B}.t-md{background:#FEF3C7;color:#92400E}.t-lo{background:#F3F4F6;color:#6B7280}
+.votes{font-weight:700;font-size:12px}.vk{color:#10B981}.vd{color:#6B7280}
+.lbl{font-weight:700;font-size:10.5px;padding:1px 7px;border-radius:4px}
+.l-f{background:#D1FAE5;color:#065F46}.l-i{background:#E0E7FF;color:#3730A3}.l-r{background:#FEE2E2;color:#991B1B}
+.note{color:#6B7280;font-size:11.5px}
+@media(max-width:820px){.verdict{grid-template-columns:1fr}.gauge{border-right:none;border-bottom:1px solid #E5E7EB;padding-right:0;padding-bottom:16px}.tw{overflow-x:auto}}
+</style></head><body>
+<div class="header"><div class="container">
+<span class="vlabel">ЗАХОД №2 · плюсы и хотелки</span>
+<h1>Пустая страница врёт</h1>
+<div class="subtitle">Скоринг отдельного варианта · реклама Kaiten в Telegram-канале @proudobstvo («Про удобство», Михаил Греков) · аудитория продактов, UX-исследователей и продуктовых руководителей · сет 2026-w3 «Шаблон Double Diamond»</div>
+<div class="meta"><span>📅 15 июля 2026</span><span>✍️ Telegram «Про удобство» · 18 235 подписчиков · охват 2,3k · ERR 12%</span><span>🤖 6 линз + voice-match + панель product + adversarial</span></div>
+</div></div>
+<div class="container">
+
+<div class="verdict"><div class="gauge"><div class="num num-green">80.14</div><div class="den">/100</div><span class="zone zone-green">🟢 Брать в работу</span></div>
+<div class="vtext"><h2>Третий в сете · чемпион по доверию</h2><p>Единственный вариант, который снимает возражения не намёком, а перечнем: модуль целей 0%, зависимые даты в Ганте не двигаются, критический путь в планах, публичная база знаний в работе. Плюс признание «шаблон не чинит процесс». Objections 88 и Claims 86 — оба высшие в сете. Родной жанр канала: пост про МАХ (плюсы → минусы → что дальше) собрал 💩60, и автор не испугался.</p><p class="tldr"><b>TL;DR:</b> Самый честный текст сета и самый слабый по сообщению. MMF 75: «я за шаблоны» — не новость и не боль. Доверие высокое, но входа в текст почти нет.</p></div></div>
+
+<div class="summary">
+<div class="scard"><div class="big cp">80.14</div><div class="lab">Композит · зона 🟢</div></div>
+<div class="scard"><div class="big cg">88</div><div class="lab">Objections · высшая в сете</div></div>
+<div class="scard"><div class="big ca">75</div><div class="lab">MMF · слабейшая линза</div></div>
+<div class="scard"><div class="big cg">87</div><div class="lab">Voice-match</div></div>
+</div>
+
+<div class="section"><div class="sh"><div class="snum">1</div><div class="stitle">Вердикт</div></div>
+<div class="sdesc">Composite = Σ(Линза × Вес) / 11. Веса: MMF ×2.5 · Persona ×2 · Objections ×2 · Claims ×2 · CTA ×1.5 · Craft ×1. Зоны: 🟢 ≥80 «брать» · 🟡 67–79 «брать после правок» · 🔴 &lt;67 «не брать».</div>
+<div class="mbox" style="background:#F0FDF4;border-color:#BBF7D0"><h4 style="color:#065F46">🟢 80.14 — в зелёной зоне, но третий</h4>
+Арифметика: (75×2.5 + 76×2 + 88×2 + 86×2 + 76×1.5 + 80×1) / 11 = 881.5 / 11 = <b>80.14</b>.<br><br>
+Вариант еле переступает порог зелёной зоны — и вся его сила сосредоточена в двух линзах с весом ×2 (Objections 88, Claims 86). Проблема в арифметике весов: самая тяжёлая линза сета — MMF ×2.5, и именно она здесь слабейшая (75). Честность подняла хвост, но не голову.</div>
+<div class="mbox"><h4>TL;DR в трёх строках</h4>
+1. <b>Чемпион по доверию.</b> Честный блок хотелок с четырьмя конкретными дырами и признание «шаблон не чинит процесс». Никакой другой вариант сета не подходит к этому близко.<br>
+2. <b>Жанр родной.</b> «Плюсы → минусы → что дальше» — прямая калька поста про МАХ из корпуса. Панель сегмента прямо это подтверждает: «честный минус работает лучше третьего плюса».<br>
+3. <b>Сообщение тупое.</b> «Я давно за шаблоны. Скучно, знаю» — автор сам ставит диагноз своему заходу. Тема шаблонов как <b>сообщение</b> менее остра, чем сцена провала на ревью (З1) или тезис про первый ромб (З4). Отсюда MMF 75.</div>
+</div>
+
+<div class="section"><div class="sh"><div class="snum">2</div><div class="stitle">Скоринг по 6 линзам</div></div>
+<div class="sdesc">Каждый балл — позиция относительно якорей датасета: верх ~86 (Света З1 «Куда переехать из Notion»), середина ~67 (EvaTeam — факт есть, но тонет в звоне), низ ~56 (Битрикс24 — всё обо всём). Форс-ранжирование по линзам проведено до выставления баллов.</div>
+<div class="tw"><table><thead><tr><th>Линза</th><th class="c">Вес</th><th class="c">Балл</th><th>Обоснование</th></tr></thead><tbody>
+<tr><td><b>Message–Market Fit</b><br><span class="note">Попадание в боль и язык аудитории</span></td><td class="c">×2.5</td><td class="c" style="font-weight:800;font-size:16px;color:#F59E0B">75</td><td><b>Слабейшая линза, и она же самая тяжёлая.</b> Тема шаблонов менее остра как сообщение: «пустая страница врёт» — наблюдение верное, но это боль вечера, а не боль квартала. Ни у одной персоны панели «шаблон» не стоит в JTBD — у них там «чтобы через 3 недели не выяснилось» (П1) и «чтобы выводы дошли до решения» (П2). <b>Стоп-тест 3 секунд:</b> первая строка «Признаюсь, за последние лет пять я начинал почти каждый продукт с пустой страницы» — есть первое лицо и признание, но нет ни цифры, ни конфликта; останавливает скролл слабее, чем «Через три недели» (З1) или «Непопулярное мнение» (З4). Держится над серединой датасета (~67) только за счёт того, что «пустая страница врёт» — узнаваемая правда, а не звон.</td></tr>
+<tr><td><b>Persona / ICP Fit</b><br><span class="note">Кого достаёт канал и говорит ли с ним пост</span></td><td class="c">×2</td><td class="c" style="font-weight:800;font-size:16px;color:#F59E0B">76</td><td>Пост говорит с человеком, который уже согласен: «шаблон выручает тех, кто уже договорился, но забывает». Это точная и честная адресация, но узкая — она сужает аудиторию до тех, у кого процесс уже есть. П1 попадает частично (он больше про рассинхрон, чем про забывчивость), П2 почти не задет: план исследования упомянут одной строкой в перечне, боль «выводы не зафиксировали» не раскрыта. Зато блок хотелок бьёт в П4 и П5, которые в других вариантах пролистывают.</td></tr>
+<tr><td><b>Objections &amp; Positioning</b><br><span class="note">Снятие возражений, баланс «реклама × нативность»</span></td><td class="c">×2</td><td class="c" style="font-weight:800;font-size:16px;color:#10B981">88</td><td><b>Высшая линза сета.</b> Возражения снимаются не риторикой, а перечнем дыр: отдельного модуля целей нет (OKR руками на доске), в Ганте зависимые даты сами не двигаются, критический путь в планах, публичная база знаний в работе. Каждая — проверяемая, каждая привязана к открытому роадмапу. Сверху — самопризнание «шаблон не чинит процесс. Если команда не разговаривает, ромб просто станет красивым квадратом», которое обезоруживает главный скепсис аудитории. Панель сегмента: «Честный минус работает лучше третьего плюса» — ровно то, чем канал живёт. Выше верхнего якоря (86) по этой линзе: у Светы З1 сравнение было честным, здесь — самокритичным.</td></tr>
+<tr><td><b>Claims Accuracy &amp; Risk</b><br><span class="note">Фактическая точность и риски доверия</span></td><td class="c">×2</td><td class="c" style="font-weight:800;font-size:16px;color:#10B981">86</td><td>Второй по Claims после З3. Утверждения о продукте плоские и сверяемые; главное — <b>минусы названы с датами и процентами из открытого роадмапа</b>, а не выдуманы для правдоподобия. Это тот случай, когда честный минус повышает доверие ко всем плюсам рядом. Не 88, как у З3: там каждая цифра из опубликованного кейса с именем клиента, здесь пруф — роадмап, то есть обещание вендора о будущем.</td></tr>
+<tr><td><b>Channel &amp; Funnel / CTA</b><br><span class="note">Канал, тон, следующий шаг</span></td><td class="c">×1.5</td><td class="c" style="font-weight:800;font-size:16px;color:#F59E0B">76</td><td>Структурная проблема: между двумя ссылками стоит абзац хотелок и абзац «шаблон не чинит процесс». Читатель доходит до финального «Потестить 👉» ровно после того, как ему честно объяснили, чего продукт не умеет и чего не починит. Это цена жанра «плюсы → минусы»: доверие покупается кликом. «Потестить» — верный низкий барьер, но энергии на нём уже мало.</td></tr>
+<tr><td><b>Creative &amp; Copy Craft</b><br><span class="note">Голос автора, структура, подача</span></td><td class="c">×1</td><td class="c" style="font-weight:800;font-size:16px;color:#10B981">80</td><td>«Пустая страница врёт» — сильный заголовок-афоризм. «Шаблон это спрессованный чужой опыт: он не помогает думать лучше, он помогает не забыть» — лучшая формулировка сета, готовая к цитированию. «Скучно, знаю» и «Теперь хотелки, куда без них» — живая устная речь. Но структура рыхлее З1: пост состоит из блоков с подзаголовками-связками («За что хвалю», «Теперь хотелки», «И ещё честно»), а это уже конструкция обзора, а не наблюдения.</td></tr>
+</tbody></table></div>
+<div class="mbox"><h4>Форс-ранжирование сета по линзам (без ничьих)</h4>
+MMF: З1 → З4 → З5 → <b>З2</b> → З3 · Persona: З4 → З1 → З5 → <b>З2</b> → З3 · Objections: <b>З2</b> → З3 → З4 → З1 → З5 · Claims: З3 → <b>З2</b> → З4 → З1 → З5 · CTA: З5 → З1 → З4 → <b>З2</b> → З3 · Craft: З1 → З4 → <b>З2</b> → З5 → З3.<br>
+Профиль варианта читается с одного взгляда: <b>первый по обеим линзам доверия, четвёртый по обеим линзам входа</b>. Правило разброса: 82.95 − 75.82 = 7.13 ≥ 5 ✅.</div>
+</div>
+
+<div class="section"><div class="sh"><div class="snum">3</div><div class="stitle">Voice-match: 87/100 ✅ гейт пройден</div></div>
+<div class="sdesc">Сопоставление с тоном автора по подтверждённому голос-профилю (корпус: 21 реальный пост, март–июль 2026). Пять чек-пунктов × 20. Гейт: ≥70, иначе возврат на правку. В composite не входит.</div>
+<div class="tw" style="max-width:760px"><table><thead><tr><th>Чек-пункт</th><th class="c">Балл</th><th>Что засчитано</th></tr></thead><tbody>
+<tr><td><b>Регистр</b></td><td class="c" style="font-weight:700">18/20</td><td>«Скучно, знаю», «Теперь хотелки, куда без них», «И ещё честно» — сниженная разговорная речь, первое лицо, самоирония. Канцелярита нет. Минус два: «Публичная база знаний в работе. Всё это видно по их открытому роадмапу, вектор честный» — «вектор честный» чуть отдаёт продуктовым отчётом.</td></tr>
+<tr><td><b>Ритм</b></td><td class="c" style="font-weight:700">18/20</td><td>Абзацы короткие, пустая строка между всеми. Но блок хотелок длиннее прочих и внутри плотный — четыре факта подряд без воздуха. Для канала с «очень короткими абзацами» это самое тяжёлое место текста.</td></tr>
+<tr><td><b>Приёмы</b></td><td class="c" style="font-weight:700">18/20</td><td><b>Приём канала взят как каркас:</b> «Плюсы → Минусы → Что будет дальше» — прямая калька поста про МАХ (voice-profile.md, таблица приёмов; тот пост собрал 💩60, и автор не испугался). Плюс афоризм «Пустая страница врёт» и признание-уязвимость «почти каждый раз это была ошибка» — оба в корпусе работают (1752, 🙏55 ❤29). Не 19–20: фирменного хода канала (бытовое наблюдение → продуктовый вывод) здесь нет — есть рассуждение, а это второй по частотности жанр, не первый.</td></tr>
+<tr><td><b>Табу</b></td><td class="c" style="font-weight:700">18/20</td><td>Восторга без доказательств нет — есть ровно обратное. Хайпа нет. Читатель не дурак. Продукт не герой. Минус два: «За что хвалю» — конструкция обзорщика, а канал не рецензирует, он наблюдает.</td></tr>
+<tr><td><b>Оформление</b></td><td class="c" style="font-weight:700">15/20</td><td>Жирные акценты в манере канала есть. Но: нет заголовка жирным первой строкой (хотя «Пустая страница врёт» напрашивается буквально), нет нумерации «1/ 2/ 3/» — а именно ею автор оформляет посты этого жанра (МАХ, кризис, хайлайты), эмодзи почти нет, панчлайна в конце нет. Слабейший чек-пункт варианта.</td></tr>
+</tbody></table></div>
+<div class="mbox" style="background:#F0FDF4;border-color:#BBF7D0"><h4 style="color:#065F46">Вердикт: 🟢 родной</h4>
+Жанр канала взят верно — это второй по «родству» текст сета после З1. Разница между ними в том, <b>какой</b> приём взят: З1 использует фирменный ход (наблюдение → вывод, 80% корпуса), З2 — рабочий, но менее частотный (плюсы → минусы). Резерв роста весь в оформлении: заголовок первой строкой + нумерация хотелок «1/ 2/ 3/» подняли бы voice до ~92 и заодно расшили бы самый плотный абзац текста. Это редкий случай, когда одна правка чинит и voice, и ритм.</div>
+</div>
+
+<div class="section"><div class="sh"><div class="snum">4</div><div class="stitle">Текст варианта с разметкой FACT / INF / RISK</div></div>
+<div class="sdesc">Пост — основа для авторской адаптации (по оферте канала). Метки: <span class="lbl l-f">FACT</span> сверено с KB, источник указан · <span class="lbl l-i">INF</span> обоснованный вывод или авторское наблюдение · <span class="lbl l-r">RISK</span> требует решения до публикации.</div>
+<div class="tw" style="padding:20px 24px;font-size:13.5px">
+
+<p style="margin-bottom:14px">Признаюсь, за последние лет пять я начинал почти каждый продукт с пустой страницы. И почти каждый раз это была ошибка. <span class="lbl l-i">INF</span><br><span class="note">Признание-уязвимость от первого лица. Приём из корпуса (пост 1752 «я тоже устал» — 🙏55 ❤29). Integrity: утверждение о личной привычке, не о внедрении продукта и без метрик — фабрикации нет.</span></p>
+
+<p style="margin-bottom:14px">Пустая страница врёт. Кажется, что сейчас ты подумаешь свободно, без рамок. По факту ты заново вспоминаешь то, что уже знал, тратишь на это вечер и всё равно забываешь половину: границы, критерии приёмки, кто вообще принимает решение. <span class="lbl l-i">INF</span><br><span class="note">Афоризм + разворот. «Кто вообще принимает решение» смыкается с болью П1 «Роадмап есть, но никто не знает, актуален ли он» → panel.md, П1.</span></p>
+
+<p style="margin-bottom:14px">Поэтому я давно за шаблоны. Скучно, знаю. Зато шаблон это спрессованный чужой опыт: он не помогает думать лучше, он помогает не забыть. <span class="lbl l-i">INF</span><br><span class="note">Лучшая формулировка сета. «Скучно, знаю» — автор сам признаёт слабость сообщения; это честно и обаятельно, но оцифровано в MMF 75.</span></p>
+
+<p style="margin-bottom:14px">Команда Кайтена выложила <b>шаблон Double Diamond</b> для продуктового процесса, от проблемы к результату, и отдаёт с ним <b>9 шаблонов для продактов</b>: PRD, план исследования, роадмап, техдока, QA, релиз-ноуты, ретро, OKR, чекин 👉 elli.kaiten.ru/p/558b634c… <span class="lbl l-f">FACT</span><br><span class="note">Шаблон и состав пакета сверены: посадочная страница сета + <code>kaiten.ru/blog/9-shablonov-dlia-prodaktov/</code>. Ссылка стоит рано — до блока хотелок, и это правильно: часть читателей уйдёт по ней, не дочитав минусы.</span></p>
+
+<p style="margin-bottom:14px">За что хвалю. <b>Шаблон тут часть процесса, файлом так не получится</b>: документ цепляется к карточке и к доске, правки видны с историей, вся команда читает одну версию. Рядом живут канбан-доски с WIP-лимитами и дорожками, спринты, портфель проектов и отчёты по времени цикла. Документы и база знаний доступны бесплатно. <span class="lbl l-f">FACT</span> <span class="lbl l-r">RISK</span><br><span class="note"><b>FACT:</b> привязка документа к карточке и доске, история правок, канбан с WIP-лимитами, спринты, портфель, время цикла → KB <code>references/kaiten-product-facts.md</code>; Документы и база знаний бесплатно на всех тарифах → <code>kaiten-product-facts.md:68</code>.<br><b>⚠️ RISK (MED, P0 сета — конфликт источников):</b> KB говорит, что Free бессрочный и без лимита людей; витрина <code>kaiten.ru/tariffs</code> — «Бесплатный: до 5 пользователей, до 3 пространств, до 5 досок». <b>Источники конфликтуют, в тексте лимиты сознательно не называются.</b> Для этого варианта риск острее прочих: пост построен на репутации честного — если читатель поймает умолчание в тексте, который хвалится честностью, обвал доверия сильнее, чем в любом другом заходе сета.</span></p>
+
+<p style="margin-bottom:14px">Теперь хотелки, куда без них. <b>Отдельного модуля целей пока нет</b>: OKR собирают руками на доске, модуль стратегии у них в роадмапе на конец года. В диаграмме Ганта зависимые даты сами не двигаются, критический путь тоже в планах. Публичная база знаний в работе. Всё это видно по их открытому роадмапу, вектор честный, просто хочется уже сейчас. <span class="lbl l-f">FACT</span><br><span class="note"><b>Ядро варианта. Каждая хотелка проверяема:</b><br>• модуль стратегии (OKR/KPI) — 0%, план Q4 2026 → KB <code>kaiten-roadmap-2026.md</code>. «На конец года» = Q4, формулировка корректна;<br>• в Ганте нет автосдвига зависимых дат → KB <code>cases.md:1639</code> (кейс Kim Building Buro — минус назван самим клиентом);<br>• критический путь в Ганте — 10%, план Q3 2026 → KB <code>kaiten-roadmap-2026.md</code>;<br>• публичная база знаний — 30%, план Q2 2026 → KB <code>kaiten-roadmap-2026.md</code>. Формулировка «в работе» при 30% точна.<br>Это самый плотный по фактам абзац сета после З3 — и единственный, где факты работают <b>против</b> продукта. Отсюда Objections 88.</span></p>
+
+<p style="margin-bottom:14px">И ещё честно: <b>шаблон не чинит процесс</b>. Если команда не разговаривает, ромб просто станет красивым квадратом. Шаблон выручает тех, кто уже договорился, но забывает. <span class="lbl l-i">INF</span><br><span class="note">Самоограничение оффера. Снимает главный скепсис сеньорной аудитории («сейчас продадут таблетку от процесса») до того, как он сформулирован. Цена: сужает адресата до тех, у кого процесс уже есть — оцифровано в Persona 76.</span></p>
+
+<p style="margin-bottom:0">Потестить 👉 elli.kaiten.ru/p/558b634c… <span class="lbl l-f">FACT</span><br><span class="note">CTA. Барьер низкий и корректный. Но стоит сразу после двух абзацев «чего нет» и «чего не починит» — энергии на клик остаётся мало. Оцифровано в CTA 76. UTM и erid — при публикации.</span></p>
+</div>
+<div class="mbox"><h4>Сводка разметки</h4>
+<span class="lbl l-f">FACT</span> 4 (из них один — блок из четырёх проверяемых <b>минусов</b>) · <span class="lbl l-i">INF</span> 4 · <span class="lbl l-r">RISK</span> 1 (общесетевой конфликт по Free).<br>
+Уникальная особенность варианта: <b>плотность фактов смещена в сторону признания слабостей продукта.</b> Ни один другой текст сета так не устроен. Это и есть механика Objections 88 / Claims 86.</div>
+</div>
+
+<div class="section"><div class="sh"><div class="snum">5</div><div class="stitle">Сегментная панель: кто читает и что делает</div></div>
+<div class="sdesc">Панель сегмента «продуктовые команды» (content/segments/product/panel.md, v2.1): 5 персон + анти-персона. У каждой — реакция от первого лица на ЭТОТ текст, «достаёт» (0–10), «говорит» (0–10) и поведенческий прогноз.</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px;margin-bottom:18px">
+
+<div style="background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:16px 18px">
+<div style="display:flex;align-items:center;gap:10px"><span style="font-size:30px">🧑‍💼</span>
+<div><div style="font-weight:700;font-size:14px">П1 · Продакт-менеджер · ЛВР → де-факто ЛПР</div>
+<div class="note" style="line-height:1.4">Что читает как враньё: «обещание „всё в одном“ без цифр — он сам такое пишет в свои роадмапы»</div></div></div>
+<div style="margin:11px 0;padding:10px 13px;background:#F9FAFB;border-left:3px solid #4F46E5;border-radius:0 8px 8px 0;font-size:12.5px;font-style:italic;color:#374151">💭 «Стоп. Они сами написали, что модуля целей нет и Гант зависимости не двигает? Это первый рекламный пост за год, где не врут. Ладно, я поверил. Шаблон возьму»</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:11.5px">
+<span style="background:#EEF2FF;color:#4F46E5;border-radius:20px;padding:3px 10px;font-weight:700">достаёт 8/10</span>
+<span style="background:#EEF2FF;color:#4F46E5;border-radius:20px;padding:3px 10px;font-weight:700">говорит 7/10</span>
+<span style="background:#D1FAE5;color:#065F46;border-radius:20px;padding:3px 10px;font-weight:700">🎯 кликнет</span></div>
+<div class="note" style="margin-top:8px">Единственный вариант сета, который проходит его фильтр «что читает как враньё» в лоб. Но «говорит» ниже, чем в З1: его боль — рассинхрон, а не забывчивость</div></div>
+
+<div style="background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:16px 18px">
+<div style="display:flex;align-items:center;gap:10px"><span style="font-size:30px">🔍</span>
+<div><div style="font-weight:700;font-size:14px">П2 · UX-исследователь / дизайнер · ЛВР</div>
+<div class="note" style="line-height:1.4">Ядро аудитории канала. Возражение №1: «Трекер — это про тикеты и сроки, моя работа туда не ложится»</div></div></div>
+<div style="margin:11px 0;padding:10px 13px;background:#F9FAFB;border-left:3px solid #4F46E5;border-radius:0 8px 8px 0;font-size:12.5px;font-style:italic;color:#374151">💭 «Про пустую страницу — да, узнаю. Но дальше это пост про OKR, Гант и критический путь. Это не мой мир. „План исследования“ мелькнул в списке и всё. Дочитаю из уважения»</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:11.5px">
+<span style="background:#EEF2FF;color:#4F46E5;border-radius:20px;padding:3px 10px;font-weight:700">достаёт 8/10</span>
+<span style="background:#EEF2FF;color:#4F46E5;border-radius:20px;padding:3px 10px;font-weight:700">говорит 6/10</span>
+<span style="background:#FEF3C7;color:#92400E;border-radius:20px;padding:3px 10px;font-weight:700">🎯 дочитает</span></div>
+<div class="note" style="margin-top:8px"><b>Главная просадка варианта.</b> Блок хотелок написан на языке менеджерских модулей — П2 в нём не живёт. Ядро канала теряется ровно там, где текст становится сильнее всего</div></div>
+
+<div style="background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:16px 18px">
+<div style="display:flex;align-items:center;gap:10px"><span style="font-size:30px">📅</span>
+<div><div style="font-weight:700;font-size:14px">П3 · Проджект / деливери · ЛВР → ЛПР в малых</div>
+<div class="note" style="line-height:1.4">Что читает как враньё: «„импорт в один клик“ без оговорок»</div></div></div>
+<div style="margin:11px 0;padding:10px 13px;background:#F9FAFB;border-left:3px solid #4F46E5;border-radius:0 8px 8px 0;font-size:12.5px;font-style:italic;color:#374151">💭 «„В Ганте зависимые даты сами не двигаются“ — вот за это спасибо, я бы узнал об этом на второй неделе и матерился. Сохраню, вернусь когда будем выбирать»</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:11.5px">
+<span style="background:#EEF2FF;color:#4F46E5;border-radius:20px;padding:3px 10px;font-weight:700">достаёт 8/10</span>
+<span style="background:#EEF2FF;color:#4F46E5;border-radius:20px;padding:3px 10px;font-weight:700">говорит 8/10</span>
+<span style="background:#D1FAE5;color:#065F46;border-radius:20px;padding:3px 10px;font-weight:700">🎯 сохранит</span></div>
+<div class="note" style="margin-top:8px">Лучший результат П3 в сете. Хотелка про Гант — его рабочий инструмент, и честное предупреждение он ценит выше обещания</div></div>
+
+<div style="background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:16px 18px">
+<div style="display:flex;align-items:center;gap:10px"><span style="font-size:30px">👔</span>
+<div><div style="font-weight:700;font-size:14px">П4 · CPO / Head of Product · ЛПР по бюджету</div>
+<div class="note" style="line-height:1.4">Что читает как враньё: «проценты без источника и метода замера»</div></div></div>
+<div style="margin:11px 0;padding:10px 13px;background:#F9FAFB;border-left:3px solid #4F46E5;border-radius:0 8px 8px 0;font-size:12.5px;font-style:italic;color:#374151">💭 «Модуля целей нет, стратегия на конец года. Для меня это стоп: у меня шесть команд и OKR — это половина работы. Но то, что они сказали это сами, я запомню. Вернусь в Q4»</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:11.5px">
+<span style="background:#EEF2FF;color:#4F46E5;border-radius:20px;padding:3px 10px;font-weight:700">достаёт 7/10</span>
+<span style="background:#EEF2FF;color:#4F46E5;border-radius:20px;padding:3px 10px;font-weight:700">говорит 7/10</span>
+<span style="background:#FEF3C7;color:#92400E;border-radius:20px;padding:3px 10px;font-weight:700">🎯 сохранит</span></div>
+<div class="note" style="margin-top:8px"><b>Честность работает в обе стороны:</b> она снимает недоверие и одновременно даёт П4 законный повод не покупать сейчас. Это принятая цена жанра, а не дефект</div></div>
+
+<div style="background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:16px 18px">
+<div style="display:flex;align-items:center;gap:10px"><span style="font-size:30px">📊</span>
+<div><div style="font-weight:700;font-size:14px">П5 · Аналитик / продуктовый маркетолог · ЛВР</div>
+<div class="note" style="line-height:1.4">Возражение №1: «Отчёты в таких системах декоративные. Всё равно выгружать в Excel»</div></div></div>
+<div style="margin:11px 0;padding:10px 13px;background:#F9FAFB;border-left:3px solid #4F46E5;border-radius:0 8px 8px 0;font-size:12.5px;font-style:italic;color:#374151">💭 «Текст, где вендор сам перечисляет, чего у него нет, — редкость. Значит, и про время цикла, наверное, не врут. Лайк»</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:11.5px">
+<span style="background:#EEF2FF;color:#4F46E5;border-radius:20px;padding:3px 10px;font-weight:700">достаёт 7/10</span>
+<span style="background:#EEF2FF;color:#4F46E5;border-radius:20px;padding:3px 10px;font-weight:700">говорит 6/10</span>
+<span style="background:#FEF3C7;color:#92400E;border-radius:20px;padding:3px 10px;font-weight:700">🎯 лайкнет</span></div>
+<div class="note" style="margin-top:8px">Честность повышает доверие к соседним claim'ам — механика «минус усиливает плюс» работает даже на персоне, которой пост не адресован</div></div>
+
+<div style="background:#FFFBFB;border:1px solid #FECACA;border-radius:12px;padding:16px 18px">
+<div style="display:flex;align-items:center;gap:10px"><span style="font-size:30px">🚫</span>
+<div><div style="font-weight:700;font-size:14px">Анти-персона · продакт в бигтехе</div>
+<div class="note" style="line-height:1.4">Выбор инструмента не его и никогда не будет. Самый громкий в комментариях</div></div></div>
+<div style="margin:11px 0;padding:10px 13px;background:#FEF2F2;border-left:3px solid #EF4444;border-radius:0 8px 8px 0;font-size:12.5px;font-style:italic;color:#374151">💭 «Уважаю за честность, редко такое вижу. Но модуля целей нет — у нас бы это даже до ИБ не доехало. Пролистал»</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:11.5px">
+<span style="background:#FEE2E2;color:#991B1B;border-radius:20px;padding:3px 10px;font-weight:700">достаёт 7/10</span>
+<span style="background:#FEE2E2;color:#991B1B;border-radius:20px;padding:3px 10px;font-weight:700">говорит 3/10</span>
+<span style="background:#F3F4F6;color:#6B7280;border-radius:20px;padding:3px 10px;font-weight:700">🎯 пролистает</span></div>
+<div class="note" style="margin-top:8px"><b>Хороший знак.</b> Это единственный вариант сета, где анти-персона даже не реагирует — тексту нечем её развлечь. Значит, он не оптимизирован под шум. Проверка панели пройдена с запасом</div></div>
+
+</div>
+<div class="mbox" style="background:#EFF6FF;border-color:#BFDBFE"><h4 style="color:#1D4ED8">🎯 Поведенческий профиль: «Доверительный, отложенный»</h4>
+Действия панели: <b>1×</b> клик · <b>2×</b> сохранение (П3, П4 — оба «вернусь, когда будем выбирать») · <b>1×</b> дочитает · <b>1×</b> реакция · <b>1×</b> пролистает · <b>0×</b> пересылка.<br>
+Профиль редкий и ценный: пост собирает <b>отложенный спрос</b>. Он плохо конвертит сегодня и хорошо работает вторым касанием — когда читатель уже выбирает. Для размещения, которое покупается ради кликов и регистраций, это минус; для второго поста в связке — плюс.</div>
+<div class="mbox"><h4>Распределение «на 100 читателей» (зафиксировано ДО публикации → ab-plan.json, predictions.per100)</h4>
+Из 100 увидевших: <b>пролистают 58</b> · <b>дочитают 42</b> · <b>отреагируют 9</b> · <b>перешлют 2</b> · <b>кликнут 4</b>.<br><br>
+Обоснование: вход слабее З1 (нет цифры и конфликта в первых 90 символах) → пролистают больше. Реакций меньше: канал платит реакциями за эмоцию и узнавание, а этот пост платит фактами. Клик 4% — ниже З1 (6%), потому что между первой ссылкой и второй стоят два абзаца «чего нет» и «чего не починит»: часть читателей уходит по ранней ссылке (это заложено), часть — принимает решение отложить.</div>
+</div>
+
+<div class="section"><div class="sh"><div class="snum">6</div><div class="stitle">Риски после adversarial-верификации</div></div>
+<div class="sdesc">HIGH- и MED-находки проверены тремя скептиками, порог принятия ≥2/3. Ниже — принятые риски и отдельно отклонённые претензии.</div>
+<div class="tw"><table><thead><tr><th>Риск</th><th class="c">Severity</th><th class="c">Скептики</th><th>Суть и привязка</th></tr></thead><tbody>
+<tr><td><b>Ключевой: composite не решает — решает воронка</b></td><td class="c"><span class="tag t-md">MED</span></td><td class="c"><span class="votes vk">3/3 ✓</span></td><td><b>З4 (82.95) и З1 (82.45) статистически связаны: разрыв 0.5 балла — это шум рубрики, а не различие.</b> Тайбрейкер — специфика канала и цель размещения: покупаем <b>клики и регистрации на шаблон</b>, а З4 — пост-прогрев с прогнозом на пересылки при более слабом клике (SCORING-PIPELINE.md, этап 6: «клик и пересылка это разные воронки»). <b>В постановку рекомендован З1.</b> З4 — второй, кандидат на @suda_smotri. Для З2 из этого следует своё: он третий (80.14) и по той же логике воронки проигрывает обоим — его профиль «доверительный, отложенный», а не конверсионный.</td></tr>
+<tr><td><b>Конфликт по бесплатности бьёт именно по этому варианту сильнее всего</b></td><td class="c"><span class="tag t-hi">HIGH</span></td><td class="c"><span class="votes vk">3/3 ✓</span></td><td>KB <code>kaiten-product-facts.md:68</code>: Документы и база знаний бесплатно на всех тарифах, Free бессрочный и без лимита людей. Витрина <code>kaiten.ru/tariffs</code>: «Бесплатный: до 5 пользователей, до 3 пространств, до 5 досок». В текстах сета лимиты сознательно не называются. <b>Здесь severity поднята с MED до HIGH:</b> пост построен на репутации честного и сам перечисляет минусы. Читатель, который поймает умолчание в тексте, хвалящемся честностью, обнулит и блок хотелок — то есть ровно то, за что вариант получил 88. Асимметрия ущерба выше, чем у остальных заходов.</td></tr>
+<tr><td><b>MMF 75 при весе ×2.5 — структурный потолок</b></td><td class="c"><span class="tag t-md">MED</span></td><td class="c"><span class="votes vk">2/3 ✓</span></td><td>Тема шаблонов менее остра как сообщение — это не дефект исполнения, а свойство захода. Автор сам это признаёт («Скучно, знаю»). Правкой копирайта линза не лечится: чинить надо заход, а это уже другой вариант (З1, З4). Третий скептик возразил: «пустая страница врёт» — сильный вход, вопрос только в первой строке. Принято как P1 на первую строку, без иллюзий, что это поднимет линзу выше ~78.</td></tr>
+<tr><td><b>Роадмап — обещание вендора, а не факт</b></td><td class="c"><span class="tag t-lo">LOW</span></td><td class="c"><span class="votes vk">2/3 ✓</span></td><td>Хотелки привязаны к открытому роадмапу с процентами и кварталами (модуль стратегии 0% Q4 2026; критический путь 10% Q3 2026; публичная база знаний 30% Q2 2026 → KB <code>kaiten-roadmap-2026.md</code>). Даты могут сдвинуться, и тогда пост, живущий в ленте месяц (формат 24/30), станет неточным. Формулировки в тексте уже осторожные («в планах», «в работе»), но пред-публикационный чек обязателен: этап 10 SCORING-PIPELINE.md прямо требует сверять хуки на дату выхода, а не написания.</td></tr>
+</tbody></table></div>
+<div class="tw"><table><thead><tr><th>Отклонённая претензия</th><th class="c">Скептики</th><th>Почему снято</th></tr></thead><tbody>
+<tr><td><b>«Минусы отпугнут покупателя — вырезать блок хотелок»</b></td><td class="c"><span class="votes vd">0/3 ✕</span></td><td>Единогласно отклонено. Блок хотелок — <b>это и есть вариант</b>; без него остаётся обычный оффер с MMF 75, то есть текст на ~72. Панель сегмента: «Честный минус работает лучше третьего плюса». Voice-profile: «Не бояться минусов. Пост „плюсы → минусы“ — родной жанр. Честный блок „чего не хватает“ здесь не риск, а условие доверия». Прецедент канала — пост про МАХ: 💩60 прилетело, автор не испугался, и это его корпус.</td></tr>
+<tr><td><b>«„Шаблон не чинит процесс“ убивает оффер»</b></td><td class="c"><span class="votes vd">1/3 ✕</span></td><td>Наоборот: фраза снимает главный скепсис сеньорной аудитории до того, как он сформулирован. Аудитория канала — продакты, которые сами пишут лендинги и опознают приём мгновенно (panel.md: «Манипуляция считывается мгновенно»). Обещание «шаблон починит процесс» они бы прочитали как враньё и потеряли бы доверие ко всему тексту.</td></tr>
+<tr><td><b>«Ссылка стоит слишком рано, до минусов — манипуляция»</b></td><td class="c"><span class="votes vd">1/3 ✕</span></td><td>Это не манипуляция, а компенсация цены жанра. Читатель, готовый кликнуть на плюсах, получает ссылку до того, как текст начнёт честно себя ограничивать. Вторая ссылка ловит тех, кого убедила именно честность. Две точки входа под два разных мотива — корректная конструкция, а не уловка.</td></tr>
+<tr><td><b>«„За что хвалю“ — автор не рецензент, канцелярская конструкция»</b></td><td class="c"><span class="votes vd">1/3 ✕</span></td><td>Канцеляритом не является: «хвалю» — живой глагол, канал такое пишет. Претензия справедлива по жанру (канал наблюдает, а не рецензирует), и она уже оцифрована в Табу 18/20 и Craft 80. Отдельным риском не проходит — уровень P2-полировки под редактуру автора.</td></tr>
+</tbody></table></div>
+</div>
+
+<div class="section"><div class="sh"><div class="snum">7</div><div class="stitle">План правок</div></div>
+<div class="tw"><table><thead><tr><th class="c">Приор.</th><th>Правка</th><th>Зачем</th></tr></thead><tbody>
+<tr><td class="c"><span class="tag t-hi">P0</span></td><td><b>Развести конфликт по бесплатности Документов до публикации.</b> Владелец KB сверяет <code>kaiten-product-facts.md:68</code> с витриной <code>kaiten.ru/tariffs</code> и выдаёт одну формулировку. Для этого варианта — блокер: пока не разведён, фразу «Документы и база знаний доступны бесплатно» либо оставить строго без лимитов, либо снять совсем.</td><td>Единственный P0 варианта. Умолчание в тексте, который хвалится честностью, обнуляет блок хотелок — то есть всё, за что вариант получил 88</td></tr>
+<tr><td class="c"><span class="tag t-md">P1</span></td><td><b>Переписать первую строку под стоп-тест.</b> Сейчас: «Признаюсь, за последние лет пять я начинал почти каждый продукт с пустой страницы». В первых ~90 символах (свёрнутый вид и пуш) нет ни цифры, ни конфликта. Кандидат: вынести афоризм вперёд — «<b>Пустая страница врёт.</b>» первой строкой, признание — второй.</td><td>Единственная правка, двигающая MMF (×2.5). Заодно закрывает главный пробел оформления — заголовок жирным первой строкой</td></tr>
+<tr><td class="c"><span class="tag t-md">P1</span></td><td><b>Оформить хотелки нумерацией «1/ 2/ 3/ 4/».</b> Сейчас четыре факта идут сплошным абзацем — самое плотное место текста. Автор посты этого жанра (МАХ, кризис, хайлайты) оформляет именно нумерацией.</td><td>Чинит сразу два: Ритм 18/20 и Оформление 15/20 → voice ~92. И делает главный актив варианта читаемым</td></tr>
+<tr><td class="c"><span class="tag t-md">P1</span></td><td><b>Сверить роадмап на дату выхода, а не написания.</b> Проценты и кварталы (0% Q4 2026 · 10% Q3 2026 · 30% Q2 2026) — живые. Пост висит в ленте месяц (24/30).</td><td>Этап 10 пред-публикационного чека. Сдвиг даты превратит главный актив варианта в неточность</td></tr>
+<tr><td class="c"><span class="tag t-lo">P2</span></td><td><b>Дать П2 одну строку.</b> «План исследования» сейчас мелькает в перечне. Одна фраза о том, что выводы исследования цепляются к карточке, вернула бы ядро канала — П2 просаживает Persona до 76.</td><td>Persona. Осторожно: не превращать в З4, у сета есть правило разнообразия</td></tr>
+<tr><td class="c"><span class="tag t-lo">P2</span></td><td>Панчлайн-афоризм в конец вместо «Потестить 👉»; убрать «вектор честный»; «За что хвалю» → наблюдательная связка; UTM + erid при публикации.</td><td>Полировка под редактуру автора</td></tr>
+</tbody></table></div>
+<div class="mbox"><h4>Статус: 1 P0 (общесетевой, но здесь блокирующий), 3 P1</h4>
+Вариант в зелёной зоне и годен к постановке, но в сете он третий. Роль, в которой он сильнее всего: <b>второе касание</b> — пост для аудитории, которая уже выбирает трекер. Профиль панели («2× сохранит, вернусь когда будем выбирать») это подтверждает прямо.</div>
+</div>
+
+<div class="section"><div class="sh"><div class="snum">8</div><div class="stitle">Методология и источники</div></div>
+<div class="mbox"><h4>Как считали</h4>
+6 линз × sub-критерии → 0–100. Composite = Σ(Линза × Вес) / 11, веса: MMF ×2.5 · Persona ×2 · Objections ×2 · Claims ×2 · CTA ×1.5 · Craft ×1. Зоны: 🟢 ≥80 · 🟡 67–79 · 🔴 &lt;67.<br>
+<b>Дисциплина оценки (SCORING-PIPELINE.md, этап 4½):</b> якорный скоринг относительно трёх точек датасета (верх ~86 Света З1 «Куда переехать из Notion» · середина ~67 EvaTeam · низ ~56 Битрикс24) → форс-ранжирование 1→5 по каждой линзе без ничьих → только потом баллы. Правило разброса: 82.95 − 75.82 = 7.13 ≥ 5 ✅.<br>
+<b>Стоп-тест 3 секунд (этап 4¾):</b> не пройден — в первых ~90 символах нет цифры, конфликта или вопроса. Результат учтён в MMF 75 и вынесен в P1.<br>
+Voice-match (этап 5): 5 чек-пунктов × 20, гейт ≥70, в composite не входит. Панель (этап 6): 5 персон + анти-персона, «достаёт / говорит / действие» + per100. Adversarial (этап 7): 3 скептика, порог ≥2/3.</div>
+<div class="mbox"><h4>Данные интейка (этап 0)</h4>
+Голос ✅ подтверждён, 21 реальный пост март–июль 2026 (<code>voice-profile.md</code>, корпус <code>real-posts.md</code>) · Паспорт канала ✅ (<code>channel.md</code>) · Панель сегмента ✅ собрана под прогон (<code>content/segments/product/panel.md</code>) · ICP ✅ (<code>content/references/icp-kaiten.md</code>, боли дословно) · KB продукта ✅ · Роадмап ✅ (<code>kaiten-roadmap-2026.md</code>) · Экономика ✅ из карточки (24/30 — 40 000 ₽, скидка Кайтену 10% → 36 000 ₽).<br>
+<b>Чего нет:</b> комментарии подписчиков ❌ (реплики персон — по ICP и корпусу автора) · TGStat-выгрузка ❌ · <code>competitors.json</code> для сегмента product ❌ — конкурентного бенчмарка нет.</div>
+<div class="mbox"><h4>Источники фактов варианта</h4>
+• Шаблон Double Diamond и 9 шаблонов для продактов — посадочная страница сета <code>elli.kaiten.ru/p/558b634c-0a08-4a3c-b423-30b5fbff146e</code>, статья <code>kaiten.ru/blog/9-shablonov-dlia-prodaktov/</code><br>
+• Модуль стратегии (OKR/KPI) — 0%, план Q4 2026 → KB <code>kaiten-roadmap-2026.md</code><br>
+• Критический путь в Ганте — 10%, план Q3 2026 → KB <code>kaiten-roadmap-2026.md</code><br>
+• Публичная база знаний — 30%, план Q2 2026 → KB <code>kaiten-roadmap-2026.md</code><br>
+• В Ганте нет автосдвига зависимых дат → KB <code>cases.md:1639</code> (кейс Kim Building Buro, минус назван клиентом)<br>
+• Документы и база знаний бесплатно на всех тарифах; Free бессрочный, без лимита людей — KB <code>references/kaiten-product-facts.md:68</code> · <b>конфликтует с</b> <code>kaiten.ru/tariffs</code> → RISK<br>
+• Канбан с WIP-лимитами и дорожками, спринты, портфель проектов, время цикла, привязка документа к карточке, история правок — KB <code>references/kaiten-product-facts.md</code><br>
+• Боли персон дословно — <code>content/segments/product/panel.md</code> ← <code>content/references/icp-kaiten.md</code><br>
+• Приём «Плюсы → Минусы → Что дальше» и прецедент поста про МАХ (💩60) — <code>voice-profile.md</code>, таблица приёмов<br>
+• Якоря датасета — <code>docs/scoring-dataset.md</code> · спека отчёта — <code>docs/SCORING-PIPELINE.md</code> (выход прогона v2, строки 145–160)</div>
+<div class="mbox"><h4>Integrity-гейт</h4>
+Пост — основа для авторской адаптации по оферте канала. Фабрикации опыта автора нет: «начинал продукт с пустой страницы» — утверждение о личной привычке, без метрик и без утверждения о внедрении Kaiten. Продукт вводится третьим лицом («команда Кайтена выложила»). Аналитика/отчёты — платный модуль, граница соблюдена.</div>
+</div>
+
+<div style="text-align:center;color:#9CA3AF;font-size:11.5px;padding:10px 0 36px">
+Kaiten · Скоринг креатива «Пустая страница врёт» · канал «Про удобство» (@proudobstvo), Михаил Греков<br>
+Заход №2 · плюсы и хотелки · Composite 80.14/100 · 🟢 Voice 87 · Objections 88 (высшая в сете) · 15 июля 2026<br>
+<b>Решение сета:</b> З4 (82.95) и З1 (82.45) связаны — разрыв 0.5 = шум. Тайбрейкер по воронке (клики и регистрации) → в постановку рекомендован З1. З4 — второй, кандидат на @suda_smotri.
+</div>
+</div></body></html>

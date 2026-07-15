@@ -38,3 +38,4 @@ content/channels/<slug>/
 | «Уставший техдир» | [tekhdir-mikheev](tekhdir-mikheev/) | it-dev | ⚠️ черновик | — |
 | «Деплой» | [deploy-botanov](deploy-botanov/) | it-dev | ⚠️ черновик | week-1 (5 вариантов, скоринги в public/) |
 | «Пименов вещает» | [pimenov](pimenov/) | it-dev | ⚠️ черновик | week-1 (5 вариантов, скоринги в public/) |
+| «Про удобство» (Михаил Греков) | [proudobstvo-grekov](proudobstvo-grekov/) | [product](../segments/product/panel.md) | ✅ подтверждён (21 пост) | 2026-w3 (5 вариантов, 🏆 З1, валидатор 0) |
